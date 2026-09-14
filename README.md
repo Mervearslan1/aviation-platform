@@ -32,7 +32,9 @@ com.aviation.platform
 Öğrenme: önce **kule**. Dinle / konuş / senaryo / IVAO. Pilot hattı sonra. Udemy izle-bitir modeli yok.
 
 Yazı editörü: http://localhost:8080/writer/index.html  
-Kule ol (Duolingo tarzı): http://localhost:8080/tower/index.html
+Kule ol: http://localhost:8080/tower/index.html  
+Pilot (iskelet): http://localhost:8080/pilot/index.html  
+Kule rehberi: docs/kule-egitim-rehberi.md
 
 ## Çalıştırma
 

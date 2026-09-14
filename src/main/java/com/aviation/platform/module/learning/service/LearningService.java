@@ -6,6 +6,7 @@ import com.aviation.platform.module.learning.dto.request.SavePathRequest;
 import com.aviation.platform.module.learning.dto.request.SaveStepRequest;
 import com.aviation.platform.module.learning.dto.response.PathResponse;
 import com.aviation.platform.module.learning.dto.response.StepResponse;
+import com.aviation.platform.module.learning.entity.TrainingTrack;
 
 import java.util.List;
 
@@ -21,9 +22,9 @@ public interface LearningService {
 
     List<PathResponse> listPublished(com.aviation.platform.module.learning.entity.TrainingTrack track);
 
-    PathResponse getPublished(String slug, CurrentUser actor);
+    PathResponse getPublished(String slug, CurrentUser actor, TrainingTrack track);
 
-    PathResponse enroll(Long pathId, CurrentUser actor);
+    PathResponse enroll(Long pathId, CurrentUser actor, TrainingTrack track);
 
     StepResponse openStep(Long pathId, Long stepId, CurrentUser actor);
 

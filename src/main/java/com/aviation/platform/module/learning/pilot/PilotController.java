@@ -1,0 +1,81 @@
+package com.aviation.platform.module.learning.pilot;
+
+import com.aviation.platform.common.response.ApiResponse;
+import com.aviation.platform.common.security.principal.CurrentUser;
+import com.aviation.platform.module.learning.dto.request.CompleteStepRequest;
+import com.aviation.platform.module.learning.dto.response.PathResponse;
+import com.aviation.platform.module.learning.dto.response.StepResponse;
+import com.aviation.platform.module.learning.entity.TrainingTrack;
+import com.aviation.platform.module.learning.service.LearningService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/pilot")
+@Tag(name = "Pilot", description = "Pilot hattı — kule ile aynı omurga, müfredat sonra detaylanacak")
+public class PilotController {
+
+    private final LearningService learningService;
+
+    public PilotController(LearningService learningService) {
+        this.learningService = learningService;
+    }
+
+    @GetMapping("/paths")
+    @SecurityRequirements
+    @Operation(summary = "Pilot öğrenme yolları")
+    public ApiResponse<List<PathResponse>> list() {
+        return ApiResponse.of(learningService.listPublished(TrainingTrack.PILOT));
+    }
+
+    @GetMapping("/paths/{slug}")
+    @SecurityRequirements
+    public ApiResponse<PathResponse> get(
+            @PathVariable String slug,
+            @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor
+    ) {
+        return ApiResponse.of(learningService.getPublished(slug, actor, TrainingTrack.PILOT));
+    }
+
+    @PostMapping("/paths/{id}/enroll")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<PathResponse> enroll(
+            @PathVariable Long id,
+            @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor
+    ) {
+        return ApiResponse.of(learningService.enroll(id, actor, TrainingTrack.PILOT));
+    }
+
+    @PostMapping("/paths/{pathId}/steps/{stepId}/open")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<StepResponse> open(
+            @PathVariable Long pathId,
+            @PathVariable Long stepId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor
+    ) {
+        return ApiResponse.of(learningService.openStep(pathId, stepId, actor));
+    }
+
+    @PostMapping("/paths/{pathId}/steps/{stepId}/complete")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<PathResponse> complete(
+            @PathVariable Long pathId,
+            @PathVariable Long stepId,
+            @RequestBody(required = false) CompleteStepRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor
+    ) {
+        return ApiResponse.of(learningService.completeStep(pathId, stepId, request, actor));
+    }
+}

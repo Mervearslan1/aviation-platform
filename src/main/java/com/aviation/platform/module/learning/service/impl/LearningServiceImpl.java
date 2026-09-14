@@ -21,7 +21,9 @@ import com.aviation.platform.module.learning.entity.TrainingTrack;
 import com.aviation.platform.module.learning.entity.UserPathProgress;
 import com.aviation.platform.module.learning.entity.UserStepProgress;
 import com.aviation.platform.module.learning.repository.LearningPathRepository;
+import com.aviation.platform.module.learning.dto.response.GlossaryTermResponse;
 import com.aviation.platform.module.learning.repository.LearningStepRepository;
+import com.aviation.platform.module.learning.repository.LearningStepTermRepository;
 import com.aviation.platform.module.learning.repository.UserPathProgressRepository;
 import com.aviation.platform.module.learning.repository.UserStepProgressRepository;
 import com.aviation.platform.module.learning.service.LearningService;
@@ -46,6 +48,7 @@ public class LearningServiceImpl implements LearningService {
     private final UserStepProgressRepository stepProgressRepository;
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final LearningStepTermRepository termRepository;
 
     public LearningServiceImpl(
             LearningPathRepository pathRepository,
@@ -53,7 +56,8 @@ public class LearningServiceImpl implements LearningService {
             UserPathProgressRepository pathProgressRepository,
             UserStepProgressRepository stepProgressRepository,
             UserRepository userRepository,
-            AuditService auditService
+            AuditService auditService,
+            LearningStepTermRepository termRepository
     ) {
         this.pathRepository = pathRepository;
         this.stepRepository = stepRepository;
@@ -61,6 +65,7 @@ public class LearningServiceImpl implements LearningService {
         this.stepProgressRepository = stepProgressRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
+        this.termRepository = termRepository;
     }
 
     @Override
@@ -125,7 +130,7 @@ public class LearningServiceImpl implements LearningService {
             step.setRequired(request.required());
         }
         stepRepository.save(step);
-        return StepResponse.unlocked(step, StepProgressStatus.AVAILABLE);
+        return StepResponse.unlocked(step, StepProgressStatus.AVAILABLE, List.of());
     }
 
     @Override
@@ -141,10 +146,10 @@ public class LearningServiceImpl implements LearningService {
 
     @Override
     @Transactional(readOnly = true)
-    public PathResponse getPublished(String slug, CurrentUser actor) {
+    public PathResponse getPublished(String slug, CurrentUser actor, TrainingTrack track) {
         LearningPath path = pathRepository.findBySlugWithSteps(slug)
                 .orElseThrow(() -> ApiException.notFound("Learning path not found"));
-        if (!path.getStatus().isPublic()) {
+        if (!path.getStatus().isPublic() || (track != null && path.getTrack() != track)) {
             throw ApiException.notFound("Learning path not found");
         }
         List<LearningStep> steps = path.getSteps().stream()
@@ -160,10 +165,10 @@ public class LearningServiceImpl implements LearningService {
     }
 
     @Override
-    public PathResponse enroll(Long pathId, CurrentUser actor) {
+    public PathResponse enroll(Long pathId, CurrentUser actor, TrainingTrack track) {
         LearningPath path = pathRepository.findByIdWithSteps(pathId)
                 .orElseThrow(() -> ApiException.notFound("Learning path not found"));
-        if (!path.getStatus().isPublic()) {
+        if (!path.getStatus().isPublic() || (track != null && path.getTrack() != track)) {
             throw ApiException.notFound("Learning path not found");
         }
         User user = userRepository.findById(actor.id()).orElseThrow(() -> ApiException.notFound("User not found"));
@@ -194,7 +199,7 @@ public class LearningServiceImpl implements LearningService {
             progress.setStatus(StepProgressStatus.IN_PROGRESS);
             progress.setStartedAt(Instant.now());
         }
-        return StepResponse.unlocked(step, progress.getStatus());
+        return StepResponse.unlocked(step, progress.getStatus(), glossary(step.getId()));
     }
 
     @Override
@@ -235,12 +240,13 @@ public class LearningServiceImpl implements LearningService {
                 byStep.put(item.getStep().getId(), item.getStatus());
             }
         }
+        Map<Long, List<GlossaryTermResponse>> glossaryByStep = glossaryByStepIds(steps.stream().map(LearningStep::getId).toList());
         List<StepResponse> responses = steps.stream().map(step -> {
             StepProgressStatus status = byStep.getOrDefault(step.getId(), StepProgressStatus.LOCKED);
             if (enrollment == null || status == StepProgressStatus.LOCKED) {
                 return StepResponse.outline(step, status);
             }
-            return StepResponse.unlocked(step, status);
+            return StepResponse.unlocked(step, status, glossaryByStep.getOrDefault(step.getId(), List.of()));
         }).toList();
         Integer percent = enrollment == null ? null : enrollment.getProgressPercent();
         PathProgressStatus enrollmentStatus = enrollment == null ? null : enrollment.getStatus();
@@ -319,6 +325,22 @@ public class LearningServiceImpl implements LearningService {
     private UserStepProgress requireProgress(Long userId, Long stepId) {
         return stepProgressRepository.findByUserIdAndStepId(userId, stepId)
                 .orElseThrow(() -> ApiException.forbidden("Enroll in the learning path first"));
+    }
+
+    private List<GlossaryTermResponse> glossary(Long stepId) {
+        return glossaryByStepIds(List.of(stepId)).getOrDefault(stepId, List.of());
+    }
+
+    private Map<Long, List<GlossaryTermResponse>> glossaryByStepIds(List<Long> stepIds) {
+        if (stepIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, List<GlossaryTermResponse>> map = new HashMap<>();
+        for (var term : termRepository.findByStepIdInOrderBySortIndexAsc(stepIds)) {
+            map.computeIfAbsent(term.getStep().getId(), key -> new java.util.ArrayList<>())
+                    .add(GlossaryTermResponse.from(term));
+        }
+        return map;
     }
 
     private String uniquePathSlug(String title) {

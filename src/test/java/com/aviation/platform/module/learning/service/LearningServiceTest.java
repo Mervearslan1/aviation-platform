@@ -12,6 +12,7 @@ import com.aviation.platform.module.learning.entity.StepType;
 import com.aviation.platform.module.learning.entity.UserStepProgress;
 import com.aviation.platform.module.learning.repository.LearningPathRepository;
 import com.aviation.platform.module.learning.repository.LearningStepRepository;
+import com.aviation.platform.module.learning.repository.LearningStepTermRepository;
 import com.aviation.platform.module.learning.repository.UserPathProgressRepository;
 import com.aviation.platform.module.learning.repository.UserStepProgressRepository;
 import com.aviation.platform.module.learning.service.impl.LearningServiceImpl;
@@ -46,6 +47,8 @@ class LearningServiceTest {
     private UserRepository userRepository;
     @Mock
     private AuditService auditService;
+    @Mock
+    private LearningStepTermRepository termRepository;
 
     private LearningService learningService;
 
@@ -57,7 +60,8 @@ class LearningServiceTest {
                 pathProgressRepository,
                 stepProgressRepository,
                 userRepository,
-                auditService
+                auditService,
+                termRepository
         );
     }
 

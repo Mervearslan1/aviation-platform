@@ -4,6 +4,7 @@ import com.aviation.platform.module.learning.entity.LearningStep;
 import com.aviation.platform.module.learning.entity.StepProgressStatus;
 import com.aviation.platform.module.learning.entity.StepType;
 
+import java.util.List;
 import java.util.Map;
 
 public record StepResponse(
@@ -16,7 +17,8 @@ public record StepResponse(
         boolean required,
         StepProgressStatus progressStatus,
         String contentHtml,
-        Map<String, Object> configuration
+        Map<String, Object> configuration,
+        List<GlossaryTermResponse> glossary
 ) {
 
     public static StepResponse outline(LearningStep step, StepProgressStatus progress) {
@@ -30,11 +32,12 @@ public record StepResponse(
                 step.isRequired(),
                 progress,
                 null,
-                null
+                null,
+                List.of()
         );
     }
 
-    public static StepResponse unlocked(LearningStep step, StepProgressStatus progress) {
+    public static StepResponse unlocked(LearningStep step, StepProgressStatus progress, List<GlossaryTermResponse> glossary) {
         Map<String, Object> config = step.getConfiguration();
         if (config != null) {
             config = new java.util.LinkedHashMap<>(config);
@@ -52,7 +55,8 @@ public record StepResponse(
                 step.isRequired(),
                 progress,
                 step.getContentHtml(),
-                config
+                config,
+                glossary == null ? List.of() : glossary
         );
     }
 }

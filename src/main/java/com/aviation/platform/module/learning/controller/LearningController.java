@@ -52,9 +52,10 @@ public class LearningController {
     @Operation(summary = "Yol detayı (kilitli adımların içeriği gizlenir)")
     public ApiResponse<PathResponse> get(
             @PathVariable String slug,
+            @RequestParam(required = false) TrainingTrack track,
             @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor
     ) {
-        return ApiResponse.of(learningService.getPublished(slug, actor));
+        return ApiResponse.of(learningService.getPublished(slug, actor, track));
     }
 
     @PostMapping("/{id}/enroll")
@@ -64,7 +65,7 @@ public class LearningController {
             @PathVariable Long id,
             @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor
     ) {
-        return ApiResponse.of(learningService.enroll(id, actor));
+        return ApiResponse.of(learningService.enroll(id, actor, null));
     }
 
     @PostMapping("/{pathId}/steps/{stepId}/open")
