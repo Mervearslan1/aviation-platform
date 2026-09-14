@@ -97,7 +97,9 @@
     }).join("");
     current = path.steps.find(s => s.progressStatus === "IN_PROGRESS" || s.progressStatus === "AVAILABLE") || path.steps.find(s => s.progressStatus !== "COMPLETED");
     if (!current || path.enrollmentStatus === "COMPLETED") {
-      card.innerHTML = `<h2>Kule oturumu bitti</h2><p>IVAO'da dinlemeye devam et. Pilot hattı sonra açılacak.</p><a href="https://www.ivao.aero" target="_blank"><button>IVAO'ya git</button></a>`;
+      card.innerHTML = `<h2>Kule oturumu bitti</h2><p>IVAO'da dinlemeye devam et.</p>
+        <a href="https://www.ivao.aero" target="_blank"><button>IVAO'ya git</button></a>
+        <a href="/pilot/index.html"><button class="ghost">Pilot hattı</button></a>`;
       return;
     }
     openAndShow();

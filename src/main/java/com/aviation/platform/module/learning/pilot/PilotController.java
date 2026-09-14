@@ -24,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/pilot")
-@Tag(name = "Pilot", description = "Pilot hattı — kule ile aynı omurga, müfredat sonra detaylanacak")
+@Tag(name = "Pilot", description = "Pilot hattı — lisans, IVAO PP, ATC fraseolojisi, sözlük")
 public class PilotController {
 
     private final LearningService learningService;

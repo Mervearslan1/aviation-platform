@@ -2,19 +2,184 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Aviation Platform — Pilot ol</title>
   <style>
-    body { font-family: "Segoe UI", sans-serif; background: #111827; color: #e5e7eb; margin: 0; }
-    main { max-width: 640px; margin: 48px auto; padding: 24px; background: #1f2937; border-radius: 16px; }
-    a { color: #93c5fd; }
+    :root { font-family: "Segoe UI", sans-serif; }
+    body { margin: 0; background: #0f1a12; color: #eef6ee; }
+    header { background: #1a3d28; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+    main { max-width: 720px; margin: 24px auto; padding: 0 16px 48px; }
+    .card { background: #173323; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+    button { background: #3dd68c; color: #042012; border: 0; padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; margin: 6px 6px 0 0; }
+    button.ghost { background: #2a4d38; color: #eef6ee; }
+    button.danger { background: #f0b429; }
+    input { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 0; margin: 6px 0 12px; }
+    .opt { display: block; width: 100%; text-align: left; margin-top: 8px; background: #1f5a3a; color: #fff; }
+    .muted { color: #9cb3a4; font-size: 14px; }
+    .xp { background: #0e2718; display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 13px; }
+    .steps { display: flex; gap: 6px; margin: 12px 0 18px; flex-wrap: wrap; }
+    .dot { width: 28px; height: 28px; border-radius: 50%; background: #2a4d38; display: grid; place-items: center; font-size: 12px; }
+    .dot.on { background: #3dd68c; color: #042012; }
+    .dot.done { background: #1f8a5b; }
+    #login { max-width: 420px; margin: 60px auto; }
   </style>
 </head>
 <body>
-<main>
-  <h1>Pilot hattı</h1>
-  <p>Kule ile aynı omurga: adım adım ilerleme + her adımda terim sözlüğü + etkileşim.</p>
-  <p>Müfredat henüz yer tutucu. Kule eğitimine devam: <a href="/tower/index.html">Kule ol</a></p>
-  <p>API: <code>GET /api/v1/pilot/paths</code></p>
+<header>
+  <strong>PILOT OL</strong>
+  <span id="who" class="muted"></span>
+</header>
+
+<section id="login" class="card">
+  <h2>Kokpite gir</h2>
+  <p class="muted">ATC ile konuş, read-back yap, adım adım ilerle. Kule hattı ayrı. Admin: admin@aviation-platform.local / Admin123!</p>
+  <label>E-posta</label>
+  <input id="email" value="admin@aviation-platform.local"/>
+  <label>Şifre</label>
+  <input id="password" type="password" value="Admin123!"/>
+  <button onclick="login()">Başla</button>
+  <p id="loginError" class="muted"></p>
+</section>
+
+<main id="app" hidden>
+  <p class="xp" id="xp">0%</p>
+  <div class="steps" id="dots"></div>
+  <article class="card" id="card"></article>
 </main>
+
+<script>
+  let token = localStorage.getItem("aviationToken");
+  let path = null;
+  let current = null;
+
+  async function api(url, options = {}) {
+    const headers = Object.assign({}, options.headers || {});
+    if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
+    if (token) headers.Authorization = "Bearer " + token;
+    const res = await fetch(url, Object.assign({}, options, { headers }));
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.message || res.statusText);
+    return body;
+  }
+
+  async function login() {
+    try {
+      const body = await api("/api/v1/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: email.value, password: password.value })
+      });
+      token = body.data.accessToken;
+      localStorage.setItem("aviationToken", token);
+      who.textContent = email.value;
+      login.hidden = true;
+      app.hidden = false;
+      await boot();
+    } catch (e) {
+      loginError.textContent = e.message;
+    }
+  }
+
+  async function boot() {
+    const list = await api("/api/v1/pilot/paths");
+    const item = list.data[0];
+    if (!item) { card.innerHTML = "<p>Pilot yolu yok.</p>"; return; }
+    const enrolled = await api("/api/v1/pilot/paths/" + item.id + "/enroll", { method: "POST", body: "{}" });
+    path = enrolled.data;
+    render();
+  }
+
+  function render() {
+    xp.textContent = (path.progressPercent || 0) + "%  ·  " + (path.enrollmentStatus || "");
+    dots.innerHTML = path.steps.map((s, i) => {
+      const cls = s.progressStatus === "COMPLETED" ? "done" : (s.id === (current && current.id) || s.progressStatus === "AVAILABLE" || s.progressStatus === "IN_PROGRESS" ? "on" : "");
+      return `<div class="dot ${cls}">${i + 1}</div>`;
+    }).join("");
+    current = path.steps.find(s => s.progressStatus === "IN_PROGRESS" || s.progressStatus === "AVAILABLE") || path.steps.find(s => s.progressStatus !== "COMPLETED");
+    if (!current || path.enrollmentStatus === "COMPLETED") {
+      card.innerHTML = `<h2>Pilot oturumu bitti</h2><p>IVAO'da circuit ve ATC ile uç. Sonraki faz: uçaklar.</p>
+        <a href="https://www.ivao.aero" target="_blank"><button>IVAO'ya git</button></a>
+        <a href="/tower/index.html"><button class="ghost">Kule hattı</button></a>`;
+      return;
+    }
+    openAndShow();
+  }
+
+  async function openAndShow() {
+    const opened = await api(`/api/v1/pilot/paths/${path.id}/steps/${current.id}/open`, { method: "POST", body: "{}" });
+    current = opened.data;
+    const cfg = current.configuration || {};
+    let inner = `<p class="muted">${current.stepType}</p><h2>${current.title}</h2>${current.contentHtml || ""}`;
+    if (current.stepType === "LISTEN") {
+      inner += `<p><button onclick="speakText(\`${esc(cfg.promptText || "")}\`)">Çağrıyı dinle</button></p>`;
+      inner += (cfg.options || []).map(o => `<button class="opt" onclick="complete({answer:'${esc(o)}'})">${o}</button>`).join("");
+    } else if (current.stepType === "SPEAK") {
+      inner += `<p><button onclick="speakText(\`${esc(cfg.promptText || "")}\`)">Durumu dinle</button>
+                <button class="danger" onclick="listenSpeak()">Mikrofon — pilot gibi konuş</button></p>
+                <p id="heard" class="muted"></p>`;
+    } else if (current.stepType === "SCENARIO") {
+      inner += `<p><strong>Senaryo:</strong> ${cfg.situation || ""}</p>`;
+      inner += (cfg.options || []).map(o => `<button class="opt" onclick="complete({answer:'${esc(o)}'})">${o}</button>`).join("");
+    } else if (current.stepType === "LIVE_PRACTICE") {
+      inner += `<p>${cfg.instruction || ""}</p><p><a href="${cfg.url || "https://www.ivao.aero"}" target="_blank"><button>IVAO'yu aç</button></a>
+                <button class="ghost" onclick="complete({})">Uçtum / dinledim, bitir</button></p>`;
+    } else {
+      inner += `<button onclick="complete({})">Adımı tamamla</button>`;
+    }
+    if (current.glossary && current.glossary.length) {
+      inner += "<h3>Bu adımın terimleri</h3><table style='width:100%;font-size:14px'>";
+      current.glossary.forEach(g => {
+        inner += `<tr><td style="padding:6px;border-bottom:1px solid #2a4d38;width:30%"><strong>${g.term}</strong></td><td style="padding:6px;border-bottom:1px solid #2a4d38">${g.meaning}</td></tr>`;
+      });
+      inner += "</table>";
+    }
+    inner += `<p id="err" class="muted"></p>`;
+    card.innerHTML = inner;
+  }
+
+  function speakText(text) {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-GB";
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }
+
+  function listenSpeak() {
+    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Rec) { heard.textContent = "Bu tarayıcı ses tanımayı desteklemiyor (Chrome dene)."; return; }
+    const rec = new Rec();
+    rec.lang = "en-GB";
+    rec.onresult = (ev) => {
+      const text = ev.results[0][0].transcript;
+      heard.textContent = "Duyulan: " + text;
+      complete({ transcript: text });
+    };
+    rec.onerror = () => { heard.textContent = "Mikrofon alınamadı."; };
+    rec.start();
+  }
+
+  async function complete(payload) {
+    try {
+      const body = await api(`/api/v1/pilot/paths/${path.id}/steps/${current.id}/complete`, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      path = body.data;
+      render();
+    } catch (e) {
+      const el = document.getElementById("err");
+      if (el) el.textContent = e.message;
+    }
+  }
+
+  function esc(s) {
+    return String(s || "").replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/'/g, "\\'");
+  }
+
+  if (token) {
+    login.hidden = true;
+    app.hidden = false;
+    boot().catch(e => { login.hidden = false; app.hidden = true; loginError.textContent = e.message; });
+  }
+</script>
 </body>
 </html>

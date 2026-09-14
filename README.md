@@ -33,8 +33,8 @@ com.aviation.platform
 
 Yazı editörü: http://localhost:8080/writer/index.html  
 Kule ol: http://localhost:8080/tower/index.html  
-Pilot (iskelet): http://localhost:8080/pilot/index.html  
-Kule rehberi: docs/kule-egitim-rehberi.md
+Pilot ol: http://localhost:8080/pilot/index.html  
+Rehberler: docs/kule-egitim-rehberi.md , docs/pilot-egitim-rehberi.md
 
 ## Çalıştırma
 
