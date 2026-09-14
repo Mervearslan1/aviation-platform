@@ -67,9 +67,13 @@ public class SecurityConfig {
                                 "/api/v1/tower/paths",
                                 "/api/v1/tower/paths/{slug}",
                                 "/api/v1/pilot/paths",
-                                "/api/v1/pilot/paths/{slug}"
+                                "/api/v1/pilot/paths/{slug}",
+                                "/api/v1/aircraft",
+                                "/api/v1/aircraft/*/parts",
+                                "/api/v1/aircraft/*/simulations"
                         ).permitAll()
-                        .requestMatchers("/writer", "/writer/**", "/tower", "/tower/**", "/pilot", "/pilot/**").permitAll()
+                        .requestMatchers("/writer", "/writer/**", "/tower", "/tower/**", "/pilot", "/pilot/**",
+                                "/cockpit", "/cockpit/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",

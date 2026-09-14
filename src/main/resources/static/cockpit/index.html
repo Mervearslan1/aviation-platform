@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Eğitim Simülasyonları — Kokpit</title>
+  <style>
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: #0c1018; color: #e8eef6; }
+    header { background: #161d2b; padding: 12px 18px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    button { background: #3d7eff; color: #fff; border: 0; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+    button.ghost { background: #2a3346; }
+    button.danger { background: #c23b3b; }
+    select, input { padding: 8px; border-radius: 8px; border: 0; }
+    main { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 56px); }
+    aside { background: #121826; padding: 12px; overflow: auto; }
+    section { padding: 16px; }
+    .part { display: block; width: 100%; text-align: left; margin: 4px 0; background: #1c2434; color: #e8eef6; }
+    .part.ok { outline: 2px solid #3dd68c; }
+    .msg { padding: 10px; background: #1c2434; border-radius: 8px; margin-bottom: 12px; }
+    .crash { background: #3a1515; }
+    .pass { background: #153a24; }
+    .panel h4 { margin: 12px 0 4px; color: #8ab4ff; }
+  </style>
+</head>
+<body>
+<header>
+  <strong>EĞİTİM SİMÜLASYONLARI</strong>
+  <select id="ac"></select>
+  <button onclick="mode='learn'; loadLearn()">Tuş öğren</button>
+  <button class="ghost" onclick="mode='sim'; loadSims()">Simülasyonlar</button>
+  <span id="who"></span>
+</header>
+<div id="login" style="max-width:420px;margin:40px auto">
+  <p>Kokpit tuşlarını sırayla öğren, sonra simülasyonda dene. Yanlış sıra uçağı düşürebilir.</p>
+  <input id="email" value="admin@aviation-platform.local"/>
+  <input id="password" type="password" value="Admin123!"/>
+  <button onclick="login()">Giriş</button>
+  <p id="loginError"></p>
+</div>
+<main id="app" hidden>
+  <aside id="side"></aside>
+  <section>
+    <div id="msg" class="msg"></div>
+    <div id="board"></div>
+  </section>
+</main>
+<script>
+  let token = localStorage.getItem("aviationToken");
+  let mode = "learn";
+  let lesson = null;
+  let session = null;
+  let parts = [];
+
+  async function api(url, options = {}) {
+    const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
+    if (token) headers.Authorization = "Bearer " + token;
+    const res = await fetch(url, Object.assign({}, options, { headers }));
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.message || res.statusText);
+    return body;
+  }
+
+  async function login() {
+    try {
+      const body = await api("/api/v1/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: email.value, password: password.value })
+      });
+      token = body.data.accessToken;
+      localStorage.setItem("aviationToken", token);
+      who.textContent = email.value;
+      login.hidden = true;
+      app.hidden = false;
+      await boot();
+    } catch (e) { loginError.textContent = e.message; }
+  }
+
+  async function boot() {
+    const list = await api("/api/v1/aircraft");
+    ac.innerHTML = list.data.map(a => `<option value="${a.code}">${a.name} (${a.learnedCount || 0}/${a.partCount})</option>`).join("");
+    await loadLearn();
+  }
+
+  async function loadLearn() {
+    session = null;
+    const code = ac.value;
+    parts = (await api("/api/v1/aircraft/" + code + "/parts")).data;
+    renderParts();
+    try {
+      lesson = (await api("/api/v1/aircraft/" + code + "/learn/next")).data;
+      msg.className = "msg";
+      msg.innerHTML = `<strong>Bul:</strong> ${lesson.nameTr}<br><em>${lesson.nameEn}</em><br>${lesson.location}<br>${lesson.functionTr}`;
+    } catch (e) {
+      lesson = null;
+      msg.className = "msg pass";
+      msg.textContent = e.message;
+    }
+  }
+
+  function renderParts() {
+    const groups = {};
+    parts.forEach(p => { (groups[p.panel] = groups[p.panel] || []).push(p); });
+    side.innerHTML = Object.entries(groups).map(([panel, list]) =>
+      `<div class="panel"><h4>${panel}</h4>${list.map(p =>
+        `<button class="part ${p.learned ? "ok" : ""}" onclick="clickPart('${p.code}')">${p.nameTr}</button>`
+      ).join("")}</div>`
+    ).join("");
+  }
+
+  async function clickPart(code) {
+    if (mode === "learn") {
+      if (!lesson) return;
+      try {
+        await api("/api/v1/aircraft/" + ac.value + "/learn", {
+          method: "POST",
+          body: JSON.stringify({ selectedPartCode: code })
+        });
+        await loadLearn();
+      } catch (e) { msg.className = "msg crash"; msg.textContent = e.message; }
+      return;
+    }
+    const value = prompt("Değer (ON, OFF, UP, DOWN, FULL, IDLE, TOGA, 5, 10, BOTH, RICH...)", "ON");
+    if (!value || !session) return;
+    try {
+      const body = await api("/api/v1/simulations/sessions/" + session.sessionId + "/act", {
+        method: "POST",
+        body: JSON.stringify({ partCode: code, value })
+      });
+      session = body.data;
+      paintSession();
+    } catch (e) { msg.className = "msg crash"; msg.textContent = e.message; }
+  }
+
+  async function loadSims() {
+    const list = (await api("/api/v1/aircraft/" + ac.value + "/simulations")).data;
+    board.innerHTML = list.map(s =>
+      `<p><button onclick="startSim(${s.id})">${s.title}</button> <span>${s.simType} — ${s.description}</span></p>`
+    ).join("");
+    parts = (await api("/api/v1/aircraft/" + ac.value + "/parts")).data;
+    renderParts();
+    msg.className = "msg";
+    msg.textContent = "Bir senaryo seç. İpucuna göre tuşa bas, değer gir. Yanlış kombinasyon CRASH.";
+  }
+
+  async function startSim(id) {
+    session = (await api("/api/v1/simulations/" + id + "/start", { method: "POST", body: "{}" })).data;
+    paintSession();
+  }
+
+  function paintSession() {
+    const st = session.status;
+    msg.className = "msg " + (st === "CRASHED" || st === "FAILED" ? "crash" : st === "PASSED" ? "pass" : "");
+    msg.innerHTML = `<strong>${st}</strong> ${session.cursor}/${session.totalSteps}<br>${session.message || ""}<br>İpucu: ${session.hint || ""}`;
+  }
+
+  ac.addEventListener("change", () => mode === "learn" ? loadLearn() : loadSims());
+  if (token) { login.hidden = true; app.hidden = false; boot(); }
+</script>
+</body>
+</html>

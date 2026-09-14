@@ -45,7 +45,8 @@ public class OpenApiConfig {
                         new Tag().name("Media").description("Görsel, video, ses"),
                         new Tag().name("Learning").description("Ortak öğrenme omurgası"),
                         new Tag().name("Tower").description("Kule hattı"),
-                        new Tag().name("Pilot").description("Pilot hattı")
+                        new Tag().name("Pilot").description("Pilot hattı"),
+                        new Tag().name("Aircraft").description("Kokpit tuşları ve eğitim simülasyonları")
                 ))
                 .components(new Components().addSecuritySchemes(BEARER_AUTH, bearer))
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH));
