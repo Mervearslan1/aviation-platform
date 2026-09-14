@@ -25,10 +25,11 @@ com.aviation.platform
     ├── auth/
     ├── user/
     ├── audit/
-    └── article/         blog: taslak → inceleme → yayın, zengin içerik, medya
+    ├── article/
+    └── learning/        adım adım yol + progress
 ```
 
-Course / lesson şimdilik yok. Önce blog.
+Öğrenme: Udemy kataloğu değil. Yayınlanmış bir yol, adımlar sırayla açılır (`CONTENT` / `PRACTICE` / `SIMULATION`).
 
 Yazı editörü (Word benzeri): http://localhost:8080/writer/index.html
 

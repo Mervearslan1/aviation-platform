@@ -61,7 +61,9 @@ public class SecurityConfig {
                                 "/api/v1/articles/slug/**",
                                 "/api/v1/categories",
                                 "/api/v1/tags",
-                                "/api/v1/media/**"
+                                "/api/v1/media/**",
+                                "/api/v1/learning-paths",
+                                "/api/v1/learning-paths/{slug}"
                         ).permitAll()
                         .requestMatchers("/writer", "/writer/**").permitAll()
                         .requestMatchers(

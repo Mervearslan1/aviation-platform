@@ -20,6 +20,8 @@ AviationPlatformApplication
               ├── auth
               ├── user
               ├── audit
+              ├── article
+              ├── learning
        ├── course      (later)
        ├── lesson      (later)
        └── progress    (later)

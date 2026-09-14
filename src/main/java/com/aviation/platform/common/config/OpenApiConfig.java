@@ -42,7 +42,8 @@ public class OpenApiConfig {
                         new Tag().name("Audit").description("Audit log listesi — ADMIN JWT gerekir"),
                         new Tag().name("Articles").description("Blog yazıları, workflow ve zengin içerik"),
                         new Tag().name("Categories").description("Kategori ve etiket"),
-                        new Tag().name("Media").description("Görsel, video, ses")
+                        new Tag().name("Media").description("Görsel, video, ses"),
+                        new Tag().name("Learning").description("Adım adım öğrenme yolu ve progress")
                 ))
                 .components(new Components().addSecuritySchemes(BEARER_AUTH, bearer))
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH));
