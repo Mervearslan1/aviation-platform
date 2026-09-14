@@ -1,4 +1,4 @@
-# Aviation Learning Platform (ALP)
+# Aviation Platform
 ## Backend Technical & Implementation Specification
 
 **Project Phase:** Phase 1  
@@ -16,7 +16,7 @@
 
 # 1. Dokümanın Amacı
 
-Bu doküman Aviation Learning Platform backend uygulamasının nasıl davranacağını tanımlar.
+Bu doküman Aviation Platform backend uygulamasının nasıl davranacağını tanımlar.
 
 Bu doküman yalnızca teknoloji seçimini açıklamaz.
 

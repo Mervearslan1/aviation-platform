@@ -36,7 +36,7 @@ Yazı editörü (Word benzeri): http://localhost:8080/writer/index.html
 
 ```powershell
 docker compose up -d
-# ALP Postgres host port: 5433 (5432 bu makinede baska Postgres'e ait)
+# Aviation Platform Postgres host port: 5433 (5432 bu makinede baska Postgres'e ait)
 $env:ALP_ADMIN_EMAIL="admin@alp.local"
 $env:ALP_ADMIN_PASSWORD="Admin123!"
 .\mvnw.cmd spring-boot:run

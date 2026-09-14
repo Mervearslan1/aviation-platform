@@ -40,7 +40,7 @@ The backend is ONE application.
 For example:
 
 ```text
-AviationLearningApplication
+AviationPlatformApplication
 ```
 
 starts the entire backend.
