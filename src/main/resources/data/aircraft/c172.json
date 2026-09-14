@@ -1,0 +1,42 @@
+{
+  "aircraft_type": "Cessna 172 Skyhawk",
+  "control_philosophy": "Temel eğitim uçağı: mekanik yoke, piston motor, sabit hatveli pervane (172S: sabit hızlı), analog veya G1000 altı paket. Havayolu otomasyonu yok; her kontrol doğrudan hissedilir.",
+  "schema_version": "1.0",
+  "fields": {
+    "id": "Benzersiz parça kimliği",
+    "panel": "Parçanın bulunduğu kokpit bölümü",
+    "part_name_en": "Uluslararası (İngilizce) parça adı",
+    "part_name_tr": "Türkçe karşılığı",
+    "location": "Kokpit içindeki fiziksel konumu",
+    "function_tr": "Parçanın işlevinin Türkçe açıklaması",
+    "category": "Sistem kategorisi"
+  },
+  "parts": [
+    {"id": "C172-001", "panel": "Left Subpanel", "part_name_en": "Master Switch (BAT / ALT)", "part_name_tr": "Ana Şalter (Batarya / Alternatör)", "location": "Sol alt panel", "function_tr": "Batarya ve alternatörü açar/kapatır. Motor çalıştırmadan önce BAT ON olmalıdır.", "category": "Electrical"},
+    {"id": "C172-002", "panel": "Left Subpanel", "part_name_en": "Ignition / Magneto Key", "part_name_tr": "Kontak / Magneto Anahtarı", "location": "Sol alt panel, anahtar", "function_tr": "OFF-R-L-BOTH-START. Motor iki magnetodan kıvılcım alır; START konumunda starter çalışır.", "category": "Engine"},
+    {"id": "C172-003", "panel": "Left Subpanel", "part_name_en": "Fuel Selector Valve", "part_name_tr": "Yakıt Seçici Vana", "location": "Zemin / koltuk arası, taban", "function_tr": "BOTH / LEFT / RIGHT / OFF. Normal uçuşta BOTH. OFF yakıtı keser.", "category": "Fuel"},
+    {"id": "C172-004", "panel": "Throttle Quadrant", "part_name_en": "Throttle", "part_name_tr": "Gaz Kolu", "location": "Panel altı, siyah kol", "function_tr": "Motor gücünü ayarlar. İleri = tam gaz, geri = rölanti.", "category": "Engine Control"},
+    {"id": "C172-005", "panel": "Throttle Quadrant", "part_name_en": "Mixture Control", "part_name_tr": "Karışım Kolu", "location": "Gazın sağında, kırmızı", "function_tr": "Yakıt-hava karışımı. Zengin (ileri) kalkış/iniş, fakirleştirme irtifada. Tam geri = IDLE CUT-OFF, motor durur.", "category": "Engine Control"},
+    {"id": "C172-006", "panel": "Throttle Quadrant", "part_name_en": "Carburetor Heat", "part_name_tr": "Karbüratör Isıtma", "location": "Gazın solunda", "function_tr": "Karbüratör buzlanmasını giderir. Alçalış ve şüpheli buzlanmada ON.", "category": "Engine"},
+    {"id": "C172-007", "panel": "Throttle Quadrant", "part_name_en": "Flap Lever", "part_name_tr": "Flap Kolu", "location": "Koltuğun arasında / sağ alt", "function_tr": "0-10-20-30 derece flap. Kalkış genelde 0 veya 10, iniş 20-30.", "category": "Flight Controls"},
+    {"id": "C172-008", "panel": "Center Pedestal", "part_name_en": "Elevator Trim Wheel", "part_name_tr": "Yunuslama Trim Çarkı", "location": "Koltuk arası", "function_tr": "Yoke kuvvetini nötrler. Burun yukarı/aşağı trim. Her güç ve flap değişiminde ayarlanır.", "category": "Flight Controls"},
+    {"id": "C172-009", "panel": "Yoke", "part_name_en": "Control Yoke", "part_name_tr": "Kumanda Yoku", "location": "Pilot önü", "function_tr": "Pitch (ileri-geri) ve roll (sağa-sola). Mekanik kablo.", "category": "Flight Controls"},
+    {"id": "C172-010", "panel": "Floor/Pedals", "part_name_en": "Rudder Pedals", "part_name_tr": "Dümen Pedalları", "location": "Ayak altı", "function_tr": "Yaw ve yerde burun tekeri yönlendirme; ayak uçları fren.", "category": "Flight Controls"},
+    {"id": "C172-011", "panel": "Main Instrument Panel", "part_name_en": "Airspeed Indicator", "part_name_tr": "Hava Hızı Göstergesi (ASI)", "location": "Altı paket, üst sol", "function_tr": "Knot cinsinden hava hızı. Beyaz yay flap, yeşil normal, sarı ihtiyat, kırmızı Vne.", "category": "Displays"},
+    {"id": "C172-012", "panel": "Main Instrument Panel", "part_name_en": "Attitude Indicator", "part_name_tr": "Tutum Göstergesi (Yapay Ufuk)", "location": "Altı paket, üst orta", "function_tr": "Uçağın ufka göre pitch ve bank açısı.", "category": "Displays"},
+    {"id": "C172-013", "panel": "Main Instrument Panel", "part_name_en": "Altimeter", "part_name_tr": "Altimetre", "location": "Altı paket, üst sağ", "function_tr": "İrtifa (feet). Kollinson QNH (Kollsman) penceresi ayarlanır.", "category": "Displays"},
+    {"id": "C172-014", "panel": "Main Instrument Panel", "part_name_en": "Turn Coordinator", "part_name_tr": "Dönüş Koordinatörü", "location": "Altı paket, alt sol", "function_tr": "Yatış oranı ve bilye (koordinasyon). Step on the ball.", "category": "Displays"},
+    {"id": "C172-015", "panel": "Main Instrument Panel", "part_name_en": "Heading Indicator", "part_name_tr": "Yön Göstergesi (DI/HI)", "location": "Altı paket, alt orta", "function_tr": "Manyetik pusulaya hizalanmış uçuş yönü. Periyodik olarak pusulaya set edilir.", "category": "Displays"},
+    {"id": "C172-016", "panel": "Main Instrument Panel", "part_name_en": "Vertical Speed Indicator", "part_name_tr": "Dikey Hız Göstergesi (VSI)", "location": "Altı paket, alt sağ", "function_tr": "Tırmanış/alçalış feet/dakika.", "category": "Displays"},
+    {"id": "C172-017", "panel": "Main Instrument Panel", "part_name_en": "Tachometer (RPM)", "part_name_tr": "Devir Göstergesi", "location": "Sağ alt panel", "function_tr": "Motor RPM. Yeşil yay sürekli güç, kırmızı çizgi limit.", "category": "Engine"},
+    {"id": "C172-018", "panel": "Main Instrument Panel", "part_name_en": "Fuel Quantity Gauges", "part_name_tr": "Yakıt Miktar Göstergeleri", "location": "Sağ panel", "function_tr": "Sol ve sağ kanat tankı yakıtı. Yere inmeden önce görsel kontrol şart.", "category": "Fuel"},
+    {"id": "C172-019", "panel": "Main Instrument Panel", "part_name_en": "Oil Pressure / Temperature", "part_name_tr": "Yağ Basıncı / Sıcaklığı", "location": "Sağ panel", "function_tr": "Motor yağ sağlığı. Düşük basınçta motor hemen kesilir.", "category": "Engine"},
+    {"id": "C172-020", "panel": "Switch Panel", "part_name_en": "Beacon / Nav / Strobe / Landing / Taxi Lights", "part_name_tr": "Dış Işıklar", "location": "Sol alt şalter sırası", "function_tr": "Beacon motor çalışırken, strobe uçuşta, landing iniş/kalkış.", "category": "Lighting"},
+    {"id": "C172-021", "panel": "Switch Panel", "part_name_en": "Pitot Heat", "part_name_tr": "Pitot Isıtma", "location": "Sol şalterler", "function_tr": "Hava hızı hortumunu buzdan korur. IMC ve görünür nemde ON.", "category": "Anti-Ice"},
+    {"id": "C172-022", "panel": "Radio Stack", "part_name_en": "COM / NAV Radios", "part_name_tr": "Telsiz / NAV", "location": "Orta radyo yığını", "function_tr": "Kule/yer frekansı ve VOR/ILS.", "category": "Communications"},
+    {"id": "C172-023", "panel": "Radio Stack", "part_name_en": "Transponder", "part_name_tr": "Transponder", "location": "Radyo yığını altı", "function_tr": "Squawk kodu. ALT mod radar irtifası gönderir. 7700 acil.", "category": "Surveillance"},
+    {"id": "C172-024", "panel": "Yoke / Floor", "part_name_en": "Parking Brake", "part_name_tr": "Park Freni", "location": "Sol alt, yoke altı", "function_tr": "Yerde uçağı tutar. Kalkış öncesi mutlaka bırakılır.", "category": "Brakes"},
+    {"id": "C172-025", "panel": "Left Subpanel", "part_name_en": "Primer", "part_name_tr": "Yakıt Primörü", "location": "Sol alt, soğuk motorda", "function_tr": "Soğuk çalışmada silindirlere yakıt püskürtür. Aşırı primer sel basmasına yol açar.", "category": "Engine"},
+    {"id": "C172-026", "panel": "Cabin", "part_name_en": "Cabin Heat / Air", "part_name_tr": "Kabin Isıtma / Hava", "location": "Sağ alt", "function_tr": "Egzoz ceketi ısısı ile kabin ısıtması. Karbonmonoksit riskine dikkat.", "category": "Environmental"}
+  ]
+}
