@@ -33,7 +33,8 @@ class JwtServiceTest {
         AlpProperties properties = new AlpProperties(
                 new AlpProperties.Jwt("test-secret-key-must-be-32-bytes-min", Duration.ofMinutes(15), Duration.ofDays(7)),
                 new AlpProperties.Cors(List.of()),
-                new AlpProperties.Seed(null, null, null)
+                new AlpProperties.Seed(null, null, null),
+                null
         );
         jwtService = new JwtService(properties, clock);
     }
@@ -59,7 +60,8 @@ class JwtServiceTest {
                 new AlpProperties(
                         new AlpProperties.Jwt("test-secret-key-must-be-32-bytes-min", Duration.ofMinutes(15), Duration.ofDays(7)),
                         new AlpProperties.Cors(List.of()),
-                        new AlpProperties.Seed(null, null, null)
+                        new AlpProperties.Seed(null, null, null),
+                null
                 ),
                 Clock.fixed(NOW.plus(Duration.ofMinutes(16)), ZoneOffset.UTC)
         );

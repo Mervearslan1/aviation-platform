@@ -22,12 +22,15 @@ com.alp
 │   ├── validation/
 │   └── response, pagination, util
 └── module/
-    ├── auth/            controller, dto/request|response, entity, repository, service/impl
+    ├── auth/
     ├── user/
-    └── audit/
+    ├── audit/
+    └── article/         blog: taslak → inceleme → yayın, zengin içerik, medya
 ```
 
-Course, lesson, progress, quiz gibi özellikler geldikçe aynı uygulama içinde yeni paket olarak eklenir. Ayrı microservice açılmaz.
+Course / lesson şimdilik yok. Önce blog.
+
+Yazı editörü (Word benzeri): http://localhost:8080/writer/index.html
 
 ## Çalıştırma
 

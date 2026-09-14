@@ -16,6 +16,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 55MB
 
 server:
   servlet:
@@ -51,6 +55,11 @@ alp:
     admin-email: ${ALP_ADMIN_EMAIL:}
     admin-password: ${ALP_ADMIN_PASSWORD:}
     admin-username: ${ALP_ADMIN_USERNAME:admin}
+  media:
+    directory: ${ALP_MEDIA_DIR:./data/media}
+    max-image-bytes: 10485760
+    max-video-bytes: 52428800
+    max-audio-bytes: 20971520
 
 logging:
   level:

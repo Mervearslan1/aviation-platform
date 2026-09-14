@@ -30,17 +30,19 @@ public class OpenApiConfig {
                         .title("Aviation Platform API")
                         .version("v1")
                         .description("""
-                                İstek denemek için:
-                                1. Auth → POST /register veya /login çalıştır
-                                2. Dönen accessToken değerini kopyala
-                                3. Sağ üstteki Authorize butonuna yapıştır (sadece token, Bearer yazmana gerek yok)
-                                4. Users / Audit endpoint'lerini Try it out ile dene
+                                Blog yazarı için writer: /writer/index.html
+                                1. Auth → login
+                                2. Authorize'a accessToken
+                                3. Articles / Media dene
                                 """))
                 .servers(List.of(new Server().url("/").description("Local")))
                 .tags(List.of(
                         new Tag().name("Auth").description("Kayıt, login, token yenileme — JWT gerekmez"),
                         new Tag().name("Users").description("Profil ve admin kullanıcı yönetimi — JWT gerekir"),
-                        new Tag().name("Audit").description("Audit log listesi — ADMIN JWT gerekir")
+                        new Tag().name("Audit").description("Audit log listesi — ADMIN JWT gerekir"),
+                        new Tag().name("Articles").description("Blog yazıları, workflow ve zengin içerik"),
+                        new Tag().name("Categories").description("Kategori ve etiket"),
+                        new Tag().name("Media").description("Görsel, video, ses")
                 ))
                 .components(new Components().addSecuritySchemes(BEARER_AUTH, bearer))
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH));

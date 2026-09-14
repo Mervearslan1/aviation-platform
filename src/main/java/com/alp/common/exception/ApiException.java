@@ -40,4 +40,12 @@ public class ApiException extends RuntimeException {
     public static ApiException forbidden(String message) {
         return new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ACCESS_DENIED, message);
     }
+
+    public static ApiException invalidState(String message) {
+        return new ApiException(HttpStatus.CONFLICT, ErrorCode.INVALID_STATE_TRANSITION, message);
+    }
+
+    public static ApiException articleNotOwned() {
+        return new ApiException(HttpStatus.FORBIDDEN, ErrorCode.ARTICLE_NOT_OWNED, "You do not own this article");
+    }
 }

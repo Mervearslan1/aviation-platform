@@ -55,6 +55,15 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/articles",
+                                "/api/v1/articles/{id}",
+                                "/api/v1/articles/slug/**",
+                                "/api/v1/categories",
+                                "/api/v1/tags",
+                                "/api/v1/media/**"
+                        ).permitAll()
+                        .requestMatchers("/writer", "/writer/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",

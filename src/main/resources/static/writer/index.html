@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Aviation Platform — Yazı Editörü</title>
+  <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
+  <style>
+    :root { font-family: "Segoe UI", Calibri, Arial, sans-serif; color: #1b1b1b; }
+    body { margin: 0; background: #eef1f4; }
+    header { background: #1f4e79; color: #fff; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+    main { max-width: 1100px; margin: 20px auto; background: #fff; padding: 20px 24px 40px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+    label { display: block; font-size: 13px; margin: 10px 0 4px; font-weight: 600; }
+    input, select, textarea { width: 100%; box-sizing: border-box; padding: 8px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+    button { background: #1f4e79; color: #fff; border: 0; padding: 8px 14px; cursor: pointer; }
+    button.secondary { background: #5b6570; }
+    .hint { color: #5b6570; font-size: 13px; }
+    #login { background: #fff; max-width: 420px; margin: 80px auto; padding: 24px; }
+  </style>
+</head>
+<body>
+<header>
+  <strong>Aviation Platform — Word benzeri yazı editörü</strong>
+  <span id="who"></span>
+</header>
+
+<section id="login">
+  <h2>Giriş</h2>
+  <p class="hint">AUTHOR veya ADMIN ile gir. ADMIN seed: admin@alp.local / Admin123!</p>
+  <label>E-posta</label>
+  <input id="email" value="admin@alp.local"/>
+  <label>Şifre</label>
+  <input id="password" type="password" value="Admin123!"/>
+  <div class="toolbar"><button onclick="login()">Giriş yap</button></div>
+  <p id="loginError" class="hint"></p>
+</section>
+
+<main id="app" hidden>
+  <p class="hint">Yazı tipi, punto, kalın/italik, hizalama, liste, görsel / video / ses ekleyebilirsin. Kurslar bu aşamada yok.</p>
+  <div class="row">
+    <div>
+      <label>Başlık</label>
+      <input id="title" placeholder="Yazı başlığı"/>
+    </div>
+    <div>
+      <label>Kategori</label>
+      <select id="category"></select>
+    </div>
+  </div>
+  <label>Özet</label>
+  <input id="summary" placeholder="Kısa özet"/>
+  <label>Etiketler (virgülle)</label>
+  <input id="tags" placeholder="metar, ifr"/>
+  <label>Kapak görseli</label>
+  <input id="cover" type="file" accept="image/*"/>
+  <label>İçerik</label>
+  <textarea id="editor"></textarea>
+  <div class="toolbar">
+    <button onclick="saveDraft()">Taslak kaydet</button>
+    <button onclick="submitReview()">İncelemeye gönder</button>
+    <button class="secondary" onclick="loadMine()">Yazılarımı getir</button>
+  </div>
+  <p id="status" class="hint"></p>
+  <ul id="list"></ul>
+</main>
+
+<script>
+  let token = localStorage.getItem("alpToken");
+  let articleId = null;
+  let coverMediaId = null;
+
+  async function api(path, options = {}) {
+    const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
+    if (token) headers.Authorization = "Bearer " + token;
+    const res = await fetch(path, Object.assign({}, options, { headers }));
+    if (res.status === 204) return null;
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.message || res.statusText);
+    return body;
+  }
+
+  async function login() {
+    try {
+      const body = await api("/api/v1/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: email.value, password: password.value })
+      });
+      token = body.data.accessToken;
+      localStorage.setItem("alpToken", token);
+      login.style.display = "none";
+      app.hidden = false;
+      who.textContent = email.value;
+      await initEditor();
+      await loadCategories();
+      await loadMine();
+    } catch (e) {
+      loginError.textContent = e.message;
+    }
+  }
+
+  async function initEditor() {
+    await tinymce.init({
+      selector: "#editor",
+      height: 520,
+      menubar: "file edit view insert format tools",
+      plugins: "lists link image media table code fullscreen",
+      toolbar: "undo redo | fontfamily fontsize | bold italic underline | alignleft aligncenter alignright | bullist numlist | forecolor backcolor | link image media | removeformat",
+      font_family_formats: "Calibri=calibri,sans-serif; Georgia=georgia,serif; Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; Times New Roman=times new roman,times,serif",
+      font_size_formats: "11pt 12pt 14pt 16pt 18pt 24pt 36pt",
+      images_upload_handler: async (blobInfo) => {
+        const file = new File([blobInfo.blob()], blobInfo.filename());
+        const uploaded = await uploadFile(file);
+        return uploaded.url;
+      }
+    });
+  }
+
+  async function uploadFile(file) {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch("/api/v1/media", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token },
+      body: form
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.message || "upload failed");
+    return body.data;
+  }
+
+  cover.addEventListener("change", async (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
+    const uploaded = await uploadFile(file);
+    coverMediaId = uploaded.id;
+    status.textContent = "Kapak yüklendi: " + uploaded.url;
+  });
+
+  async function loadCategories() {
+    const body = await api("/api/v1/categories");
+    category.innerHTML = body.data.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+  }
+
+  function payload() {
+    const tags = tagsInput.value.split(",").map(s => s.trim()).filter(Boolean);
+    return {
+      title: title.value,
+      summary: summary.value,
+      categoryId: category.value ? Number(category.value) : null,
+      tagNames: tags,
+      coverMediaId,
+      contentHtml: tinymce.get("editor").getContent(),
+      contentDocument: {
+        type: "doc",
+        format: "html",
+        html: tinymce.get("editor").getContent()
+      }
+    };
+  }
+
+  const tagsInput = document.getElementById("tags");
+
+  async function saveDraft() {
+    const data = payload();
+    const body = articleId
+      ? await api("/api/v1/articles/" + articleId, { method: "PUT", body: JSON.stringify(data) })
+      : await api("/api/v1/articles", { method: "POST", body: JSON.stringify(data) });
+    articleId = body.data.id;
+    status.textContent = "Kaydedildi. id=" + articleId + " status=" + body.data.status;
+    await loadMine();
+  }
+
+  async function submitReview() {
+    if (!articleId) await saveDraft();
+    const body = await api("/api/v1/articles/" + articleId + "/submit", { method: "POST", body: "{}" });
+    status.textContent = "İncelemeye gönderildi. status=" + body.data.status;
+    await loadMine();
+  }
+
+  async function loadMine() {
+    const body = await api("/api/v1/articles/mine");
+    list.innerHTML = body.data.map(a =>
+      `<li><a href="#" onclick="openArticle(${a.id});return false;">${a.title}</a> — ${a.status}</li>`
+    ).join("");
+  }
+
+  async function openArticle(id) {
+    const body = await api("/api/v1/articles/" + id);
+    const a = body.data;
+    articleId = a.id;
+    title.value = a.title;
+    summary.value = a.summary || "";
+    tagsInput.value = (a.tags || []).map(t => t.name).join(", ");
+    tinymce.get("editor").setContent(a.contentHtml || "");
+    status.textContent = "Açıldı: " + a.status;
+  }
+
+  if (token) {
+    login.style.display = "none";
+    app.hidden = false;
+    initEditor().then(loadCategories).then(loadMine);
+  }
+</script>
+</body>
+</html>

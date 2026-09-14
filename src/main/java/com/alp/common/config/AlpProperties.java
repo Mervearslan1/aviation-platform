@@ -9,7 +9,8 @@ import java.util.List;
 public record AlpProperties(
         Jwt jwt,
         Cors cors,
-        Seed seed
+        Seed seed,
+        Media media
 ) {
 
     public record Jwt(String secret, Duration accessTokenTtl, Duration refreshTokenTtl) {
@@ -19,5 +20,8 @@ public record AlpProperties(
     }
 
     public record Seed(String adminEmail, String adminPassword, String adminUsername) {
+    }
+
+    public record Media(String directory, long maxImageBytes, long maxVideoBytes, long maxAudioBytes) {
     }
 }
