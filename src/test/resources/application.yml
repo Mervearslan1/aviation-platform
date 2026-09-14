@@ -1,9 +1,10 @@
-alp:
+aviation:
+
   jwt:
     secret: test-secret-key-must-be-32-bytes-min
     access-token-ttl: PT15M
     refresh-token-ttl: P7D
   seed:
-    admin-email: admin@alp.test
+    admin-email: admin@aviation-platform.test
     admin-password: Admin123!
     admin-username: admin

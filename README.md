@@ -13,7 +13,7 @@ Repo: https://github.com/Mervearslan1/aviation-platform
 crmpanel1 ile aynı düzen: `common/` paylaşılan altyapı, `module/` iş özellikleri.
 
 ```text
-com.alp
+com.aviation.platform
 ├── AviationPlatformApplication.java
 ├── common/
 │   ├── config/          Security, OpenAPI, AppConfig
@@ -37,8 +37,8 @@ Yazı editörü (Word benzeri): http://localhost:8080/writer/index.html
 ```powershell
 docker compose up -d
 # Aviation Platform Postgres host port: 5433 (5432 bu makinede baska Postgres'e ait)
-$env:ALP_ADMIN_EMAIL="admin@alp.local"
-$env:ALP_ADMIN_PASSWORD="Admin123!"
+$env:AVIATION_ADMIN_EMAIL="admin@aviation-platform.local"
+$env:AVIATION_ADMIN_PASSWORD="Admin123!"
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -64,7 +64,7 @@ Admin seed kullandıysan:
 
 ```json
 {
-  "email": "admin@alp.local",
+  "email": "admin@aviation-platform.local",
   "password": "Admin123!"
 }
 ```

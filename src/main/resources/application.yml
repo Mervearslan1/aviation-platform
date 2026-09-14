@@ -2,9 +2,9 @@ spring:
   application:
     name: aviation-platform
   datasource:
-    url: ${ALP_DB_URL:jdbc:postgresql://localhost:5433/alp}
-    username: ${ALP_DB_USERNAME:alp}
-    password: ${ALP_DB_PASSWORD:alp}
+    url: ${AVIATION_DB_URL:jdbc:postgresql://localhost:5433/aviation}
+    username: ${AVIATION_DB_USERNAME:aviation}
+    password: ${AVIATION_DB_PASSWORD:aviation}
   jpa:
     open-in-view: false
     hibernate:
@@ -42,9 +42,9 @@ springdoc:
     try-it-out-enabled: true
     filter: true
 
-alp:
+aviation:
   jwt:
-    secret: ${ALP_JWT_SECRET:local-dev-only-change-me-32bytes-min-secret}
+    secret: ${AVIATION_JWT_SECRET:local-dev-only-change-me-32bytes-min-secret}
     access-token-ttl: PT15M
     refresh-token-ttl: P7D
   cors:
@@ -52,15 +52,15 @@ alp:
       - http://localhost:3000
       - http://localhost:5173
   seed:
-    admin-email: ${ALP_ADMIN_EMAIL:}
-    admin-password: ${ALP_ADMIN_PASSWORD:}
-    admin-username: ${ALP_ADMIN_USERNAME:admin}
+    admin-email: ${AVIATION_ADMIN_EMAIL:}
+    admin-password: ${AVIATION_ADMIN_PASSWORD:}
+    admin-username: ${AVIATION_ADMIN_USERNAME:admin}
   media:
-    directory: ${ALP_MEDIA_DIR:./data/media}
+    directory: ${AVIATION_MEDIA_DIR:./data/media}
     max-image-bytes: 10485760
     max-video-bytes: 52428800
     max-audio-bytes: 20971520
 
 logging:
   level:
-    com.alp: INFO
+    com.aviation.platform: INFO

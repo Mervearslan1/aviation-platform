@@ -30,7 +30,7 @@ PostgreSQL
 ## Package-by-feature
 
 ```text
-com.alp
+com.aviation.platform
 ├── AviationPlatformApplication.java
 ├── common/                      # paylaşılan altyapı (crmpanel1 common/)
 │   ├── config/

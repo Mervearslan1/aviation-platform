@@ -1,0 +1,16 @@
+package com.aviation.platform.common.response;
+
+import com.aviation.platform.common.exception.ErrorCode;
+
+import java.time.Instant;
+import java.util.List;
+
+public record ApiErrorResponse(
+        Instant timestamp,
+        int status,
+        ErrorCode code,
+        String message,
+        List<FieldErrorResponse> errors,
+        String path
+) {
+}

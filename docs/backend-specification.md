@@ -111,7 +111,7 @@ Configuration
 Önerilen package yapısı:
 
 ```text
-com.alp
+com.aviation.platform
 
 ├── auth
 │   ├── controller

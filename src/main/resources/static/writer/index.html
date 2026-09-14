@@ -28,9 +28,9 @@
 
 <section id="login">
   <h2>Giriş</h2>
-  <p class="hint">AUTHOR veya ADMIN ile gir. ADMIN seed: admin@alp.local / Admin123!</p>
+  <p class="hint">AUTHOR veya ADMIN ile gir. ADMIN seed: admin@aviation-platform.local / Admin123!</p>
   <label>E-posta</label>
-  <input id="email" value="admin@alp.local"/>
+  <input id="email" value="admin@aviation-platform.local"/>
   <label>Şifre</label>
   <input id="password" type="password" value="Admin123!"/>
   <div class="toolbar"><button onclick="login()">Giriş yap</button></div>
@@ -67,7 +67,7 @@
 </main>
 
 <script>
-  let token = localStorage.getItem("alpToken");
+  let token = localStorage.getItem("aviationToken");
   let articleId = null;
   let coverMediaId = null;
 
@@ -88,7 +88,7 @@
         body: JSON.stringify({ email: email.value, password: password.value })
       });
       token = body.data.accessToken;
-      localStorage.setItem("alpToken", token);
+      localStorage.setItem("aviationToken", token);
       login.style.display = "none";
       app.hidden = false;
       who.textContent = email.value;
