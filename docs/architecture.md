@@ -15,9 +15,11 @@ React Frontend
        │ HTTP / REST
        ▼
 AviationPlatformApplication
-       ├── auth
-       ├── user
-       ├── audit
+       ├── common
+       └── module
+              ├── auth
+              ├── user
+              ├── audit
        ├── course      (later)
        ├── lesson      (later)
        └── progress    (later)
@@ -29,24 +31,21 @@ PostgreSQL
 
 ```text
 com.alp
-├── auth/
-│   ├── controller/
-│   ├── dto/
-│   ├── entity/
-│   ├── repository/
-│   └── service/
-│       ├── AuthService.java
-│       └── AuthServiceImpl.java
-├── user/
-│   ├── controller/
-│   ├── dto/
-│   ├── entity/
-│   ├── repository/
-│   └── service/
-│       ├── UserService.java
-│       └── UserServiceImpl.java
-├── audit/
-└── common/
+├── AviationPlatformApplication.java
+├── common/                      # paylaşılan altyapı (crmpanel1 common/)
+│   ├── config/
+│   ├── exception/handler/
+│   ├── security/jwt|entrypoint|principal
+│   └── ...
+└── module/                      # iş özellikleri (crmpanel1 module/)
+    ├── auth/
+    │   ├── controller/
+    │   ├── dto/request|response/
+    │   ├── entity/
+    │   ├── repository/
+    │   └── service/ + service/impl/
+    ├── user/
+    └── audit/
 ```
 
 Do not organize the root as `controller/`, `service/`, `repository/`.

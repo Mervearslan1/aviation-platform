@@ -10,15 +10,22 @@ Repo: https://github.com/Mervearslan1/aviation-platform
 
 ## Paket yapısı
 
+crmpanel1 ile aynı düzen: `common/` paylaşılan altyapı, `module/` iş özellikleri.
+
 ```text
 com.alp
-├── auth/        register, login, JWT
-├── user/        profil, roller, status
-├── audit/       audit log
-└── common/      exception, response, pagination
+├── AviationPlatformApplication.java
+├── common/
+│   ├── config/          Security, OpenAPI, AppConfig
+│   ├── exception/handler/
+│   ├── security/jwt|entrypoint|principal
+│   ├── validation/
+│   └── response, pagination, util
+└── module/
+    ├── auth/            controller, dto/request|response, entity, repository, service/impl
+    ├── user/
+    └── audit/
 ```
-
-Her feature kendi `controller / dto / entity / repository / service` katmanını taşır. `service` içinde interface + `*ServiceImpl` vardır.
 
 Course, lesson, progress, quiz gibi özellikler geldikçe aynı uygulama içinde yeni paket olarak eklenir. Ayrı microservice açılmaz.
 
