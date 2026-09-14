@@ -4,6 +4,7 @@ import com.aviation.platform.module.learning.entity.CatalogStatus;
 import com.aviation.platform.module.learning.entity.Difficulty;
 import com.aviation.platform.module.learning.entity.LearningPath;
 import com.aviation.platform.module.learning.entity.PathProgressStatus;
+import com.aviation.platform.module.learning.entity.TrainingTrack;
 
 import java.time.Instant;
 import java.util.List;
@@ -15,6 +16,7 @@ public record PathResponse(
         String description,
         Difficulty difficulty,
         CatalogStatus status,
+        TrainingTrack track,
         int stepCount,
         Integer progressPercent,
         PathProgressStatus enrollmentStatus,
@@ -30,6 +32,7 @@ public record PathResponse(
                 path.getDescription(),
                 path.getDifficulty(),
                 path.getStatus(),
+                path.getTrack(),
                 stepCount,
                 null,
                 null,
@@ -51,6 +54,7 @@ public record PathResponse(
                 path.getDescription(),
                 path.getDifficulty(),
                 path.getStatus(),
+                path.getTrack(),
                 steps.size(),
                 progressPercent,
                 enrollmentStatus,

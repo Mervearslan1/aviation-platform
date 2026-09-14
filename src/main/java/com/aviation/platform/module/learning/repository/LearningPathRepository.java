@@ -2,6 +2,7 @@ package com.aviation.platform.module.learning.repository;
 
 import com.aviation.platform.module.learning.entity.CatalogStatus;
 import com.aviation.platform.module.learning.entity.LearningPath;
+import com.aviation.platform.module.learning.entity.TrainingTrack;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +15,8 @@ public interface LearningPathRepository extends JpaRepository<LearningPath, Long
     boolean existsBySlug(String slug);
 
     List<LearningPath> findByStatusOrderByCreatedAtDesc(CatalogStatus status);
+
+    List<LearningPath> findByStatusAndTrackOrderByCreatedAtDesc(CatalogStatus status, TrainingTrack track);
 
     @Query("SELECT p FROM LearningPath p LEFT JOIN FETCH p.steps WHERE p.id = :id")
     Optional<LearningPath> findByIdWithSteps(@Param("id") Long id);

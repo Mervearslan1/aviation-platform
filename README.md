@@ -29,9 +29,10 @@ com.aviation.platform
     └── learning/        adım adım yol + progress
 ```
 
-Öğrenme: Udemy kataloğu değil. Yayınlanmış bir yol, adımlar sırayla açılır (`CONTENT` / `PRACTICE` / `SIMULATION`).
+Öğrenme: önce **kule**. Dinle / konuş / senaryo / IVAO. Pilot hattı sonra. Udemy izle-bitir modeli yok.
 
-Yazı editörü (Word benzeri): http://localhost:8080/writer/index.html
+Yazı editörü: http://localhost:8080/writer/index.html  
+Kule ol (Duolingo tarzı): http://localhost:8080/tower/index.html
 
 ## Çalıştırma
 

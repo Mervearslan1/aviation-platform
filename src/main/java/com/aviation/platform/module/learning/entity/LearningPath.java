@@ -42,6 +42,10 @@ public class LearningPath {
     @Column(nullable = false, length = 20)
     private CatalogStatus status = CatalogStatus.DRAFT;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TrainingTrack track = TrainingTrack.TOWER;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -61,6 +65,7 @@ public class LearningPath {
         this.description = description;
         this.difficulty = difficulty == null ? Difficulty.BEGINNER : difficulty;
         this.status = CatalogStatus.DRAFT;
+        this.track = TrainingTrack.TOWER;
     }
 
     @PrePersist
@@ -117,6 +122,14 @@ public class LearningPath {
 
     public void setStatus(CatalogStatus status) {
         this.status = status;
+    }
+
+    public TrainingTrack getTrack() {
+        return track;
+    }
+
+    public void setTrack(TrainingTrack track) {
+        this.track = track;
     }
 
     public Instant getCreatedAt() {

@@ -15,7 +15,9 @@ import com.aviation.platform.module.learning.entity.LearningPath;
 import com.aviation.platform.module.learning.entity.LearningStep;
 import com.aviation.platform.module.learning.entity.PathProgressStatus;
 import com.aviation.platform.module.learning.entity.StepProgressStatus;
+import com.aviation.platform.common.util.PhraseMatcher;
 import com.aviation.platform.module.learning.entity.StepType;
+import com.aviation.platform.module.learning.entity.TrainingTrack;
 import com.aviation.platform.module.learning.entity.UserPathProgress;
 import com.aviation.platform.module.learning.entity.UserStepProgress;
 import com.aviation.platform.module.learning.repository.LearningPathRepository;
@@ -73,6 +75,9 @@ public class LearningServiceImpl implements LearningService {
         if (request.status() != null) {
             path.setStatus(request.status());
         }
+        if (request.track() != null) {
+            path.setTrack(request.track());
+        }
         pathRepository.save(path);
         return PathResponse.summary(path, 0);
     }
@@ -87,6 +92,9 @@ public class LearningServiceImpl implements LearningService {
         }
         if (request.status() != null) {
             path.setStatus(request.status());
+        }
+        if (request.track() != null) {
+            path.setTrack(request.track());
         }
         return PathResponse.summary(path, stepRepository.countByPathId(path.getId()));
     }
@@ -122,8 +130,11 @@ public class LearningServiceImpl implements LearningService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PathResponse> listPublished() {
-        return pathRepository.findByStatusOrderByCreatedAtDesc(CatalogStatus.PUBLISHED).stream()
+    public List<PathResponse> listPublished(TrainingTrack track) {
+        List<LearningPath> paths = track == null
+                ? pathRepository.findByStatusOrderByCreatedAtDesc(CatalogStatus.PUBLISHED)
+                : pathRepository.findByStatusAndTrackOrderByCreatedAtDesc(CatalogStatus.PUBLISHED, track);
+        return paths.stream()
                 .map(path -> PathResponse.summary(path, stepRepository.countByPathId(path.getId())))
                 .toList();
     }
@@ -156,10 +167,9 @@ public class LearningServiceImpl implements LearningService {
             throw ApiException.notFound("Learning path not found");
         }
         User user = userRepository.findById(actor.id()).orElseThrow(() -> ApiException.notFound("User not found"));
-        pathProgressRepository.findByUserIdAndPathId(actor.id(), pathId)
-                .ifPresent(existing -> {
-                    throw ApiException.conflict("Already enrolled");
-                });
+        if (pathProgressRepository.findByUserIdAndPathId(actor.id(), pathId).isPresent()) {
+            return detailForUser(path, stepRepository.findByPathIdOrderByOrderIndexAsc(pathId), actor.id());
+        }
         pathProgressRepository.save(new UserPathProgress(user, path));
         List<LearningStep> steps = stepRepository.findByPathIdOrderByOrderIndexAsc(pathId);
         for (int i = 0; i < steps.size(); i++) {
@@ -197,8 +207,12 @@ public class LearningServiceImpl implements LearningService {
         if (progress.getStatus() == StepProgressStatus.LOCKED) {
             throw ApiException.invalidState("Previous required step is not completed");
         }
-        if (step.getStepType() == StepType.PRACTICE) {
+        if (step.getStepType() == StepType.PRACTICE || step.getStepType() == StepType.LISTEN
+                || step.getStepType() == StepType.SCENARIO) {
             assertPracticeAnswer(step, request);
+        }
+        if (step.getStepType() == StepType.SPEAK) {
+            assertSpokenPhrase(step, request);
         }
         if (progress.getStatus() != StepProgressStatus.COMPLETED) {
             progress.setStatus(StepProgressStatus.COMPLETED);
@@ -280,6 +294,25 @@ public class LearningServiceImpl implements LearningService {
         }
         if (!String.valueOf(config.get("correctOption")).equalsIgnoreCase(request.answer().trim())) {
             throw ApiException.badRequest("Incorrect answer");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void assertSpokenPhrase(LearningStep step, CompleteStepRequest request) {
+        Map<String, Object> config = step.getConfiguration();
+        if (config == null) {
+            return;
+        }
+        String spoken = request == null ? null : request.transcript();
+        if (spoken == null || spoken.isBlank()) {
+            throw ApiException.badRequest("Speak the tower phrase");
+        }
+        String expected = String.valueOf(config.getOrDefault("expectedPhrase", ""));
+        List<String> accepted = config.get("acceptedPhrases") instanceof List<?> list
+                ? (List<String>) list
+                : List.of();
+        if (!PhraseMatcher.matches(spoken, expected, accepted)) {
+            throw ApiException.badRequest("Phrase not accepted. Try again like a tower.");
         }
     }
 

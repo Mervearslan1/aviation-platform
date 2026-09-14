@@ -36,9 +36,11 @@ public record StepResponse(
 
     public static StepResponse unlocked(LearningStep step, StepProgressStatus progress) {
         Map<String, Object> config = step.getConfiguration();
-        if (config != null && config.containsKey("correctOption")) {
+        if (config != null) {
             config = new java.util.LinkedHashMap<>(config);
             config.remove("correctOption");
+            config.remove("expectedPhrase");
+            config.remove("acceptedPhrases");
         }
         return new StepResponse(
                 step.getId(),

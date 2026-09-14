@@ -19,7 +19,7 @@ public interface LearningService {
 
     StepResponse addStep(Long pathId, SaveStepRequest request);
 
-    List<PathResponse> listPublished();
+    List<PathResponse> listPublished(com.aviation.platform.module.learning.entity.TrainingTrack track);
 
     PathResponse getPublished(String slug, CurrentUser actor);
 

@@ -72,7 +72,7 @@ class LearningServiceTest {
         UserStepProgress progress = new UserStepProgress(owner, step, StepProgressStatus.LOCKED);
         when(stepProgressRepository.findByUserIdAndStepId(2L, 20L)).thenReturn(Optional.of(progress));
 
-        assertThatThrownBy(() -> learningService.completeStep(1L, 20L, new CompleteStepRequest(null), user))
+        assertThatThrownBy(() -> learningService.completeStep(1L, 20L, new CompleteStepRequest(null, null), user))
                 .isInstanceOf(ApiException.class)
                 .extracting(ex -> ((ApiException) ex).getCode())
                 .isEqualTo(ErrorCode.INVALID_STATE_TRANSITION);

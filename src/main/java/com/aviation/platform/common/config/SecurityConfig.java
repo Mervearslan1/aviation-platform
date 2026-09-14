@@ -65,7 +65,7 @@ public class SecurityConfig {
                                 "/api/v1/learning-paths",
                                 "/api/v1/learning-paths/{slug}"
                         ).permitAll()
-                        .requestMatchers("/writer", "/writer/**").permitAll()
+                        .requestMatchers("/writer", "/writer/**", "/tower", "/tower/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",
