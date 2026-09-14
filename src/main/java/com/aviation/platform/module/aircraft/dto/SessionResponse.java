@@ -9,6 +9,9 @@ public record SessionResponse(
         String hint,
         Map<String, Object> controls,
         int cursor,
-        int totalSteps
+        int totalSteps,
+        FlightInstruments instruments,
+        String expectedPart,
+        String expectedValue
 ) {
 }

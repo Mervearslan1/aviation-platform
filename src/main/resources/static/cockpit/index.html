@@ -5,51 +5,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Eğitim Simülasyonları — Kokpit</title>
   <style>
-    body { margin: 0; font-family: "Segoe UI", sans-serif; background: #0c1018; color: #e8eef6; }
+    :root {
+      --bg: #0c1018;
+      --panel: #121826;
+      --card: #1c2434;
+      --line: #2a3346;
+      --text: #e8eef6;
+      --muted: #8aa0b8;
+      --cyan: #7ee0ff;
+      --green: #3dd68c;
+      --amber: #f5c542;
+      --red: #c23b3b;
+      --blue: #3d7eff;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
     header { background: #161d2b; padding: 12px 18px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    button { background: #3d7eff; color: #fff; border: 0; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
-    button.ghost { background: #2a3346; }
-    button.danger { background: #c23b3b; }
-    select, input { padding: 8px; border-radius: 8px; border: 0; }
+    button { background: var(--blue); color: #fff; border: 0; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+    button.ghost { background: var(--line); }
+    button.danger { background: var(--red); }
+    select, input { padding: 8px; border-radius: 8px; border: 0; background: #e8eef6; }
     main { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 56px); }
-    aside { background: #121826; padding: 12px; overflow: auto; }
+    aside { background: var(--panel); padding: 12px; overflow: auto; }
     section { padding: 16px; }
-    .part { display: block; width: 100%; text-align: left; margin: 4px 0; background: #1c2434; color: #e8eef6; }
-    .part.ok { outline: 2px solid #3dd68c; }
-    .msg { padding: 10px; background: #1c2434; border-radius: 8px; margin-bottom: 12px; }
+    .part { display: block; width: 100%; text-align: left; margin: 4px 0; background: var(--card); color: var(--text); }
+    .part.ok { outline: 2px solid var(--green); }
+    .part.wait { outline: 2px solid var(--amber); animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 50% { outline-color: #fff3; } }
+    .msg { padding: 10px; background: var(--card); border-radius: 8px; margin-bottom: 12px; }
     .crash { background: #3a1515; }
     .pass { background: #153a24; }
     .panel h4 { margin: 12px 0 4px; color: #8ab4ff; }
+    .cockpit { display: grid; grid-template-columns: 480px 1fr; gap: 16px; align-items: start; }
+    .pfd-wrap { background: #05070c; border: 2px solid #2a3140; border-radius: 12px; padding: 10px; }
+    .pfd-meta { display: flex; justify-content: space-between; font: 12px/1.3 Consolas, monospace; color: var(--cyan); margin-bottom: 6px; }
+    canvas { display: block; width: 100%; height: auto; background: #000; border-radius: 6px; }
+    .phases { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 0; }
+    .phases span { font-size: 11px; padding: 3px 7px; border-radius: 999px; background: #1a2230; color: var(--muted); }
+    .phases span.on { background: #1e3a2f; color: var(--green); }
+    .phases span.crash { background: #3a1515; color: #ffb4b4; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .chips button { background: var(--line); font-size: 12px; padding: 6px 10px; }
+    .chips button.want { background: #6a4b12; outline: 1px solid var(--amber); }
+    .flags { display: flex; gap: 8px; margin-top: 8px; font: 12px Consolas, monospace; }
+    .flags b { padding: 3px 8px; border-radius: 4px; background: #1a2230; color: var(--amber); }
+    .flags b.gnd { color: var(--green); }
+    .flags b.bad { color: #ff8a8a; background: #3a1515; }
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+      .cockpit { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 <header>
   <strong>EĞİTİM SİMÜLASYONLARI</strong>
   <select id="ac"></select>
-  <button onclick="mode='learn'; loadLearn()">Tuş öğren</button>
-  <button class="ghost" onclick="mode='sim'; loadSims()">Simülasyonlar</button>
+  <button type="button" id="btnLearn">Tuş öğren</button>
+  <button type="button" class="ghost" id="btnSims">Simülasyonlar</button>
   <span id="who"></span>
 </header>
-<div id="login" style="max-width:420px;margin:40px auto">
-  <p>Kokpit tuşlarını sırayla öğren, sonra simülasyonda dene. Yanlış sıra uçağı düşürebilir.</p>
+<div id="loginBox" style="max-width:420px;margin:40px auto">
+  <p>Kokpit tuşlarını sırayla öğren, sonra simülasyonda dene. Yanlış sıra uçağı düşürebilir. PFD hız, tutum ve irtifayı fazlara göre gösterir.</p>
   <input id="email" value="admin@aviation-platform.local"/>
   <input id="password" type="password" value="Admin123!"/>
-  <button onclick="login()">Giriş</button>
+  <button type="button" id="btnLogin">Giriş</button>
   <p id="loginError"></p>
 </div>
 <main id="app" hidden>
   <aside id="side"></aside>
   <section>
     <div id="msg" class="msg"></div>
-    <div id="board"></div>
+    <div class="cockpit" id="cockpit" hidden>
+      <div class="pfd-wrap">
+        <div class="pfd-meta">
+          <span id="fma">PARK</span>
+          <span id="n1read">N1 —</span>
+        </div>
+        <canvas id="pfd" width="460" height="320"></canvas>
+        <div class="flags">
+          <b id="gearFlag">GEAR</b>
+          <b id="gndFlag" class="gnd">GND</b>
+        </div>
+        <div class="phases" id="phases"></div>
+      </div>
+      <div>
+        <div id="board"></div>
+        <div id="valueBar"></div>
+      </div>
+    </div>
+    <div id="learnBoard"></div>
   </section>
 </main>
 <script>
+  const PHASES = [
+    ["PARKED", "Park"],
+    ["TAXI", "Taksi"],
+    ["LINEUP", "Pist"],
+    ["TAKEOFF_ROLL", "Koşu"],
+    ["ROTATE", "Rotate"],
+    ["CLIMB", "Tırmanış"],
+    ["APPROACH", "Yaklaşma"],
+    ["FLARE", "Flare"],
+    ["LANDING", "İniş"]
+  ];
+  const VALUES = ["ON","OFF","UP","DOWN","FULL","IDLE","TOGA","FLX","BOTH","RICH","CUTOFF","GRD","DISCHARGE","CENTER","BACK","HOLD","0","1","5","10","20","30","1+F"];
+
   let token = localStorage.getItem("aviationToken");
   let mode = "learn";
   let lesson = null;
   let session = null;
   let parts = [];
+  let pendingPart = null;
+  let shown = { pitch: 0, roll: 0, ias: 0, altitude: 0, vs: 0, heading: 90, n1: 20 };
+  let target = { ...shown, phase: "PARKED", phaseLabel: "Park", gear: "DOWN", onGround: true };
+  let crashed = false;
+
+  const $ = (id) => document.getElementById(id);
 
   async function api(url, options = {}) {
     const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
@@ -60,50 +132,59 @@
     return body;
   }
 
-  async function login() {
+  async function doLogin() {
     try {
       const body = await api("/api/v1/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email: email.value, password: password.value })
+        body: JSON.stringify({ email: $("email").value, password: $("password").value })
       });
       token = body.data.accessToken;
       localStorage.setItem("aviationToken", token);
-      who.textContent = email.value;
-      login.hidden = true;
-      app.hidden = false;
+      $("who").textContent = $("email").value;
+      $("loginBox").hidden = true;
+      $("app").hidden = false;
       await boot();
-    } catch (e) { loginError.textContent = e.message; }
+    } catch (e) { $("loginError").textContent = e.message; }
   }
 
   async function boot() {
     const list = await api("/api/v1/aircraft");
-    ac.innerHTML = list.data.map(a => `<option value="${a.code}">${a.name} (${a.learnedCount || 0}/${a.partCount})</option>`).join("");
+    $("ac").innerHTML = list.data.map(a =>
+      `<option value="${a.code}">${a.name} (${a.learnedCount || 0}/${a.partCount})</option>`
+    ).join("");
     await loadLearn();
   }
 
   async function loadLearn() {
+    mode = "learn";
     session = null;
-    const code = ac.value;
+    pendingPart = null;
+    $("cockpit").hidden = true;
+    $("learnBoard").hidden = false;
+    $("valueBar").innerHTML = "";
+    const code = $("ac").value;
     parts = (await api("/api/v1/aircraft/" + code + "/parts")).data;
     renderParts();
     try {
       lesson = (await api("/api/v1/aircraft/" + code + "/learn/next")).data;
-      msg.className = "msg";
-      msg.innerHTML = `<strong>Bul:</strong> ${lesson.nameTr}<br><em>${lesson.nameEn}</em><br>${lesson.location}<br>${lesson.functionTr}`;
+      $("msg").className = "msg";
+      $("msg").innerHTML = `<strong>Bul:</strong> ${lesson.nameTr}<br><em>${lesson.nameEn}</em><br>${lesson.location}<br>${lesson.functionTr}`;
     } catch (e) {
       lesson = null;
-      msg.className = "msg pass";
-      msg.textContent = e.message;
+      $("msg").className = "msg pass";
+      $("msg").textContent = e.message;
     }
   }
 
   function renderParts() {
     const groups = {};
     parts.forEach(p => { (groups[p.panel] = groups[p.panel] || []).push(p); });
-    side.innerHTML = Object.entries(groups).map(([panel, list]) =>
-      `<div class="panel"><h4>${panel}</h4>${list.map(p =>
-        `<button class="part ${p.learned ? "ok" : ""}" onclick="clickPart('${p.code}')">${p.nameTr}</button>`
-      ).join("")}</div>`
+    const wait = session && session.expectedPart;
+    $("side").innerHTML = Object.entries(groups).map(([panel, list]) =>
+      `<div class="panel"><h4>${panel}</h4>${list.map(p => {
+        const cls = p.learned ? "ok" : (wait === p.code ? "wait" : "");
+        return `<button type="button" class="part ${cls}" data-code="${p.code}">${p.nameTr}</button>`;
+      }).join("")}</div>`
     ).join("");
   }
 
@@ -111,50 +192,230 @@
     if (mode === "learn") {
       if (!lesson) return;
       try {
-        await api("/api/v1/aircraft/" + ac.value + "/learn", {
+        await api("/api/v1/aircraft/" + $("ac").value + "/learn", {
           method: "POST",
           body: JSON.stringify({ selectedPartCode: code })
         });
         await loadLearn();
-      } catch (e) { msg.className = "msg crash"; msg.textContent = e.message; }
+      } catch (e) { $("msg").className = "msg crash"; $("msg").textContent = e.message; }
       return;
     }
-    const value = prompt("Değer (ON, OFF, UP, DOWN, FULL, IDLE, TOGA, 5, 10, BOTH, RICH...)", "ON");
-    if (!value || !session) return;
+    if (!session) return;
+    pendingPart = code;
+    const part = parts.find(p => p.code === code);
+    renderValueBar(part ? part.nameTr : code);
+  }
+
+  function renderValueBar(name) {
+    const want = session && session.expectedValue;
+    const extra = want && !VALUES.includes(want) ? [want] : [];
+    $("valueBar").innerHTML =
+      `<p>Seçilen: <strong>${name}</strong> — değer seç (ipucu: <code>${want || "—"}</code>)</p>
+       <div class="chips">${[...extra, ...VALUES].map(v =>
+         `<button type="button" class="${v === want ? "want" : ""}" data-val="${v}">${v}</button>`
+       ).join("")}</div>`;
+  }
+
+  async function sendAct(value) {
+    if (!session || !pendingPart) return;
     try {
       const body = await api("/api/v1/simulations/sessions/" + session.sessionId + "/act", {
         method: "POST",
-        body: JSON.stringify({ partCode: code, value })
+        body: JSON.stringify({ partCode: pendingPart, value })
       });
       session = body.data;
+      pendingPart = null;
+      $("valueBar").innerHTML = "";
       paintSession();
-    } catch (e) { msg.className = "msg crash"; msg.textContent = e.message; }
+    } catch (e) { $("msg").className = "msg crash"; $("msg").textContent = e.message; }
   }
 
   async function loadSims() {
-    const list = (await api("/api/v1/aircraft/" + ac.value + "/simulations")).data;
-    board.innerHTML = list.map(s =>
-      `<p><button onclick="startSim(${s.id})">${s.title}</button> <span>${s.simType} — ${s.description}</span></p>`
+    mode = "sim";
+    $("cockpit").hidden = false;
+    $("learnBoard").hidden = true;
+    const list = (await api("/api/v1/aircraft/" + $("ac").value + "/simulations")).data;
+    $("board").innerHTML = list.map(s =>
+      `<p><button type="button" data-sim="${s.id}">${s.title}</button> <span>${s.simType} — ${s.description}</span></p>`
     ).join("");
-    parts = (await api("/api/v1/aircraft/" + ac.value + "/parts")).data;
+    parts = (await api("/api/v1/aircraft/" + $("ac").value + "/parts")).data;
+    session = null;
     renderParts();
-    msg.className = "msg";
-    msg.textContent = "Bir senaryo seç. İpucuna göre tuşa bas, değer gir. Yanlış kombinasyon CRASH.";
+    applyInstruments({
+      phase: "PARKED", phaseLabel: "Park", ias: 0, altitude: 0, pitch: 0, roll: 0,
+      vs: 0, heading: 90, gear: "DOWN", onGround: true, n1: 20
+    });
+    $("msg").className = "msg";
+    $("msg").textContent = "Bir senaryo seç. PFD fazı (taksi, rotate, flare) gösterir. Sarı çerçeveli tuşa bas, sonra değer seç.";
   }
 
   async function startSim(id) {
     session = (await api("/api/v1/simulations/" + id + "/start", { method: "POST", body: "{}" })).data;
+    pendingPart = null;
+    $("valueBar").innerHTML = "";
     paintSession();
   }
 
   function paintSession() {
     const st = session.status;
-    msg.className = "msg " + (st === "CRASHED" || st === "FAILED" ? "crash" : st === "PASSED" ? "pass" : "");
-    msg.innerHTML = `<strong>${st}</strong> ${session.cursor}/${session.totalSteps}<br>${session.message || ""}<br>İpucu: ${session.hint || ""}`;
+    $("msg").className = "msg " + (st === "CRASHED" || st === "FAILED" ? "crash" : st === "PASSED" ? "pass" : "");
+    const inst = session.instruments || {};
+    $("msg").innerHTML =
+      `<strong>${st}</strong> ${session.cursor}/${session.totalSteps} — ${inst.phaseLabel || inst.phase || ""}` +
+      `<br>${session.message || ""}<br>İpucu: ${session.hint || ""}`;
+    applyInstruments(inst);
+    renderParts();
   }
 
-  ac.addEventListener("change", () => mode === "learn" ? loadLearn() : loadSims());
-  if (token) { login.hidden = true; app.hidden = false; boot(); }
+  function applyInstruments(inst) {
+    target = {
+      pitch: Number(inst.pitch) || 0,
+      roll: Number(inst.roll) || 0,
+      ias: Number(inst.ias) || 0,
+      altitude: Number(inst.altitude) || 0,
+      vs: Number(inst.vs) || 0,
+      heading: Number(inst.heading) || 0,
+      n1: Number(inst.n1) || 0,
+      phase: inst.phase || "PARKED",
+      phaseLabel: inst.phaseLabel || inst.phase || "Park",
+      gear: inst.gear || "DOWN",
+      onGround: !!inst.onGround
+    };
+    crashed = target.phase === "CRASHED";
+    $("fma").textContent = (target.phaseLabel || "Park").toUpperCase();
+    $("n1read").textContent = "N1 " + Math.round(target.n1) + "%";
+    const gear = $("gearFlag");
+    gear.textContent = "GEAR " + target.gear;
+    gear.className = target.gear === "UP" && target.onGround ? "bad" : "";
+    const gnd = $("gndFlag");
+    gnd.textContent = target.onGround ? "GND" : "AIR";
+    gnd.className = target.onGround ? "gnd" : "";
+    $("phases").innerHTML = PHASES.map(([code, label]) => {
+      let cls = code === target.phase ? "on" : "";
+      if (crashed) cls = "crash";
+      return `<span class="${cls}">${label}</span>`;
+    }).join("");
+  }
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function tick() {
+    ["pitch","roll","ias","altitude","vs","heading","n1"].forEach(k => {
+      shown[k] = lerp(shown[k], target[k], 0.16);
+    });
+    drawPfd();
+    requestAnimationFrame(tick);
+  }
+
+  function drawPfd() {
+    const c = $("pfd");
+    if (!c) return;
+    const ctx = c.getContext("2d");
+    const w = c.width, h = c.height;
+    const cx = w / 2, cy = h / 2 + 8;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = crashed ? "#1a0505" : "#05070c";
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(70, 28, w - 140, h - 70);
+    ctx.clip();
+    ctx.translate(cx, cy);
+    ctx.rotate(-shown.roll * Math.PI / 180);
+    const pitchPx = shown.pitch * 5;
+    ctx.fillStyle = crashed ? "#5a1c1c" : "#2e6bb2";
+    ctx.fillRect(-w, -h * 2 - pitchPx, w * 2, h * 2);
+    ctx.fillStyle = crashed ? "#3a1810" : "#8a5a2b";
+    ctx.fillRect(-w, -pitchPx, w * 2, h * 2);
+    ctx.strokeStyle = "#e8eef6";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-w, -pitchPx);
+    ctx.lineTo(w, -pitchPx);
+    ctx.stroke();
+    ctx.font = "11px Consolas, monospace";
+    ctx.fillStyle = "#e8eef6";
+    ctx.textAlign = "center";
+    for (let p = -20; p <= 20; p += 5) {
+      if (p === 0) continue;
+      const y = -pitchPx - p * 5;
+      const hw = Math.abs(p) % 10 === 0 ? 36 : 18;
+      ctx.strokeStyle = "#d0d8e4";
+      ctx.beginPath();
+      ctx.moveTo(-hw, y);
+      ctx.lineTo(hw, y);
+      ctx.stroke();
+      if (Math.abs(p) % 10 === 0) ctx.fillText(String(Math.abs(p)), -hw - 12, y + 4);
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = crashed ? "#ff6b6b" : "#f5c542";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx - 48, cy);
+    ctx.lineTo(cx - 14, cy);
+    ctx.moveTo(cx + 14, cy);
+    ctx.lineTo(cx + 48, cy);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    drawTape(ctx, 8, 28, 56, h - 70, shown.ias, 20, 220, "IAS");
+    drawTape(ctx, w - 64, 28, 56, h - 70, shown.altitude, 0, 4000, "ALT");
+
+    ctx.fillStyle = "#111820";
+    ctx.fillRect(70, h - 36, w - 140, 28);
+    ctx.fillStyle = varCyan(crashed);
+    ctx.font = "13px Consolas, monospace";
+    ctx.textAlign = "center";
+    const hdg = ((Math.round(shown.heading) % 360) + 360) % 360;
+    ctx.fillText("HDG " + String(hdg).padStart(3, "0"), cx, h - 16);
+
+    const vsX = w - 8;
+    const vsY = 28 + (h - 70) / 2;
+    const vsPx = Math.max(-70, Math.min(70, shown.vs / 20));
+    ctx.fillStyle = shown.vs >= 0 ? "#3dd68c" : "#ff8a8a";
+    ctx.fillRect(vsX - 6, vsY - vsPx, 5, vsPx || 1);
+  }
+
+  function varCyan(isCrash) { return isCrash ? "#ffb4b4" : "#7ee0ff"; }
+
+  function drawTape(ctx, x, y, tw, th, value, min, max, label) {
+    ctx.fillStyle = "#0d121a";
+    ctx.fillRect(x, y, tw, th);
+    ctx.strokeStyle = "#2a3346";
+    ctx.strokeRect(x, y, tw, th);
+    const mid = y + th / 2;
+    ctx.fillStyle = "#7ee0ff";
+    ctx.font = "13px Consolas, monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(String(Math.round(value)).padStart(label === "ALT" ? 4 : 3, "0"), x + tw / 2, mid + 4);
+    ctx.fillStyle = "#8aa0b8";
+    ctx.font = "10px Consolas, monospace";
+    ctx.fillText(label, x + tw / 2, y + 12);
+  }
+
+  $("btnLogin").addEventListener("click", doLogin);
+  $("btnLearn").addEventListener("click", loadLearn);
+  $("btnSims").addEventListener("click", loadSims);
+  $("ac").addEventListener("change", () => mode === "learn" ? loadLearn() : loadSims());
+  $("side").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-code]");
+    if (btn) clickPart(btn.dataset.code);
+  });
+  $("board").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-sim]");
+    if (btn) startSim(btn.dataset.sim);
+  });
+  $("valueBar").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-val]");
+    if (btn) sendAct(btn.dataset.val);
+  });
+
+  requestAnimationFrame(tick);
+  if (token) { $("loginBox").hidden = true; $("app").hidden = false; boot(); }
 </script>
 </body>
 </html>

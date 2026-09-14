@@ -3,12 +3,12 @@ package com.aviation.platform.module.aircraft.service.impl;
 import com.aviation.platform.common.exception.ApiException;
 import com.aviation.platform.common.security.principal.CurrentUser;
 import com.aviation.platform.module.aircraft.dto.AircraftResponse;
+import com.aviation.platform.module.aircraft.dto.FlightInstruments;
 import com.aviation.platform.module.aircraft.dto.LearnActionRequest;
 import com.aviation.platform.module.aircraft.dto.PartResponse;
 import com.aviation.platform.module.aircraft.dto.SessionResponse;
 import com.aviation.platform.module.aircraft.dto.SimActionRequest;
 import com.aviation.platform.module.aircraft.dto.SimulationResponse;
-import com.aviation.platform.module.aircraft.entity.Aircraft;
 import com.aviation.platform.module.aircraft.entity.CockpitPart;
 import com.aviation.platform.module.aircraft.entity.SimulationSession;
 import com.aviation.platform.module.aircraft.entity.TrainingSimulation;
@@ -25,7 +25,6 @@ import com.aviation.platform.module.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -117,12 +116,9 @@ public class AircraftServiceImpl implements AircraftService {
         TrainingSimulation sim = simulationRepository.findById(simulationId)
                 .orElseThrow(() -> ApiException.notFound("Simülasyon yok"));
         User user = userRepository.findById(actor.id()).orElseThrow(() -> ApiException.notFound("User not found"));
-        Map<String, Object> state = new HashMap<>();
-        state.put("controls", new HashMap<String, String>());
-        state.put("cursor", 0);
-        state.put("status", "IN_PROGRESS");
-        state.put("message", SimulationEngine.currentHint(sim.getConfig(), 0));
+        Map<String, Object> state = SimulationEngine.seed(sim.getConfig());
         SimulationSession session = sessionRepository.save(new SimulationSession(user, sim, state));
+        session.setLastMessage(String.valueOf(state.getOrDefault("message", "")));
         return toSession(session, sim);
     }
 
@@ -171,6 +167,7 @@ public class AircraftServiceImpl implements AircraftService {
         int cursor = state.get("cursor") instanceof Number n ? n.intValue() : 0;
         List<?> expected = (List<?>) sim.getConfig().getOrDefault("expected", List.of());
         Map<String, Object> controls = state.get("controls") instanceof Map<?, ?> m ? (Map<String, Object>) m : Map.of();
+        boolean open = "IN_PROGRESS".equals(session.getStatus());
         return new SessionResponse(
                 session.getId(),
                 session.getStatus(),
@@ -178,7 +175,10 @@ public class AircraftServiceImpl implements AircraftService {
                 SimulationEngine.currentHint(sim.getConfig(), cursor),
                 controls,
                 cursor,
-                expected.size()
+                expected.size(),
+                FlightInstruments.from(state.get("flight")),
+                open ? SimulationEngine.expectedPart(sim.getConfig(), cursor) : null,
+                open ? SimulationEngine.expectedValue(sim.getConfig(), cursor) : null
         );
     }
 }
