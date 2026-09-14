@@ -34,7 +34,8 @@ com.aviation.platform
 Yazı editörü: http://localhost:8080/writer/index.html  
 Kule ol: http://localhost:8080/tower/index.html  
 Pilot ol: http://localhost:8080/pilot/index.html  
-Rehberler: docs/kule-egitim-rehberi.md , docs/pilot-egitim-rehberi.md
+Rehberler: docs/kule-egitim-rehberi.md , docs/pilot-egitim-rehberi.md  
+Süreç analizi: docs/egitim-surec-analizi.md
 
 ## Çalıştırma
 
