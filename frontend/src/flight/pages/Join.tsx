@@ -10,6 +10,7 @@ export function Join() {
   const [profession, setProfession] = useState('PILOT')
   const [requestedRole, setRequestedRole] = useState('AUTHOR')
   const [experience, setExperience] = useState('')
+  const [intro, setIntro] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [ok, setOk] = useState(false)
@@ -17,7 +18,7 @@ export function Join() {
     e.preventDefault()
     setError('')
     try {
-      await api.joinTeam({ fullName, email, profession, requestedRole, experience, message })
+      await api.joinTeam({ fullName, email, profession, requestedRole, experience, intro, message })
       setOk(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : t.retry)
@@ -60,12 +61,16 @@ export function Join() {
         <select className={field} value={requestedRole} onChange={(e) => setRequestedRole(e.target.value)}>
           <option value="AUTHOR">{t.roleAuthor}</option>
           <option value="EDITOR">{t.roleEditor}</option>
-          <option value="CONTRIBUTOR">{t.roleContributor}</option>
+          <option value="MENTOR">{t.roleMentor}</option>
         </select>
       </label>
       <label className="mt-4 block text-sm font-medium">
         {t.joinExp}
         <textarea className={field} rows={2} value={experience} onChange={(e) => setExperience(e.target.value)} />
+      </label>
+      <label className="mt-4 block text-sm font-medium">
+        {t.joinIntro}
+        <textarea className={field} rows={2} value={intro} onChange={(e) => setIntro(e.target.value)} />
       </label>
       <label className="mt-4 block text-sm font-medium">
         {t.joinMsg}

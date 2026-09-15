@@ -78,7 +78,7 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public ArticleResponse create(SaveArticleRequest request, CurrentUser actor) {
-        requireAuthor(actor);
+        // Taslak: giriş yapmış herkes. İnceleme ADMIN/EDITOR/MENTOR.
         User author = userRepository.findById(actor.id()).orElseThrow(() -> ApiException.notFound("User not found"));
         String title = blankToDefault(request.title(), "Başlıksız taslak");
         Article article = new Article(author, title, uniqueSlug(title));
@@ -336,7 +336,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     private boolean isEditor(CurrentUser actor) {
-        return actor.hasRole(RoleName.EDITOR) || actor.hasRole(RoleName.ADMIN);
+        return actor.hasRole(RoleName.EDITOR) || actor.hasRole(RoleName.ADMIN) || actor.hasRole(RoleName.MENTOR);
     }
 
     private User reviewer(CurrentUser actor) {

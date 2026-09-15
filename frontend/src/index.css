@@ -55,7 +55,12 @@ body {
   background: var(--bg);
   font-family: Outfit, "Segoe UI", sans-serif;
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.5;
+}
+
+.nav-link {
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 .font-mono {
@@ -153,6 +158,28 @@ textarea:focus-visible {
   background: var(--header);
   border-bottom: 1px solid var(--stroke);
   backdrop-filter: blur(12px);
+}
+
+.article-body p {
+  margin: 0 0 1rem;
+  line-height: 1.7;
+}
+.article-body img {
+  display: block;
+  width: 100%;
+  margin: 1.25rem 0;
+  border-radius: 16px;
+}
+.article-body .term {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--hud);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {

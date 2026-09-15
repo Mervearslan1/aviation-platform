@@ -16,22 +16,23 @@ export function Blog() {
       </div>
       <h1 className="mt-6 text-3xl font-semibold md:text-4xl">{t.blogTitle}</h1>
       <p className="mt-2 max-w-2xl text-[var(--muted)]">{t.blogLead}</p>
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        {posts.length === 0 ? (
-          <p className="text-[var(--muted)]">{t.blogEmpty}</p>
-        ) : (
-          posts.map((p) => (
-            <article key={p.id} className="surface rounded-2xl p-6">
-              <h2 className="text-xl font-semibold">{p.title}</h2>
-              <p className="mt-2 text-[var(--muted)]">{p.summary}</p>
-              {p.slug ? (
-                <Link className="mt-4 inline-block font-medium" to={`/blog/${p.slug}`}>
-                  →
-                </Link>
-              ) : null}
-            </article>
-          ))
-        )}
+      <Link to="/blog/inis-safhasinin-kritik-onemi" className="mt-8 grid overflow-hidden rounded-3xl border border-[var(--stroke)] md:grid-cols-2">
+        <div className="min-h-[180px] bg-cover bg-center" style={{ backgroundImage: 'url(/blog/cover.jpg)' }} />
+        <div className="p-6">
+          <h2 className="text-xl font-extrabold">Havacılıkta iniş safhasının kritik / operasyonel önemi</h2>
+          <p className="mt-2 text-[var(--muted)]">2025–2026 pist kazaları üzerinden iniş operasyonu ve emniyet dersleri.</p>
+        </div>
+      </Link>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {posts.map((p) => (
+          <article key={p.id} className="surface rounded-2xl p-6">
+            <h2 className="text-xl font-semibold">{p.title}</h2>
+            <p className="mt-2 text-[var(--muted)]">{p.summary}</p>
+            {p.slug ? (
+              <Link className="mt-4 inline-block font-medium" to={`/blog/${p.slug}`}>→</Link>
+            ) : null}
+          </article>
+        ))}
       </div>
     </div>
   )

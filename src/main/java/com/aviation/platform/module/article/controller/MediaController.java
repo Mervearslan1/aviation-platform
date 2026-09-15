@@ -35,7 +35,7 @@ public class MediaController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('AUTHOR','EDITOR','ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Medya yükle (image/video/audio)")
     public ApiResponse<MediaAssetResponse> upload(
             @RequestPart("file") MultipartFile file,

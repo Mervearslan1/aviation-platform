@@ -49,6 +49,7 @@ export type TeamApplication = {
   profession: string
   requestedRole: string
   experience?: string
+  intro?: string
   message: string
   status: string
 }
@@ -88,6 +89,8 @@ export const api = {
     }),
   register: (body: { username: string; email: string; password: string; displayName: string }) =>
     request('/api/v1/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+  articleBySlug: (slug: string) =>
+    request<{ title: string; summary?: string; contentHtml?: string; coverImageUrl?: string }>(`/api/v1/articles/slug/${slug}`),
   articles: async (size = 6) => {
     const res = await fetch(`/api/v1/articles?size=${size}`)
     const body = (await res.json()) as { data?: Article[] }
@@ -109,4 +112,29 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
+  feedback: (slug: string) =>
+    request<{ interested: number; needsReview: number; mine: string | null }>(`/api/v1/articles/slug/${slug}/feedback`),
+  voteFeedback: (slug: string, kind: 'INTERESTED' | 'NEEDS_REVIEW') =>
+    request<{ interested: number; needsReview: number; mine: string | null }>(`/api/v1/articles/slug/${slug}/feedback`, {
+      method: 'POST',
+      body: JSON.stringify({ kind }),
+    }),
+  createArticle: (body: { title: string; summary: string; contentHtml: string }) =>
+    request<{ id: number }>('/api/v1/articles', { method: 'POST', body: JSON.stringify(body) }),
+  updateArticle: (id: number, body: { title: string; summary: string; contentHtml: string }) =>
+    request<{ id: number }>(`/api/v1/articles/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  submitArticle: (id: number) => request(`/api/v1/articles/${id}/submit`, { method: 'POST', body: '{}' }),
+  uploadMedia: async (file: File) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    const jwt = token()
+    const res = await fetch('/api/v1/media', {
+      method: 'POST',
+      headers: jwt ? { Authorization: `Bearer ${jwt}` } : {},
+      body: fd,
+    })
+    const body = (await res.json()) as { data?: { id: number }; message?: string }
+    if (!res.ok) throw new Error(body.message || res.statusText)
+    return body.data as { id: number }
+  },
 }

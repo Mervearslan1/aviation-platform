@@ -17,10 +17,25 @@ export function IconMoon({ className = 'h-5 w-5' }: IconProps) {
   )
 }
 
-export function IconFlag({ className = 'h-5 w-5' }: IconProps) {
+export function IconFlagTr({ className = 'h-5 w-7' }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <path d="M5 4v16M5 5h11l-1.5 3.5L16 12H5" />
+    <svg className={className} viewBox="0 0 30 20" aria-hidden>
+      <rect width="30" height="20" fill="#e30a17" />
+      <circle cx="12" cy="10" r="5" fill="#fff" />
+      <circle cx="13.2" cy="10" r="4" fill="#e30a17" />
+      <polygon fill="#fff" points="16.2,10 19.6,11.1 17.4,8.2 17.4,11.8 19.6,8.9" />
+    </svg>
+  )
+}
+
+export function IconFlagGb({ className = 'h-5 w-7' }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 60 30" aria-hidden>
+      <rect width="60" height="30" fill="#012169" />
+      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6" />
+      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="2" />
+      <path d="M30,0 V30 M0,15 H60" stroke="#fff" strokeWidth="10" />
+      <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" strokeWidth="6" />
     </svg>
   )
 }

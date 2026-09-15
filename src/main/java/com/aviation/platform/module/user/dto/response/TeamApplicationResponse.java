@@ -11,6 +11,7 @@ public record TeamApplicationResponse(
         TeamApplication.Profession profession,
         TeamApplication.RequestedRole requestedRole,
         String experience,
+        String intro,
         String message,
         TeamApplication.Status status,
         Instant createdAt
@@ -23,6 +24,7 @@ public record TeamApplicationResponse(
                 app.getProfession(),
                 app.getRequestedRole(),
                 app.getExperience(),
+                app.getIntro(),
                 app.getMessage(),
                 app.getStatus(),
                 app.getCreatedAt()

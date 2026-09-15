@@ -4,5 +4,6 @@ public enum RoleName {
     USER,
     AUTHOR,
     EDITOR,
+    MENTOR,
     ADMIN
 }

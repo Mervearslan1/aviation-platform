@@ -6,10 +6,9 @@ import { Button } from '../../shared/Button'
 
 const FALLBACK_POST: Article = {
   id: 0,
-  title: 'Read-back: duyduğunu geri ver',
-  slug: 'read-back',
-  summary:
-    'Kule bir talimat verir, pilot aynı anlamı kendi cümlesiyle doğrular. Bu yazı eğitim hattının omurgası; kapak ve içerik senin taslağınla değişecek.',
+  title: 'Havacılıkta iniş safhasının kritik / operasyonel önemi',
+  slug: 'inis-safhasinin-kritik-onemi',
+  summary: '2025–2026’daki iki ölümcül pist kazası üzerinden iniş operasyonunun aşamaları ve emniyet dersleri.',
 }
 
 export function Home() {
@@ -25,10 +24,10 @@ export function Home() {
   const featured = posts[0] || FALLBACK_POST
   return (
     <div>
-      <section className="relative min-h-[70vh] overflow-hidden">
+      <section className="relative min-h-[52vh] overflow-hidden">
         <div className="welcome-motion absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'var(--hero-img)' }} />
         <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
-        <div className="relative mx-auto flex min-h-[70vh] max-w-6xl flex-col justify-end px-4 py-10 md:py-16">
+        <div className="relative mx-auto flex min-h-[52vh] max-w-6xl flex-col justify-end px-4 py-8 md:py-12">
           <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.heroKicker}</p>
           <h1 className="mt-3 max-w-2xl text-3xl font-semibold text-white md:text-5xl">{t.heroTitle}</h1>
           <p className="mt-3 max-w-xl text-base text-white/85 md:text-lg">{t.heroLead}</p>
@@ -48,8 +47,8 @@ export function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-8">
-        <Link to="/blog" className="group grid overflow-hidden rounded-3xl border border-[var(--stroke)] md:grid-cols-2">
-          <div className="min-h-[220px] bg-cover bg-center md:min-h-[320px]" style={{ backgroundImage: 'url(/atmosphere/blog.jpg)' }} />
+        <Link to={`/blog/${featured.slug}`} className="group grid overflow-hidden rounded-3xl border border-[var(--stroke)] md:grid-cols-2">
+          <div className="min-h-[180px] bg-cover bg-center md:min-h-[260px]" style={{ backgroundImage: 'url(/blog/cover.jpg)' }} />
           <div className="flex flex-col justify-center bg-[var(--panel)] p-6 md:p-10">
             <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.navBlog}</p>
             <h2 className="mt-2 text-2xl font-semibold md:text-3xl">{featured.title}</h2>

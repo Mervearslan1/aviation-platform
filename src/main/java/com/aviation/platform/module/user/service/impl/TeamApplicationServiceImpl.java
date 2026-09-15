@@ -47,6 +47,7 @@ public class TeamApplicationServiceImpl implements TeamApplicationService {
                 request.profession(),
                 request.requestedRole(),
                 request.experience(),
+                request.intro(),
                 request.message().trim()
         );
         return TeamApplicationResponse.from(applicationRepository.save(app));
@@ -79,7 +80,7 @@ public class TeamApplicationServiceImpl implements TeamApplicationService {
         RoleName roleName = switch (app.getRequestedRole()) {
             case AUTHOR -> RoleName.AUTHOR;
             case EDITOR -> RoleName.EDITOR;
-            case CONTRIBUTOR -> null;
+            case MENTOR -> RoleName.MENTOR;
         };
         if (roleName == null) {
             return;

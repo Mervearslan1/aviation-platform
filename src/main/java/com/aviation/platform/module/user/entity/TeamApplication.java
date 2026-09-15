@@ -20,7 +20,7 @@ import java.time.Instant;
 public class TeamApplication {
 
     public enum Profession { PILOT, ATC, STUDENT, OTHER }
-    public enum RequestedRole { AUTHOR, EDITOR, CONTRIBUTOR }
+    public enum RequestedRole { AUTHOR, EDITOR, MENTOR }
     public enum Status { PENDING, APPROVED, REJECTED }
 
     @Id
@@ -43,6 +43,9 @@ public class TeamApplication {
 
     @Column(length = 1000)
     private String experience;
+
+    @Column(length = 500)
+    private String intro;
 
     @Column(nullable = false, length = 2000)
     private String message;
@@ -70,6 +73,7 @@ public class TeamApplication {
             Profession profession,
             RequestedRole requestedRole,
             String experience,
+            String intro,
             String message
     ) {
         this.fullName = fullName;
@@ -77,6 +81,7 @@ public class TeamApplication {
         this.profession = profession;
         this.requestedRole = requestedRole;
         this.experience = experience;
+        this.intro = intro;
         this.message = message;
     }
 
@@ -94,6 +99,7 @@ public class TeamApplication {
     public Profession getProfession() { return profession; }
     public RequestedRole getRequestedRole() { return requestedRole; }
     public String getExperience() { return experience; }
+    public String getIntro() { return intro; }
     public String getMessage() { return message; }
     public Status getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }

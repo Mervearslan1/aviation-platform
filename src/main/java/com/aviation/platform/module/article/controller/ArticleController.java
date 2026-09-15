@@ -3,9 +3,12 @@ package com.aviation.platform.module.article.controller;
 import com.aviation.platform.common.response.ApiResponse;
 import com.aviation.platform.common.response.PagedResponse;
 import com.aviation.platform.common.security.principal.CurrentUser;
+import com.aviation.platform.module.article.dto.request.ArticleFeedbackRequest;
 import com.aviation.platform.module.article.dto.request.ReviewCommentRequest;
 import com.aviation.platform.module.article.dto.request.SaveArticleRequest;
 import com.aviation.platform.module.article.dto.response.ArticleResponse;
+import com.aviation.platform.module.article.dto.response.FeedbackCountsResponse;
+import com.aviation.platform.module.article.service.ArticleFeedbackService;
 import com.aviation.platform.module.article.entity.ArticleStatus;
 import com.aviation.platform.module.article.service.ArticleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,14 +35,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final ArticleFeedbackService feedbackService;
 
-    public ArticleController(ArticleService articleService) {
+    public ArticleController(ArticleService articleService, ArticleFeedbackService feedbackService) {
         this.articleService = articleService;
+        this.feedbackService = feedbackService;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('AUTHOR','EDITOR','ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Yeni taslak yazı oluştur")
     public ApiResponse<ArticleResponse> create(
             @Valid @RequestBody SaveArticleRequest request,
@@ -49,7 +54,7 @@ public class ArticleController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('AUTHOR','EDITOR','ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Taslağı güncelle (zengin içerik HTML + document)")
     public ApiResponse<ArticleResponse> update(
             @PathVariable Long id,
@@ -84,7 +89,7 @@ public class ArticleController {
     }
 
     @GetMapping("/queue")
-    @PreAuthorize("hasAnyRole('EDITOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('EDITOR','ADMIN','MENTOR')")
     @Operation(summary = "Editör kuyruğu")
     public PagedResponse<ArticleResponse> queue(
             @RequestParam(required = false) ArticleStatus status,
@@ -116,7 +121,7 @@ public class ArticleController {
     }
 
     @PostMapping("/{id}/submit")
-    @PreAuthorize("hasAnyRole('AUTHOR','EDITOR','ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "İncelemeye gönder")
     public ApiResponse<ArticleResponse> submit(
             @PathVariable Long id,
@@ -126,7 +131,7 @@ public class ArticleController {
     }
 
     @PostMapping("/{id}/review")
-    @PreAuthorize("hasAnyRole('EDITOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('EDITOR','ADMIN','MENTOR')")
     @Operation(summary = "İncelemeyi başlat")
     public ApiResponse<ArticleResponse> review(
             @PathVariable Long id,
@@ -136,7 +141,7 @@ public class ArticleController {
     }
 
     @PostMapping("/{id}/request-revision")
-    @PreAuthorize("hasAnyRole('EDITOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('EDITOR','ADMIN','MENTOR')")
     @Operation(summary = "Revizyon iste")
     public ApiResponse<ArticleResponse> requestRevision(
             @PathVariable Long id,
@@ -147,7 +152,7 @@ public class ArticleController {
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole('EDITOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('EDITOR','ADMIN','MENTOR')")
     @Operation(summary = "Onayla")
     public ApiResponse<ArticleResponse> approve(
             @PathVariable Long id,
@@ -157,7 +162,7 @@ public class ArticleController {
     }
 
     @PostMapping("/{id}/reject")
-    @PreAuthorize("hasAnyRole('EDITOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('EDITOR','ADMIN','MENTOR')")
     @Operation(summary = "Reddet")
     public ApiResponse<ArticleResponse> reject(
             @PathVariable Long id,
@@ -168,7 +173,7 @@ public class ArticleController {
     }
 
     @PostMapping("/{id}/publish")
-    @PreAuthorize("hasAnyRole('EDITOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('EDITOR','ADMIN','MENTOR')")
     @Operation(summary = "Yayımla")
     public ApiResponse<ArticleResponse> publish(
             @PathVariable Long id,
@@ -177,8 +182,29 @@ public class ArticleController {
         return ApiResponse.of(articleService.publish(id, actor));
     }
 
+    @GetMapping("/slug/{slug}/feedback")
+    @SecurityRequirements
+    @Operation(summary = "Yazı geri bildirim sayıları")
+    public ApiResponse<FeedbackCountsResponse> feedbackCounts(
+            @PathVariable String slug,
+            @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor
+    ) {
+        return ApiResponse.of(feedbackService.counts(slug, actor));
+    }
+
+    @PostMapping("/slug/{slug}/feedback")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Okur geri bildirimi: ilgimi çekti / yeniden değerlendirilmeli")
+    public ApiResponse<FeedbackCountsResponse> feedbackVote(
+            @PathVariable String slug,
+            @Valid @RequestBody ArticleFeedbackRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor
+    ) {
+        return ApiResponse.of(feedbackService.vote(slug, request, actor));
+    }
+
     @PostMapping("/{id}/archive")
-    @PreAuthorize("hasAnyRole('EDITOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('EDITOR','ADMIN','MENTOR')")
     @Operation(summary = "Arşivle")
     public ApiResponse<ArticleResponse> archive(
             @PathVariable Long id,

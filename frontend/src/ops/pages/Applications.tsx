@@ -31,6 +31,7 @@ export function Applications() {
             <p className="text-sm text-[var(--muted)]">
               {row.profession} → {row.requestedRole} · {row.status}
             </p>
+            {row.intro ? <p className="mt-2 text-sm italic">{row.intro}</p> : null}
             <p className="mt-2 text-sm">{row.message}</p>
             {row.status === 'PENDING' ? (
               <div className="mt-3 flex gap-2">

@@ -12,6 +12,7 @@ public record CreateTeamApplicationRequest(
         @NotNull TeamApplication.Profession profession,
         @NotNull TeamApplication.RequestedRole requestedRole,
         @Size(max = 1000) String experience,
+        @Size(max = 500) String intro,
         @NotBlank @Size(max = 2000) String message
 ) {
 }

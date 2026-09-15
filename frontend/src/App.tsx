@@ -6,6 +6,8 @@ import { Cockpit } from './flight/pages/Cockpit'
 import { Login } from './flight/pages/Login'
 import { Join } from './flight/pages/Join'
 import { Blog } from './flight/pages/Blog'
+import { Article } from './flight/pages/Article'
+import { Writer } from './flight/pages/Writer'
 import { Faq } from './flight/pages/Faq'
 import { About } from './flight/pages/About'
 import { OpsShell } from './ops/OpsShell'
@@ -24,6 +26,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/katil" element={<Join />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/yaz" element={<Writer />} />
+          <Route path="/blog/:slug" element={<Article />} />
           <Route path="/sss" element={<Faq />} />
           <Route path="/hakkinda" element={<About />} />
         </Route>
