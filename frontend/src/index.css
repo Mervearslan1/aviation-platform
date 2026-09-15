@@ -167,8 +167,12 @@ textarea:focus-visible {
 .article-body img {
   display: block;
   width: 100%;
+  height: auto;
   margin: 1.25rem 0;
   border-radius: 16px;
+}
+.article-body figure {
+  margin: 1.5rem 0;
 }
 .article-body .term {
   background: transparent;
