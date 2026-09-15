@@ -25,7 +25,7 @@ export function Join() {
   }
   if (ok) {
     return (
-      <div className="surface mx-auto max-w-lg rounded-3xl p-10 text-center">
+      <div className="surface mx-auto mt-8 max-w-lg rounded-3xl p-10 text-center">
         <h1 className="text-3xl font-semibold">{t.joinTitle}</h1>
         <p className="mt-4 text-lg text-[var(--muted)]">{t.joinOk}</p>
         <Button className="mt-6" to="/">
@@ -35,7 +35,7 @@ export function Join() {
     )
   }
   return (
-    <form onSubmit={submit} className="surface mx-auto max-w-xl rounded-3xl p-8 md:p-10">
+    <form onSubmit={submit} className="surface mx-auto my-8 max-w-xl rounded-3xl p-8 md:p-10">
       <h1 className="text-3xl font-semibold">{t.joinTitle}</h1>
       <p className="mt-3 text-[var(--muted)]">{t.joinLead}</p>
       <label className="mt-6 block text-sm font-medium">

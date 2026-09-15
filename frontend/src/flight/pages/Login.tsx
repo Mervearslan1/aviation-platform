@@ -34,7 +34,7 @@ export function Login() {
     }
   }
   return (
-    <div className="grid overflow-hidden rounded-3xl border border-[var(--stroke)] lg:grid-cols-2">
+    <div className="mx-auto my-6 grid max-w-6xl overflow-hidden rounded-3xl border border-[var(--stroke)] lg:grid-cols-2">
       <div
         className="hidden min-h-[420px] bg-cover bg-center lg:block"
         style={{ backgroundImage: 'var(--hero-img)' }}

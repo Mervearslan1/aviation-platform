@@ -26,17 +26,19 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   useEffect(load, [track])
   if (error) {
     return (
-      <div className="glass rounded-3xl p-8">
-        <p className="text-[var(--warn)]">{t.catalogFail}</p>
-        <Button className="mt-4" onClick={load}>
-          {t.retry}
-        </Button>
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="glass rounded-3xl p-8">
+          <p className="text-[var(--warn)]">{t.catalogFail}</p>
+          <Button className="mt-4" onClick={load}>
+            {t.retry}
+          </Button>
+        </div>
       </div>
     )
   }
-  if (!path) return <p className="font-mono text-[var(--muted)]">…</p>
+  if (!path) return <p className="mx-auto max-w-6xl px-4 py-8 font-mono text-[var(--muted)]">…</p>
   return (
-    <div>
+    <div className="mx-auto max-w-6xl px-4 py-8">
       <Link to="/" className="font-mono text-xs tracking-[0.2em] text-[var(--hud)]">
         ← {t.back}
       </Link>

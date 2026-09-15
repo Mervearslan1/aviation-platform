@@ -132,6 +132,20 @@ textarea:focus-visible {
   top: 12px;
 }
 
+.welcome-motion {
+  animation: kenburns 18s ease-in-out infinite alternate;
+  transform-origin: 50% 40%;
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(-2%, 2%, 0);
+  }
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -144,5 +158,8 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .btn:hover {
     transform: none;
+  }
+  .welcome-motion {
+    animation: none;
   }
 }

@@ -14,7 +14,7 @@ export function Cockpit() {
       .catch((e: Error) => setError(e.message))
   }, [])
   return (
-    <div>
+    <div className="mx-auto max-w-6xl px-4 py-8">
       <Link to="/" className="font-mono text-xs tracking-[0.2em] text-[var(--hud)]">
         ← {t.back}
       </Link>

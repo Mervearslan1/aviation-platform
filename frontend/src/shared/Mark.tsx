@@ -1,3 +1,5 @@
+import { useTheme } from './theme'
+
 export function Logo({
   compact = false,
   className = '',
@@ -5,11 +7,13 @@ export function Logo({
   compact?: boolean
   className?: string
 }) {
+  const { theme } = useTheme()
+  const src = theme === 'dark' ? '/brand/logo-dark.png' : '/brand/logo.png'
   return (
     <img
-      src="/brand/logo.png"
+      src={src}
       alt="Aviation Platform"
-      className={`${compact ? 'h-11 w-auto' : 'h-16 w-auto'} object-contain ${className}`}
+      className={`${compact ? 'h-10 w-auto' : 'h-14 w-auto'} object-contain ${className}`}
     />
   )
 }

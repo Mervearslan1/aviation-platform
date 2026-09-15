@@ -4,6 +4,14 @@ import { api, type Catalog, type Article } from '../../shared/api'
 import { levelLabel, useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
 
+const FALLBACK_POST: Article = {
+  id: 0,
+  title: 'Read-back: duyduğunu geri ver',
+  slug: 'read-back',
+  summary:
+    'Kule bir talimat verir, pilot aynı anlamı kendi cümlesiyle doğrular. Bu yazı eğitim hattının omurgası; kapak ve içerik senin taslağınla değişecek.',
+}
+
 export function Home() {
   const { t } = useI18n()
   const [catalog, setCatalog] = useState<Catalog | null>(null)
@@ -14,91 +22,46 @@ export function Home() {
   }, [])
   const tower = catalog?.tower[0]
   const pilot = catalog?.pilot[0]
-  const faqs = [
-    [t.faq1q, t.faq1a],
-    [t.faq2q, t.faq2a],
-    [t.faq3q, t.faq3a],
-    [t.faq4q, t.faq4a],
-  ]
+  const featured = posts[0] || FALLBACK_POST
   return (
-    <div className="space-y-16 md:space-y-24">
-      <section className="grid overflow-hidden rounded-3xl border border-[var(--stroke)] lg:grid-cols-2">
-        <div className="flex flex-col justify-center gap-5 bg-[var(--panel)] p-8 md:p-12">
+    <div>
+      <section className="relative min-h-[70vh] overflow-hidden">
+        <div className="welcome-motion absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'var(--hero-img)' }} />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
+        <div className="relative mx-auto flex min-h-[70vh] max-w-6xl flex-col justify-end px-4 py-10 md:py-16">
           <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.heroKicker}</p>
-          <h1 className="text-3xl font-semibold leading-tight md:text-5xl">{t.heroTitle}</h1>
-          <p className="max-w-xl text-lg text-[var(--muted)]">{t.heroLead}</p>
-          <div className="flex flex-wrap gap-3">
+          <h1 className="mt-3 max-w-2xl text-3xl font-semibold text-white md:text-5xl">{t.heroTitle}</h1>
+          <p className="mt-3 max-w-xl text-base text-white/85 md:text-lg">{t.heroLead}</p>
+          <div className="mt-6 flex flex-wrap gap-3">
             <Button to="/tower">{t.ctaLearn}</Button>
             <Button variant="secondary" to="/katil">
               {t.ctaJoin}
             </Button>
           </div>
         </div>
-        <div
-          className="min-h-[240px] bg-cover bg-center lg:min-h-[480px]"
-          style={{ backgroundImage: 'var(--hero-img)' }}
-          role="img"
-          aria-hidden="true"
-        />
       </section>
 
-      <section id="egitim">
-        <h2 className="text-2xl font-semibold md:text-3xl">{t.learnTitle}</h2>
-        <p className="mt-2 max-w-2xl text-[var(--muted)]">{t.learnLead}</p>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <Door to="/tower" code="TWR" title={t.doorTower} hint={t.doorTowerHint} meta={tower ? `${tower.steps.length} ${t.steps}` : '—'} level={levelLabel(t, tower?.difficulty)} />
-          <Door to="/pilot" code="PIC" title={t.doorPilot} hint={t.doorPilotHint} meta={pilot ? `${pilot.steps.length} ${t.steps}` : '—'} level={levelLabel(t, pilot?.difficulty)} />
-          <Door to="/cockpit" code="ACFT" title={t.doorAc} hint={t.doorAcHint} meta={catalog ? String(catalog.aircraft.length) : '—'} level={t.open} />
-        </div>
+      <section className="mx-auto grid max-w-6xl gap-3 px-4 py-6 md:grid-cols-3 md:py-8">
+        <Door to="/tower" img="/atmosphere/tower.jpg" code="TWR" title={t.doorTower} hint={t.doorTowerHint} meta={tower ? `${tower.steps.length} ${t.steps}` : ''} level={levelLabel(t, tower?.difficulty)} />
+        <Door to="/pilot" img="/atmosphere/pilot.jpg" code="PIC" title={t.doorPilot} hint={t.doorPilotHint} meta={pilot ? `${pilot.steps.length} ${t.steps}` : ''} level={levelLabel(t, pilot?.difficulty)} />
+        <Door to="/cockpit" img="/atmosphere/cockpit.jpg" code="ACFT" title={t.doorAc} hint={t.doorAcHint} meta={catalog ? String(catalog.aircraft.length) : ''} level={t.open} />
       </section>
 
-      <section>
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold md:text-3xl">{t.blogTitle}</h2>
-            <p className="mt-2 text-[var(--muted)]">{t.blogLead}</p>
+      <section className="mx-auto max-w-6xl px-4 pb-8">
+        <Link to="/blog" className="group grid overflow-hidden rounded-3xl border border-[var(--stroke)] md:grid-cols-2">
+          <div className="min-h-[220px] bg-cover bg-center md:min-h-[320px]" style={{ backgroundImage: 'url(/atmosphere/blog.jpg)' }} />
+          <div className="flex flex-col justify-center bg-[var(--panel)] p-6 md:p-10">
+            <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.navBlog}</p>
+            <h2 className="mt-2 text-2xl font-semibold md:text-3xl">{featured.title}</h2>
+            <p className="mt-3 text-[var(--muted)]">{featured.summary}</p>
+            <span className="mt-5 font-medium group-hover:text-[var(--amber)]">{t.navBlog} →</span>
           </div>
-          <Button variant="secondary" to="/blog">
-            {t.navBlog}
-          </Button>
-        </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {posts.length === 0 ? (
-            <p className="text-[var(--muted)]">{t.blogEmpty}</p>
-          ) : (
-            posts.map((p) => (
-              <Link key={p.id} to="/blog" className="surface rounded-2xl p-5 hover:border-[var(--amber)]">
-                <h3 className="text-lg font-semibold">{p.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm text-[var(--muted)]">{p.summary}</p>
-              </Link>
-            ))
-          )}
-        </div>
+        </Link>
       </section>
 
-      <section>
-        <h2 className="text-2xl font-semibold md:text-3xl">{t.faqTitle}</h2>
-        <div className="mt-6 space-y-3">
-          {faqs.map(([q, a]) => (
-            <details key={q} className="surface rounded-2xl px-5 py-4">
-              <summary className="cursor-pointer list-none text-lg font-medium">{q}</summary>
-              <p className="mt-2 text-[var(--muted)]">{a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      <section className="grid gap-6 rounded-3xl border border-[var(--stroke)] bg-[var(--panel)] p-8 md:grid-cols-[1.4fr_0.6fr] md:p-10">
-        <div>
-          <h2 className="text-2xl font-semibold md:text-3xl">{t.aboutTitle}</h2>
-          <p className="mt-3 text-lg text-[var(--muted)]">{t.aboutLead}</p>
-          <Button className="mt-6" variant="secondary" to="/hakkinda">
-            {t.navAbout}
-          </Button>
-        </div>
-        <div className="flex flex-col justify-center gap-3 rounded-2xl bg-[var(--bg)] p-6">
-          <p className="font-medium">{t.joinTitle}</p>
-          <p className="text-sm text-[var(--muted)]">{t.joinLead}</p>
+      <section className="border-t border-[var(--stroke)] bg-[var(--panel)]">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6">
+          <p className="max-w-xl text-[var(--muted)]">{t.joinLead}</p>
           <Button to="/katil">{t.navJoin}</Button>
         </div>
       </section>
@@ -108,6 +71,7 @@ export function Home() {
 
 function Door({
   to,
+  img,
   code,
   title,
   hint,
@@ -115,6 +79,7 @@ function Door({
   level,
 }: {
   to: string
+  img: string
   code: string
   title: string
   hint: string
@@ -122,14 +87,18 @@ function Door({
   level: string
 }) {
   return (
-    <Link to={to} className="surface flex flex-col rounded-2xl p-6 hover:border-[var(--amber)]">
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-xs tracking-[0.28em] text-[var(--hud)]">{code}</span>
-        <span className="rounded-full bg-[var(--bg)] px-2 py-0.5 font-mono text-[11px] text-[var(--amber)]">{level}</span>
+    <Link to={to} className="group relative min-h-[240px] overflow-hidden rounded-2xl">
+      <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
+      <div className="relative flex h-full min-h-[240px] flex-col justify-end p-5 text-white">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-mono tracking-[0.28em] text-[var(--amber)]">{code}</span>
+          <span className="rounded-full bg-black/40 px-2 py-0.5 font-mono">{level}</span>
+        </div>
+        <h2 className="mt-2 text-2xl font-semibold">{title}</h2>
+        <p className="mt-1 text-sm text-white/85">{hint}</p>
+        {meta ? <p className="mt-2 text-sm font-medium">{meta} →</p> : null}
       </div>
-      <h3 className="mt-4 text-2xl font-semibold">{title}</h3>
-      <p className="mt-2 flex-1 text-[var(--muted)]">{hint}</p>
-      <span className="mt-5 font-medium">{meta} →</span>
     </Link>
   )
 }
