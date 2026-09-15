@@ -1,7 +1,7 @@
 import { useI18n } from '../../shared/i18n'
 import { Logo } from '../../shared/Mark'
 
-const desks = ['opsUsers', 'opsContent', 'opsCurriculum', 'opsAircraft', 'opsAudit'] as const
+const desks = ['opsUsers', 'opsContent', 'opsCurriculum', 'opsAircraft', 'opsAudit', 'opsApps'] as const
 
 export function OpsDashboard() {
   const { t } = useI18n()

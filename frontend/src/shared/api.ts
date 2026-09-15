@@ -35,6 +35,24 @@ export type Catalog = {
   aircraft: CatalogAircraft[]
 }
 
+export type Article = {
+  id: number
+  title: string
+  slug: string
+  summary?: string
+}
+
+export type TeamApplication = {
+  id: number
+  fullName: string
+  email: string
+  profession: string
+  requestedRole: string
+  experience?: string
+  message: string
+  status: string
+}
+
 type Envelope<T> = { data: T; message?: string }
 
 const TOKEN_KEY = 'aviationToken'
@@ -67,5 +85,28 @@ export const api = {
     request<{ accessToken: string }>('/api/v1/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
+    }),
+  register: (body: { username: string; email: string; password: string; displayName: string }) =>
+    request('/api/v1/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+  articles: async (size = 6) => {
+    const res = await fetch(`/api/v1/articles?size=${size}`)
+    const body = (await res.json()) as { data?: Article[] }
+    return body.data || []
+  },
+  joinTeam: (payload: Record<string, string>) =>
+    request('/api/v1/team-applications', { method: 'POST', body: JSON.stringify(payload) }),
+  teamApplications: async () => {
+    const jwt = token()
+    const res = await fetch('/api/v1/team-applications', {
+      headers: jwt ? { Authorization: `Bearer ${jwt}` } : {},
+    })
+    const body = (await res.json()) as { data?: TeamApplication[]; message?: string }
+    if (!res.ok) throw new Error(body.message || res.statusText)
+    return body.data || []
+  },
+  reviewApplication: (id: number, status: 'APPROVED' | 'REJECTED') =>
+    request(`/api/v1/team-applications/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
     }),
 }

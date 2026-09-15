@@ -49,6 +49,9 @@ export function OpsShell() {
           <NavLink to="/ops/audit" className={item}>
             {t.opsAudit}
           </NavLink>
+          <NavLink to="/ops/applications" className={item}>
+            {t.opsApps}
+          </NavLink>
         </aside>
         <section className="rounded-2xl border border-[var(--stroke)] bg-[var(--bg)] p-6">
           <Outlet />

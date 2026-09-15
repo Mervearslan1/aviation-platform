@@ -1,45 +1,46 @@
 @import "tailwindcss";
 
-:root {
+:root,
+html.light {
   --navy: #0b3a7a;
-  --royal: #1a4fa3;
-  --sky: #4a9fe8;
-  --bg: #f4f6f8;
-  --bg-2: #e7edf5;
-  --ink: #0b3a7a;
-  --muted: #4d6280;
-  --panel: rgba(255, 255, 255, 0.86);
-  --stroke: rgba(11, 58, 122, 0.14);
-  --hud: #1a4fa3;
-  --amber: #c98900;
+  --royal: #1648a0;
+  --sky: #2f7ad1;
+  --bg: #f4f7fb;
+  --bg-2: #ffffff;
+  --ink: #10233d;
+  --muted: #3e5470;
+  --panel: #ffffff;
+  --stroke: #c5d2e4;
+  --hud: #0b3a7a;
+  --amber: #b8860b;
   --btn: #0b3a7a;
   --btn-ink: #ffffff;
-  --good: #0f7a4a;
+  --good: #0c6b3e;
   --warn: #b42318;
-  --horizon-sky: #8ec8f5;
-  --horizon-ground: #1a4fa3;
-  --focus: #1a4fa3;
+  --focus: #0b3a7a;
+  --header: rgba(244, 247, 251, 0.92);
+  --hero-img: url("/atmosphere/day.jpg");
 }
 
 html.dark {
   --navy: #07101c;
   --royal: #1a4fa3;
-  --sky: #6bb6f0;
-  --bg: #07101c;
-  --bg-2: #0c1a2e;
-  --ink: #e8f1fa;
-  --muted: #8aa4c2;
-  --panel: rgba(10, 22, 40, 0.78);
-  --stroke: rgba(107, 182, 240, 0.2);
-  --hud: #6bb6f0;
+  --sky: #7eb8f0;
+  --bg: #07111d;
+  --bg-2: #0d1b2e;
+  --ink: #f3f7fc;
+  --muted: #c3d2e4;
+  --panel: #122033;
+  --stroke: #2a4464;
+  --hud: #8ec8f5;
   --amber: #f5c542;
   --btn: #f5c542;
   --btn-ink: #0b1220;
-  --good: #3dd68c;
-  --warn: #ff6b6b;
-  --horizon-sky: #1a4fa3;
-  --horizon-ground: #f5c542;
+  --good: #4ade80;
+  --warn: #ff8a8a;
   --focus: #f5c542;
+  --header: rgba(7, 17, 29, 0.92);
+  --hero-img: url("/atmosphere/night.jpg");
 }
 
 html,
@@ -52,22 +53,26 @@ body {
   margin: 0;
   color: var(--ink);
   background: var(--bg);
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family: Outfit, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
 }
 
 .font-mono {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
 }
 
+.surface,
 .glass {
   background: var(--panel);
   border: 1px solid var(--stroke);
-  backdrop-filter: blur(16px);
 }
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
@@ -76,19 +81,21 @@ input:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 0 18px;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 650;
+  font-size: 15px;
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease;
+  text-decoration: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 .btn:hover {
   transform: translateY(-1px);
-  filter: brightness(1.05);
+  filter: brightness(1.06);
 }
 
 .btn-primary {
@@ -97,26 +104,24 @@ input:focus-visible {
 }
 
 .btn-secondary {
-  background: transparent;
+  background: var(--panel);
   color: var(--ink);
   border-color: var(--stroke);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--muted);
-  min-height: 36px;
+  color: var(--ink);
+  min-height: 40px;
   padding: 0 12px;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: 14px;
 }
 
 .skip {
   position: absolute;
   left: 12px;
-  top: -40px;
-  z-index: 50;
+  top: -48px;
+  z-index: 80;
   background: var(--btn);
   color: var(--btn-ink);
   padding: 8px 12px;
@@ -127,13 +132,17 @@ input:focus-visible {
   top: 12px;
 }
 
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--header);
+  border-bottom: 1px solid var(--stroke);
+  backdrop-filter: blur(12px);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .btn,
-  .card-lift {
-    transition: none;
-  }
-  .btn:hover,
-  .card-lift:hover {
+  .btn:hover {
     transform: none;
   }
 }
