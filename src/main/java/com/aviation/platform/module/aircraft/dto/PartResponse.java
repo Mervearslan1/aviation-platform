@@ -11,6 +11,7 @@ public record PartResponse(
         String location,
         String functionTr,
         String category,
+        String variant,
         boolean learned
 ) {
 
@@ -24,6 +25,7 @@ public record PartResponse(
                 part.getLocation(),
                 part.getFunctionTr(),
                 part.getCategory(),
+                part.getVariant() == null ? "Both" : part.getVariant(),
                 learned
         );
     }

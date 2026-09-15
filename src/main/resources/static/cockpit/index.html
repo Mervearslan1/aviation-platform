@@ -31,6 +31,12 @@
     .part { display: block; width: 100%; text-align: left; margin: 4px 0; background: var(--card); color: var(--text); }
     .part.ok { outline: 2px solid var(--green); }
     .part.wait { outline: 2px solid var(--amber); animation: pulse 1.4s ease-in-out infinite; }
+    .badge { font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 6px; background: #2a3346; color: var(--muted); vertical-align: middle; }
+    .badge.g1000 { color: var(--cyan); }
+    .badge.classic { color: var(--amber); }
+    .filter { display: flex; gap: 4px; margin-bottom: 8px; }
+    .filter button { background: var(--line); font-size: 12px; padding: 6px 8px; }
+    .filter button.on { background: var(--blue); }
     @keyframes pulse { 50% { outline-color: #fff3; } }
     .msg { padding: 10px; background: var(--card); border-radius: 8px; margin-bottom: 12px; }
     .crash { background: #3a1515; }
@@ -109,13 +115,14 @@
     ["FLARE", "Flare"],
     ["LANDING", "İniş"]
   ];
-  const VALUES = ["ON","OFF","UP","DOWN","FULL","IDLE","TOGA","FLX","BOTH","RICH","CUTOFF","GRD","DISCHARGE","CENTER","BACK","HOLD","0","1","5","10","20","30","1+F"];
+  const VALUES = ["ON","OFF","UP","DOWN","FULL","IDLE","TOGA","FLX","BOTH","RICH","CUTOFF","IN","START","GRD","DISCHARGE","CENTER","BACK","HOLD","0","1","5","10","20","30","1+F"];
 
   let token = localStorage.getItem("aviationToken");
   let mode = "learn";
   let lesson = null;
   let session = null;
   let parts = [];
+  let variantFilter = "ALL";
   let pendingPart = null;
   let shown = { pitch: 0, roll: 0, ias: 0, altitude: 0, vs: 0, heading: 90, n1: 20 };
   let target = { ...shown, phase: "PARKED", phaseLabel: "Park", gear: "DOWN", onGround: true };
@@ -163,12 +170,15 @@
     $("learnBoard").hidden = false;
     $("valueBar").innerHTML = "";
     const code = $("ac").value;
+    variantFilter = "ALL";
     parts = (await api("/api/v1/aircraft/" + code + "/parts")).data;
     renderParts();
     try {
       lesson = (await api("/api/v1/aircraft/" + code + "/learn/next")).data;
       $("msg").className = "msg";
-      $("msg").innerHTML = `<strong>Bul:</strong> ${lesson.nameTr}<br><em>${lesson.nameEn}</em><br>${lesson.location}<br>${lesson.functionTr}`;
+      const variant = lesson.variant && lesson.variant !== "Both"
+        ? ` <span class="badge ${lesson.variant.toLowerCase()}">${lesson.variant}</span>` : "";
+      $("msg").innerHTML = `<strong>Bul:</strong> ${lesson.nameTr}${variant}<br><em>${lesson.nameEn}</em><br>${lesson.location}<br>${lesson.functionTr}`;
     } catch (e) {
       lesson = null;
       $("msg").className = "msg pass";
@@ -176,14 +186,29 @@
     }
   }
 
+  function variantBadge(v) {
+    if (!v || v === "Both") return "";
+    return ` <span class="badge ${v.toLowerCase()}">${v}</span>`;
+  }
+
   function renderParts() {
+    const hasVariant = parts.some(p => p.variant && p.variant !== "Both");
+    const visible = parts.filter(p => {
+      if (variantFilter === "ALL") return true;
+      return p.variant === variantFilter || p.variant === "Both" || !p.variant;
+    });
     const groups = {};
-    parts.forEach(p => { (groups[p.panel] = groups[p.panel] || []).push(p); });
+    visible.forEach(p => { (groups[p.panel] = groups[p.panel] || []).push(p); });
     const wait = session && session.expectedPart;
-    $("side").innerHTML = Object.entries(groups).map(([panel, list]) =>
+    const filterBar = hasVariant
+      ? `<div class="filter">${[["ALL","Tümü"],["Classic","Classic"],["G1000","G1000"]].map(([code, label]) =>
+          `<button type="button" class="${variantFilter === code ? "on" : ""}" data-variant="${code}">${label}</button>`
+        ).join("")}</div>`
+      : "";
+    $("side").innerHTML = filterBar + Object.entries(groups).map(([panel, list]) =>
       `<div class="panel"><h4>${panel}</h4>${list.map(p => {
         const cls = p.learned ? "ok" : (wait === p.code ? "wait" : "");
-        return `<button type="button" class="part ${cls}" data-code="${p.code}">${p.nameTr}</button>`;
+        return `<button type="button" class="part ${cls}" data-code="${p.code}">${p.nameTr}${variantBadge(p.variant)}</button>`;
       }).join("")}</div>`
     ).join("");
   }
@@ -240,6 +265,7 @@
     ).join("");
     parts = (await api("/api/v1/aircraft/" + $("ac").value + "/parts")).data;
     session = null;
+    variantFilter = "ALL";
     renderParts();
     applyInstruments({
       phase: "PARKED", phaseLabel: "Park", ias: 0, altitude: 0, pitch: 0, roll: 0,
@@ -402,6 +428,8 @@
   $("btnSims").addEventListener("click", loadSims);
   $("ac").addEventListener("change", () => mode === "learn" ? loadLearn() : loadSims());
   $("side").addEventListener("click", (e) => {
+    const filter = e.target.closest("[data-variant]");
+    if (filter) { variantFilter = filter.dataset.variant; renderParts(); return; }
     const btn = e.target.closest("[data-code]");
     if (btn) clickPart(btn.dataset.code);
   });

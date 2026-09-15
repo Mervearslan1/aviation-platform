@@ -43,6 +43,9 @@ public class CockpitPart {
     @Column(nullable = false, length = 64)
     private String category;
 
+    @Column(nullable = false, length = 16)
+    private String variant = "Both";
+
     @Column(name = "sort_index", nullable = false)
     private int sortIndex;
 
@@ -83,6 +86,10 @@ public class CockpitPart {
 
     public String getCategory() {
         return category;
+    }
+
+    public String getVariant() {
+        return variant;
     }
 
     public int getSortIndex() {
