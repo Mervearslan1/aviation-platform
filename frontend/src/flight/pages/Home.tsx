@@ -15,24 +15,20 @@ export function Home() {
   const { t } = useI18n()
   const [catalog, setCatalog] = useState<Catalog | null>(null)
   const [posts, setPosts] = useState<Article[]>([])
-  const [focus, setFocus] = useState<'learn' | 'try' | 'read'>('learn')
   const [sent, setSent] = useState(false)
   useEffect(() => {
     api.catalog().then(setCatalog).catch(() => setCatalog(null))
-    api.articles(3).then(setPosts).catch(() => setPosts([]))
+    api.articles(6).then(setPosts).catch(() => setPosts([]))
   }, [])
   const tower = catalog?.tower[0]
   const pilot = catalog?.pilot[0]
   const featured = posts[0] || FALLBACK_POST
+  const rest = posts.filter((p) => p.slug !== featured.slug).slice(0, 3)
   const faqs = [
     [t.faq1q, t.faq1a],
     [t.faq2q, t.faq2a],
     [t.faq3q, t.faq3a],
   ]
-  const go = (id: string, next: 'learn' | 'try' | 'read') => {
-    setFocus(next)
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  }
   return (
     <div>
       <section className="relative min-h-[42vh] overflow-hidden">
@@ -49,27 +45,49 @@ export function Home() {
         <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.whyKicker}</p>
         <h2 className="mt-2 max-w-3xl text-2xl font-extrabold md:text-4xl">{t.whyTitle}</h2>
         <p className="mt-4 max-w-3xl leading-7 text-[var(--muted)]">{t.whyLead}</p>
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <WhyCard active={focus === 'learn'} onClick={() => go('egitim', 'learn')} kicker="01" title={t.whyLearn} hint={t.whyLearnHint} />
-          <WhyCard active={focus === 'try'} onClick={() => go('egitim', 'try')} kicker="02" title={t.whyTry} hint={t.whyTryHint} />
-          <WhyCard active={focus === 'read'} onClick={() => go('blog', 'read')} kicker="03" title={t.whyRead} hint={t.whyReadHint} />
-        </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
+        <div className="mt-8 grid gap-3 md:grid-cols-3">
           <Door to="/tower" img="/atmosphere/tower.jpg" code="TWR" title={t.doorTower} hint={t.doorTowerHint} meta={tower ? `${tower.steps.length} ${t.steps}` : ''} level={levelLabel(t, tower?.difficulty)} />
           <Door to="/pilot" img="/atmosphere/pilot.jpg" code="PIC" title={t.doorPilot} hint={t.doorPilotHint} meta={pilot ? `${pilot.steps.length} ${t.steps}` : ''} level={levelLabel(t, pilot?.difficulty)} />
           <Door to="/cockpit" img="/atmosphere/cockpit.jpg" code="ACFT" title={t.doorAc} hint={t.doorAcHint} meta={catalog ? String(catalog.aircraft.length) : ''} level={t.open} />
         </div>
       </section>
 
-      <section id="blog" className="py-6 md:py-10">
-        <Band img="/blog/cover.jpg" flip={false} kicker={t.blogKicker} title={featured.title} body={featured.summary || ''} to={`/blog/${featured.slug}`} cta={t.navBlog} />
+      <section id="blog" className="border-y border-[var(--stroke)] bg-[var(--panel)] py-12 md:py-16">
+        <div className="mx-auto max-w-6xl px-4">
+          <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.blogKicker}</p>
+          <h2 className="mt-2 max-w-3xl text-3xl font-extrabold md:text-5xl">{t.blogTitle}</h2>
+          <p className="mt-4 max-w-3xl leading-7 text-[var(--muted)]">{t.blogManifest}</p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button to="/blog">{t.blogAll}</Button>
+            <Button variant="secondary" to="/blog/yaz">{t.blogWriteCta}</Button>
+          </div>
+          <Link to={`/blog/${featured.slug}`} className="mt-8 grid overflow-hidden rounded-3xl border border-[var(--stroke)] bg-[var(--bg)] md:grid-cols-[1.2fr_0.8fr]">
+            <div className="min-h-[240px] bg-cover bg-center md:min-h-[360px]" style={{ backgroundImage: 'url(/blog/cover.jpg)' }} />
+            <div className="flex flex-col justify-center p-6 md:p-10">
+              <p className="font-mono text-xs tracking-[0.2em] text-[var(--amber)]">{t.blogKicker}</p>
+              <h3 className="mt-2 text-2xl font-extrabold md:text-3xl">{featured.title}</h3>
+              <p className="mt-3 leading-7 text-[var(--muted)]">{featured.summary}</p>
+              <span className="mt-6 font-extrabold">{t.navBlog} →</span>
+            </div>
+          </Link>
+          {rest.length > 0 ? (
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              {rest.map((p) => (
+                <Link key={p.id} to={`/blog/${p.slug}`} className="surface rounded-2xl p-5 hover:border-[var(--amber)]">
+                  <h3 className="font-extrabold">{p.title}</h3>
+                  <p className="mt-2 line-clamp-3 text-sm text-[var(--muted)]">{p.summary}</p>
+                </Link>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </section>
 
-      <section id="hakkinda" className="py-6 md:py-10">
+      <section id="hakkinda" className="py-10 md:py-14">
         <Band img="/atmosphere/night.jpg" flip kicker={t.aboutKicker} title={t.whoTitle} body={`${t.whoLead} ${t.aboutLead}`} to="/hakkinda" cta={t.navAbout} />
       </section>
 
-      <section className="py-6 md:py-10">
+      <section className="py-10 md:py-14">
         <Band img="/atmosphere/day.jpg" flip={false} kicker={t.faqHome} title={t.navFaq} body="">
           <div className="space-y-2">
             {faqs.map(([q, a]) => (
@@ -83,7 +101,7 @@ export function Home() {
         </Band>
       </section>
 
-      <section id="iletisim" className="py-6 md:py-10">
+      <section id="iletisim" className="py-10 md:py-14">
         <div className="mx-auto grid max-w-6xl items-stretch md:grid-cols-2">
           <div className="flex flex-col justify-center px-4 py-8 md:px-8">
             <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.navJoin}</p>
@@ -152,34 +170,6 @@ function Band({
         ) : null}
       </div>
     </div>
-  )
-}
-
-function WhyCard({
-  active,
-  onClick,
-  kicker,
-  title,
-  hint,
-}: {
-  active: boolean
-  onClick: () => void
-  kicker: string
-  title: string
-  hint: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-2xl border p-4 text-left ${
-        active ? 'border-[var(--amber)] bg-[var(--panel)]' : 'border-[var(--stroke)] hover:border-[var(--amber)]'
-      }`}
-    >
-      <span className="font-mono text-xs text-[var(--amber)]">{kicker}</span>
-      <h3 className="mt-1 text-lg font-extrabold">{title}</h3>
-      <p className="mt-1 text-sm text-[var(--muted)]">{hint}</p>
-    </button>
   )
 }
 
