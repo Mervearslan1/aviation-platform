@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { api, token } from '../../shared/api'
+import { api } from '../../shared/api'
+import { DEMO, asUser, demoFeedback, demoVote } from '../../shared/demo'
 import { useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
 
@@ -42,7 +43,8 @@ export function Article() {
         }
       })
       .catch(() => setDoc(null))
-    api.feedback(slug).then(setCounts).catch(() => undefined)
+    if (DEMO) setCounts(demoFeedback(slug))
+    else api.feedback(slug).then(setCounts).catch(() => undefined)
   }, [slug])
   if (!doc) {
     return (
@@ -53,7 +55,11 @@ export function Article() {
     )
   }
   const vote = async (kind: 'INTERESTED' | 'NEEDS_REVIEW') => {
-    if (!token()) {
+    if (DEMO) {
+      setCounts(demoVote(doc.slug, kind))
+      return
+    }
+    if (!asUser()) {
       setErr(t.loginFirst)
       return
     }

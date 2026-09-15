@@ -4,6 +4,7 @@ import { Logo } from '../shared/Mark'
 import { useI18n } from '../shared/i18n'
 import { useTheme } from '../shared/theme'
 import { token } from '../shared/api'
+import { DEMO, asUser } from '../shared/demo'
 import { Button } from '../shared/Button'
 import { Welcome } from './Welcome'
 import { IconClose, IconFlagGb, IconFlagTr, IconMoon, IconSun, IconUser } from '../shared/Icons'
@@ -11,7 +12,7 @@ import { IconClose, IconFlagGb, IconFlagTr, IconMoon, IconSun, IconUser } from '
 export function FlightShell() {
   const { t, locale, setLocale } = useI18n()
   const { theme, setTheme } = useTheme()
-  const signedIn = Boolean(token())
+  const signedIn = asUser()
   const [open, setOpen] = useState(false)
   const [welcome, setWelcome] = useState(() => !localStorage.getItem('aviationWelcomed'))
   const dismissWelcome = () => {
@@ -41,7 +42,7 @@ export function FlightShell() {
             <IconBtn label={theme === 'dark' ? t.themeLight : t.themeDark} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
               {theme === 'dark' ? <IconSun /> : <IconMoon />}
             </IconBtn>
-            <Link to="/login" className="grid h-10 w-10 place-items-center rounded-full text-[var(--ink)] hover:bg-[var(--bg-2)]" aria-label={signedIn ? t.logout : t.login}>
+            <Link to="/login" className="grid h-10 w-10 place-items-center rounded-full text-[var(--ink)] hover:bg-[var(--bg-2)]" aria-label={signedIn ? t.logout : t.login} title={DEMO && !token() ? 'Misafir (USER)' : undefined}>
               <IconUser />
             </Link>
             <Button to="/katil" className="hidden min-h-10 px-4 text-sm sm:inline-flex">{t.navJoin}</Button>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type TeamApplication } from '../../shared/api'
+import { DEMO, demoApps, demoReviewApp } from '../../shared/demo'
 import { useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
 
@@ -8,6 +9,11 @@ export function Applications() {
   const [rows, setRows] = useState<TeamApplication[]>([])
   const [error, setError] = useState('')
   const load = () => {
+    if (DEMO) {
+      setRows(demoApps())
+      setError('')
+      return
+    }
     api
       .teamApplications()
       .then(setRows)
@@ -15,6 +21,10 @@ export function Applications() {
   }
   useEffect(load, [])
   const review = async (id: number, status: 'APPROVED' | 'REJECTED') => {
+    if (DEMO) {
+      setRows(demoReviewApp(id, status))
+      return
+    }
     await api.reviewApplication(id, status)
     load()
   }

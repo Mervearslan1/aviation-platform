@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, token } from '../../shared/api'
+import { DEMO, asUser } from '../../shared/demo'
 import { useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
 
@@ -17,7 +18,7 @@ export function Writer() {
   const [id, setId] = useState<number | null>(null)
   const ready = useRef(false)
   useEffect(() => {
-    if (!token()) return
+    if (!asUser()) return
     const w = window as unknown as { tinymce?: Tiny }
     const boot = () => {
       if (ready.current || !w.tinymce) return
@@ -29,6 +30,7 @@ export function Writer() {
         plugins: 'lists link image media',
         toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter | bullist numlist | link image media',
         images_upload_handler: async (blobInfo: { blob: () => Blob; filename: () => string }) => {
+          if (DEMO && !token()) return URL.createObjectURL(blobInfo.blob())
           const file = new File([blobInfo.blob()], blobInfo.filename())
           const media = await api.uploadMedia(file)
           return `/api/v1/media/${media.id}`
@@ -44,7 +46,7 @@ export function Writer() {
     s.onload = boot
     document.body.appendChild(s)
   }, [])
-  if (!token()) {
+  if (!asUser()) {
     return (
       <div className="mx-auto max-w-lg px-4 py-12 text-center">
         <p>{t.loginFirst}</p>
@@ -54,6 +56,11 @@ export function Writer() {
   }
   const html = () => (window as unknown as { tinymce?: Tiny }).tinymce?.get('blog-editor')?.getContent() || ''
   const save = async (submit: boolean) => {
+    if (DEMO && !token()) {
+      setId(id || 1)
+      setStatus(submit ? t.sendReview : t.draftSave)
+      return
+    }
     const body = { title, summary, contentHtml: html() }
     const saved = id
       ? await api.updateArticle(id, body)

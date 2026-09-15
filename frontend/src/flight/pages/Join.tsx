@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../../shared/api'
+import { DEMO, demoSaveApp } from '../../shared/demo'
 import { useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
 
@@ -18,6 +19,21 @@ export function Join() {
     e.preventDefault()
     setError('')
     try {
+      if (DEMO) {
+        demoSaveApp({
+          id: Date.now(),
+          fullName,
+          email,
+          profession,
+          requestedRole,
+          experience,
+          intro,
+          message,
+          status: 'PENDING',
+        })
+        setOk(true)
+        return
+      }
       await api.joinTeam({ fullName, email, profession, requestedRole, experience, intro, message })
       setOk(true)
     } catch (err) {
