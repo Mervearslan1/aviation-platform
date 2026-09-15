@@ -34,21 +34,33 @@ public class ArticleFeedback {
     @Column(nullable = false, length = 20)
     private String kind;
 
+    @Column(columnDefinition = "TEXT")
+    private String quote;
+
+    @Column(length = 1000)
+    private String note;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     protected ArticleFeedback() {
     }
 
-    public ArticleFeedback(String articleSlug, User user, String kind) {
+    public ArticleFeedback(String articleSlug, User user, String kind, String quote, String note) {
         this.articleSlug = articleSlug;
         this.user = user;
         this.kind = kind;
+        this.quote = quote;
+        this.note = note;
     }
 
     @PrePersist
     void onCreate() {
         createdAt = Instant.now();
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getKind() {
@@ -61,5 +73,25 @@ public class ArticleFeedback {
 
     public Long getUserId() {
         return user.getId();
+    }
+
+    public String getArticleSlug() {
+        return articleSlug;
+    }
+
+    public String getQuote() {
+        return quote;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getUserEmail() {
+        return user.getEmail();
     }
 }

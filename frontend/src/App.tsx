@@ -13,6 +13,7 @@ import { About } from './flight/pages/About'
 import { OpsShell } from './ops/OpsShell'
 import { OpsDashboard, OpsDesk } from './ops/pages/Dashboard'
 import { Applications } from './ops/pages/Applications'
+import { FeedbackInbox } from './ops/pages/FeedbackInbox'
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="aircraft" element={<OpsDesk k="opsAircraft" />} />
           <Route path="audit" element={<OpsDesk k="opsAudit" />} />
           <Route path="applications" element={<Applications />} />
+          <Route path="feedback" element={<FeedbackInbox />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

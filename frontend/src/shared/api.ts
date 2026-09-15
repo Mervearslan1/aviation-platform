@@ -114,11 +114,13 @@ export const api = {
     }),
   feedback: (slug: string) =>
     request<{ interested: number; needsReview: number; mine: string | null }>(`/api/v1/articles/slug/${slug}/feedback`),
-  voteFeedback: (slug: string, kind: 'INTERESTED' | 'NEEDS_REVIEW') =>
-    request<{ interested: number; needsReview: number; mine: string | null }>(`/api/v1/articles/slug/${slug}/feedback`, {
+  voteFeedback: (slug: string, kind: 'INTERESTED' | 'NEEDS_REVIEW', quote?: string, note?: string) =>
+    request(`/api/v1/articles/slug/${slug}/feedback`, {
       method: 'POST',
-      body: JSON.stringify({ kind }),
+      body: JSON.stringify({ kind, quote, note }),
     }),
+  changeRequests: () =>
+    request<Array<{ id: number; articleSlug: string; quote: string; note: string; userEmail: string }>>('/api/v1/articles/change-requests'),
   createArticle: (body: { title: string; summary: string; contentHtml: string }) =>
     request<{ id: number }>('/api/v1/articles', { method: 'POST', body: JSON.stringify(body) }),
   updateArticle: (id: number, body: { title: string; summary: string; contentHtml: string }) =>

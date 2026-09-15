@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Pattern;
 public record ArticleFeedbackRequest(
         @NotBlank
         @Pattern(regexp = "INTERESTED|NEEDS_REVIEW")
-        String kind
+        String kind,
+        String quote,
+        String note
 ) {
 }

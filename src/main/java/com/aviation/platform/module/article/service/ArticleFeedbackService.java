@@ -3,6 +3,7 @@ package com.aviation.platform.module.article.service;
 import com.aviation.platform.common.exception.ApiException;
 import com.aviation.platform.common.security.principal.CurrentUser;
 import com.aviation.platform.module.article.dto.request.ArticleFeedbackRequest;
+import com.aviation.platform.module.article.dto.response.ArticleFeedbackItemResponse;
 import com.aviation.platform.module.article.dto.response.FeedbackCountsResponse;
 import com.aviation.platform.module.article.entity.ArticleFeedback;
 import com.aviation.platform.module.article.repository.ArticleFeedbackRepository;
@@ -28,14 +29,11 @@ public class ArticleFeedbackService {
 
     @Transactional(readOnly = true)
     public FeedbackCountsResponse counts(String slug, CurrentUser actor) {
-        List<ArticleFeedback> all = feedbackRepository.findByArticleSlug(slug);
-        long interested = all.stream().filter(f -> ArticleFeedback.INTERESTED.equals(f.getKind())).count();
-        long needs = all.stream().filter(f -> ArticleFeedback.NEEDS_REVIEW.equals(f.getKind())).count();
-        String mine = null;
+        boolean liked = false;
         if (actor != null) {
-            mine = all.stream().filter(f -> actor.id().equals(f.getUserId())).map(ArticleFeedback::getKind).findFirst().orElse(null);
+            liked = feedbackRepository.findByArticleSlugAndUser_IdAndKind(slug, actor.id(), ArticleFeedback.INTERESTED).isPresent();
         }
-        return new FeedbackCountsResponse(interested, needs, mine);
+        return new FeedbackCountsResponse(liked ? 1 : 0, 0, liked ? ArticleFeedback.INTERESTED : null);
     }
 
     public FeedbackCountsResponse vote(String slug, ArticleFeedbackRequest request, CurrentUser actor) {
@@ -43,10 +41,28 @@ public class ArticleFeedbackService {
             throw ApiException.forbidden("Bu geri bildirim yalnızca okur (USER) içindir");
         }
         User user = userRepository.findById(actor.id()).orElseThrow(() -> ApiException.notFound("User not found"));
-        ArticleFeedback row = feedbackRepository.findByArticleSlugAndUser_Id(slug, actor.id())
-                .orElseGet(() -> new ArticleFeedback(slug, user, request.kind()));
-        row.setKind(request.kind());
-        feedbackRepository.save(row);
+        if (ArticleFeedback.INTERESTED.equals(request.kind())) {
+            var existing = feedbackRepository.findByArticleSlugAndUser_IdAndKind(slug, actor.id(), ArticleFeedback.INTERESTED);
+            if (existing.isPresent()) {
+                return counts(slug, actor);
+            }
+            feedbackRepository.save(new ArticleFeedback(slug, user, ArticleFeedback.INTERESTED, null, null));
+            return counts(slug, actor);
+        }
+        String quote = request.quote() == null ? "" : request.quote().trim();
+        String note = request.note() == null ? "" : request.note().trim();
+        if (quote.isBlank() || note.isBlank()) {
+            throw ApiException.badRequest("Değişecek parçayı ve notu yaz");
+        }
+        feedbackRepository.save(new ArticleFeedback(slug, user, ArticleFeedback.NEEDS_REVIEW, quote, note));
         return counts(slug, actor);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ArticleFeedbackItemResponse> inbox() {
+        return feedbackRepository.findByKindOrderByCreatedAtDesc(ArticleFeedback.NEEDS_REVIEW)
+                .stream()
+                .map(ArticleFeedbackItemResponse::from)
+                .toList();
     }
 }

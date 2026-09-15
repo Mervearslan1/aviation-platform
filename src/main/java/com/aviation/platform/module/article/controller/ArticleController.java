@@ -7,7 +7,10 @@ import com.aviation.platform.module.article.dto.request.ArticleFeedbackRequest;
 import com.aviation.platform.module.article.dto.request.ReviewCommentRequest;
 import com.aviation.platform.module.article.dto.request.SaveArticleRequest;
 import com.aviation.platform.module.article.dto.response.ArticleResponse;
+import com.aviation.platform.module.article.dto.response.ArticleFeedbackItemResponse;
 import com.aviation.platform.module.article.dto.response.FeedbackCountsResponse;
+
+import java.util.List;
 import com.aviation.platform.module.article.service.ArticleFeedbackService;
 import com.aviation.platform.module.article.entity.ArticleStatus;
 import com.aviation.platform.module.article.service.ArticleService;
@@ -180,6 +183,13 @@ public class ArticleController {
             @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor
     ) {
         return ApiResponse.of(articleService.publish(id, actor));
+    }
+
+    @GetMapping("/change-requests")
+    @PreAuthorize("hasAnyRole('ADMIN','MENTOR','EDITOR')")
+    @Operation(summary = "Yazıda işaretlenen değişim istekleri")
+    public ApiResponse<List<ArticleFeedbackItemResponse>> changeRequests() {
+        return ApiResponse.of(feedbackService.inbox());
     }
 
     @GetMapping("/slug/{slug}/feedback")

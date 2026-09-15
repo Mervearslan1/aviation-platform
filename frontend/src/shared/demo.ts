@@ -34,6 +34,43 @@ export function demoFeedback(slug: string) {
   return all[slug] || { interested: 12, needsReview: 3, mine: null }
 }
 
+export function demoLiked(slug: string) {
+  return localStorage.getItem(`aviationLike:${slug}`) === '1'
+}
+
+export function demoLike(slug: string) {
+  localStorage.setItem(`aviationLike:${slug}`, '1')
+}
+
+export type DemoChange = {
+  id: number
+  articleSlug: string
+  quote: string
+  note: string
+  userEmail: string
+  createdAt: string
+}
+
+const CH = 'aviationDemoChanges'
+
+export function demoChanges(): DemoChange[] {
+  return JSON.parse(localStorage.getItem(CH) || '[]') as DemoChange[]
+}
+
+export function demoAddChange(slug: string, quote: string, note: string) {
+  const list = demoChanges()
+  list.unshift({
+    id: Date.now(),
+    articleSlug: slug,
+    quote,
+    note,
+    userEmail: 'misafir@local',
+    createdAt: new Date().toISOString(),
+  })
+  localStorage.setItem(CH, JSON.stringify(list))
+  return list
+}
+
 export function demoVote(slug: string, kind: 'INTERESTED' | 'NEEDS_REVIEW') {
   const all = JSON.parse(localStorage.getItem(FB) || '{}') as Record<
     string,
