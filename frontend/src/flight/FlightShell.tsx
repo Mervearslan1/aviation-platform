@@ -72,7 +72,7 @@ export function FlightShell() {
         <Outlet />
       </main>
       <footer className="border-t border-[var(--stroke)]">
-        <div className="flex w-full flex-col gap-4 px-4 py-6 text-sm text-[var(--muted)] md:px-5">
+        <div className="flex w-full flex-col gap-6 px-4 py-6 text-sm text-[var(--muted)] md:px-5">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <Logo compact className="h-8" />
             <Link to="/tower">{t.navLearn}</Link>
@@ -81,7 +81,7 @@ export function FlightShell() {
             <Link to="/hakkinda">{t.navAbout}</Link>
             <Link to="/katil">{t.navJoin}</Link>
           </div>
-          <p>{t.copyright}</p>
+          <p className="w-full text-center">{t.copyright}</p>
         </div>
       </footer>
     </div>
