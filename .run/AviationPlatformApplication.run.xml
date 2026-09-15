@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AviationPlatformApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="aviation-platform" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.aviation.platform.AviationPlatformApplication" />
+    <envs>
+      <env name="AVIATION_ADMIN_EMAIL" value="admin@aviation-platform.local" />
+      <env name="AVIATION_ADMIN_PASSWORD" value="Admin123!" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
