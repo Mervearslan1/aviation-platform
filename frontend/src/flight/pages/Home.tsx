@@ -88,7 +88,7 @@ export function Home() {
       </section>
 
       <section className="py-10 md:py-14">
-        <Band img="/atmosphere/day.jpg" flip={false} kicker={t.faqHome} title={t.navFaq} body="">
+        <Band img="/atmosphere/faq.jpg" flip={false} kicker={t.faqHome} title={t.navFaq} body="">
           <div className="space-y-2">
             {faqs.map(([q, a]) => (
               <details key={q} className="rounded-xl border border-[var(--stroke)] bg-[var(--bg)] px-4 py-3">
