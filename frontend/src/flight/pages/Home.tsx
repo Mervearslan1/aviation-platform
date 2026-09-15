@@ -4,51 +4,59 @@ import { api, type Catalog, type Article } from '../../shared/api'
 import { levelLabel, useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
 
-const FALLBACK_POSTS: Article[] = [
+type Slide = Article & { author: string; cover: string }
+
+const FALLBACK_POSTS: Slide[] = [
   {
     id: 1,
     title: 'Havacılıkta iniş safhasının kritik / operasyonel önemi',
     slug: 'inis-safhasinin-kritik-onemi',
     summary: '2025–2026 pist kazaları üzerinden iniş operasyonu ve emniyet dersleri.',
+    author: 'Elif Yılmaz',
+    cover: '/blog/cover.jpg',
   },
   {
     id: 2,
     title: 'Unstable approach: neden pas geçilir',
     slug: 'inis-safhasinin-kritik-onemi',
     summary: 'Kararsız yaklaşmada hız, süzülüş ve konfigürasyon. Go-around bir başarısızlık değil, emniyettir.',
+    author: 'Can Demir',
+    cover: '/atmosphere/faq.jpg',
   },
   {
     id: 3,
     title: 'Flare: eşikte burun, yumuşak temas',
     slug: 'inis-safhasinin-kritik-onemi',
     summary: 'Eşikte flare zamanlaması. Erken veya geç flare sert iniş ve pist kazasına gider.',
+    author: 'Ayşe Kaya',
+    cover: '/atmosphere/cockpit.jpg',
   },
   {
     id: 4,
     title: 'ATC ve pist: kule ile aynı resmi görmek',
     slug: 'inis-safhasinin-kritik-onemi',
     summary: 'Yer, kule ve yaklaşma aynı piste bakmazsa çakışma başlar. Read-back burada hayat kurtarır.',
+    author: 'Mert Aksoy',
+    cover: '/atmosphere/tower.jpg',
   },
   {
     id: 5,
     title: 'Taksi ve iniş sonrası: pist henüz bitmedi',
     slug: 'inis-safhasinin-kritik-onemi',
     summary: 'Teker koyunca uçuş bitmez. Taksi, çıkış ve hold-short hâlâ operasyonun parçası.',
+    author: 'Selin Aras',
+    cover: '/atmosphere/night.jpg',
   },
 ]
-
-const COVERS = ['/blog/cover.jpg', '/atmosphere/faq.jpg', '/atmosphere/cockpit.jpg', '/atmosphere/tower.jpg', '/atmosphere/night.jpg']
 
 export function Home() {
   const { t } = useI18n()
   const [catalog, setCatalog] = useState<Catalog | null>(null)
-  const [posts, setPosts] = useState<Article[]>([])
   const [sent, setSent] = useState(false)
   const [hero, setHero] = useState(0)
   const [blogI, setBlogI] = useState(0)
   useEffect(() => {
     api.catalog().then(setCatalog).catch(() => setCatalog(null))
-    api.articles(6).then(setPosts).catch(() => setPosts([]))
   }, [])
   const slides = [
     { kicker: t.heroKicker, title: t.heroTitle, lead: t.heroLead },
@@ -63,12 +71,9 @@ export function Home() {
   }, [slides.length])
   const tower = catalog?.tower[0]
   const pilot = catalog?.pilot[0]
-  const featured = posts[0] || FALLBACK_POSTS[0]
-  const rest = posts.filter((p) => p.slug !== featured.slug)
-  const carousel = [featured, ...rest, ...FALLBACK_POSTS.filter((p) => p.id !== 1)].slice(0, 5)
   const now = slides[hero]
+  const carousel = FALLBACK_POSTS
   const blogPost = carousel[blogI] || carousel[0]
-  const blogCover = COVERS[blogI % COVERS.length]
   const prevBlog = () => setBlogI((n) => (n - 1 + carousel.length) % carousel.length)
   const nextBlog = () => setBlogI((n) => (n + 1) % carousel.length)
   const faqs = [
@@ -120,20 +125,19 @@ export function Home() {
             <Button to="/blog">{t.blogAll}</Button>
             <Button variant="secondary" to="/blog/yaz">{t.blogWriteCta}</Button>
           </div>
-          <div className="relative mt-8">
-            <Link
-              to={`/blog/${blogPost.slug}`}
-              className="article-sheet mx-auto grid max-w-4xl overflow-hidden rounded-3xl md:grid-cols-[1.15fr_0.85fr]"
-            >
-              <div className="min-h-[220px] bg-cover bg-center md:min-h-[320px]" style={{ backgroundImage: `url(${blogCover})` }} />
-              <div className="flex flex-col justify-center p-6 md:p-9">
-                <p className="font-mono text-xs text-[var(--amber)]">{String(blogI + 1).padStart(2, '0')} / {String(carousel.length).padStart(2, '0')}</p>
-                <h3 className="mt-2 text-2xl font-extrabold md:text-3xl">{blogPost.title}</h3>
-                <p className="mt-3 leading-7 text-[var(--muted)]">{blogPost.summary}</p>
-                <span className="mt-6 font-extrabold">{t.navBlog} →</span>
+          <div className="relative mt-10">
+            <Link to={`/blog/${blogPost.slug}`} className="group relative block min-h-[420px] overflow-hidden rounded-3xl md:min-h-[520px]">
+              <div className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.03]" style={{ backgroundImage: `url(${blogPost.cover})` }} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
+              <div className="relative flex min-h-[420px] flex-col justify-end p-8 text-white md:min-h-[520px] md:p-12">
+                <p className="font-mono text-xs tracking-[0.2em] text-[var(--amber)]">
+                  {String(blogI + 1).padStart(2, '0')} / {String(carousel.length).padStart(2, '0')} · {blogPost.author}
+                </p>
+                <h3 className="mt-3 max-w-3xl text-3xl font-extrabold md:text-5xl">{blogPost.title}</h3>
+                <p className="mt-4 max-w-2xl text-lg text-white/85">{blogPost.summary}</p>
               </div>
             </Link>
-            <div className="mt-5 flex items-center justify-center gap-3">
+            <div className="mt-6 flex items-center justify-center gap-4">
               <button type="button" className="blog-nav" onClick={prevBlog} aria-label="<">
                 ‹
               </button>

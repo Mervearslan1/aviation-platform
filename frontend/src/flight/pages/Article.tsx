@@ -97,9 +97,8 @@ export function Article() {
   }
   return (
     <article className="blog-scene min-h-full">
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        <div className="article-sheet rounded-3xl p-5 md:p-8">
-        <img src={doc.cover} alt="" className="mb-6 w-full rounded-2xl object-cover" />
+      <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
+        <img src={doc.cover} alt="" className="mb-8 w-full rounded-2xl object-cover" />
         <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.navBlog}</p>
         <h1 className="mt-2 text-3xl font-extrabold md:text-4xl">{doc.title}</h1>
         <p className="mt-3 text-lg text-[var(--muted)]">{doc.summary}</p>
@@ -139,7 +138,6 @@ export function Article() {
         ) : null}
         {ok ? <p className="mt-3 text-sm text-[var(--good)]">{ok}</p> : null}
         {err ? <p className="mt-3 text-sm text-[var(--warn)]">{err}</p> : null}
-        </div>
       </div>
     </article>
   )
