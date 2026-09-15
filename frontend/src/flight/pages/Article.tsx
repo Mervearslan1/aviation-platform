@@ -19,7 +19,6 @@ export function Article() {
   const { slug } = useParams()
   const { t } = useI18n()
   const [doc, setDoc] = useState<Packed | null>(null)
-  const [open, setOpen] = useState<string | null>(null)
   const [counts, setCounts] = useState({ interested: 0, needsReview: 0, mine: '' as string | null })
   const [err, setErr] = useState('')
   useEffect(() => {
@@ -77,22 +76,7 @@ export function Article() {
         <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.navBlog}</p>
         <h1 className="mt-2 text-3xl font-extrabold md:text-4xl">{doc.title}</h1>
         <p className="mt-3 text-lg text-[var(--muted)]">{doc.summary}</p>
-        <div
-          className="article-body mt-8"
-          onClick={(e) => {
-            const btn = (e.target as HTMLElement).closest('button.term') as HTMLButtonElement | null
-            if (!btn) return
-            const key = btn.dataset.term || ''
-            setOpen((cur) => (cur === key ? null : key))
-          }}
-          dangerouslySetInnerHTML={{ __html: doc.html }}
-        />
-        {open && doc.terms[open] ? (
-          <aside className="mt-4 rounded-2xl border border-[var(--amber)] bg-[var(--panel)] p-4">
-            <p className="font-extrabold">{open}</p>
-            <p className="mt-1 text-[var(--muted)]">{doc.terms[open]}</p>
-          </aside>
-        ) : null}
+        <div className="article-body mt-8" dangerouslySetInnerHTML={{ __html: doc.html }} />
         <div className="mt-10 flex flex-wrap gap-3">
           <Button onClick={() => vote('INTERESTED')}>
             {t.interested} · {counts.interested}

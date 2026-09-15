@@ -175,6 +175,7 @@ textarea:focus-visible {
   margin: 1.5rem 0;
 }
 .article-body .term {
+  position: relative;
   background: transparent;
   border: 0;
   padding: 0;
@@ -183,7 +184,36 @@ textarea:focus-visible {
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
-  cursor: pointer;
+  cursor: help;
+}
+.article-body .term::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  z-index: 5;
+  width: max-content;
+  max-width: 240px;
+  transform: translateX(-50%) translateY(4px);
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  text-decoration: none;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.article-body .term:hover::after,
+.article-body .term:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
