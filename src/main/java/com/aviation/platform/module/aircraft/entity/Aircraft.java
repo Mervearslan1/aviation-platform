@@ -27,6 +27,9 @@ public class Aircraft {
     @Column(columnDefinition = "TEXT")
     private String philosophy;
 
+    @Column(nullable = false, length = 20)
+    private String difficulty = "BEGINNER";
+
     @Column(name = "sort_index", nullable = false)
     private int sortIndex;
 
@@ -51,5 +54,9 @@ public class Aircraft {
 
     public String getPhilosophy() {
         return philosophy;
+    }
+
+    public String getDifficulty() {
+        return difficulty == null ? "BEGINNER" : difficulty;
     }
 }

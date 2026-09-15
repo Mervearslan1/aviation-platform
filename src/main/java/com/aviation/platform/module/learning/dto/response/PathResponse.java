@@ -7,6 +7,7 @@ import com.aviation.platform.module.learning.entity.PathProgressStatus;
 import com.aviation.platform.module.learning.entity.TrainingTrack;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 
 public record PathResponse(
@@ -21,7 +22,9 @@ public record PathResponse(
         Integer progressPercent,
         PathProgressStatus enrollmentStatus,
         List<StepResponse> steps,
-        Instant createdAt
+        Instant createdAt,
+        List<String> relatedAircraft,
+        Long recommendedStepId
 ) {
 
     public static PathResponse summary(LearningPath path, int stepCount) {
@@ -37,7 +40,9 @@ public record PathResponse(
                 null,
                 null,
                 List.of(),
-                path.getCreatedAt()
+                path.getCreatedAt(),
+                aircraftOf(path),
+                null
         );
     }
 
@@ -45,7 +50,8 @@ public record PathResponse(
             LearningPath path,
             List<StepResponse> steps,
             Integer progressPercent,
-            PathProgressStatus enrollmentStatus
+            PathProgressStatus enrollmentStatus,
+            Long recommendedStepId
     ) {
         return new PathResponse(
                 path.getId(),
@@ -59,7 +65,20 @@ public record PathResponse(
                 progressPercent,
                 enrollmentStatus,
                 steps,
-                path.getCreatedAt()
+                path.getCreatedAt(),
+                aircraftOf(path),
+                recommendedStepId
         );
+    }
+
+    private static List<String> aircraftOf(LearningPath path) {
+        String raw = path.getRelatedAircraft();
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
     }
 }

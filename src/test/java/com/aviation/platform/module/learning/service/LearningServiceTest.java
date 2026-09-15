@@ -4,7 +4,8 @@ import com.aviation.platform.common.exception.ApiException;
 import com.aviation.platform.common.exception.ErrorCode;
 import com.aviation.platform.common.security.principal.CurrentUser;
 import com.aviation.platform.module.audit.service.AuditService;
-import com.aviation.platform.module.learning.dto.request.CompleteStepRequest;
+import com.aviation.platform.module.aircraft.service.AircraftService;
+import com.aviation.platform.module.learning.dto.response.StepResponse;
 import com.aviation.platform.module.learning.entity.LearningPath;
 import com.aviation.platform.module.learning.entity.LearningStep;
 import com.aviation.platform.module.learning.entity.StepProgressStatus;
@@ -29,6 +30,7 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +51,8 @@ class LearningServiceTest {
     private AuditService auditService;
     @Mock
     private LearningStepTermRepository termRepository;
+    @Mock
+    private AircraftService aircraftService;
 
     private LearningService learningService;
 
@@ -61,12 +65,13 @@ class LearningServiceTest {
                 stepProgressRepository,
                 userRepository,
                 auditService,
-                termRepository
+                termRepository,
+                aircraftService
         );
     }
 
     @Test
-    void lockedStepCannotBeCompleted() throws Exception {
+    void previouslyLockedStepCanBeOpened() throws Exception {
         CurrentUser user = new CurrentUser(2L, "pilot", "p@x.com", Set.of(RoleName.USER));
         LearningPath path = new LearningPath("Temel", "temel", "desc", null);
         setId(path, 1L);
@@ -75,11 +80,10 @@ class LearningServiceTest {
         User owner = new User("pilot", "p@x.com", "hash", "Pilot");
         UserStepProgress progress = new UserStepProgress(owner, step, StepProgressStatus.LOCKED);
         when(stepProgressRepository.findByUserIdAndStepId(2L, 20L)).thenReturn(Optional.of(progress));
+        when(termRepository.findByStepIdInOrderBySortIndexAsc(java.util.List.of(20L))).thenReturn(java.util.List.of());
 
-        assertThatThrownBy(() -> learningService.completeStep(1L, 20L, new CompleteStepRequest(null, null), user))
-                .isInstanceOf(ApiException.class)
-                .extracting(ex -> ((ApiException) ex).getCode())
-                .isEqualTo(ErrorCode.INVALID_STATE_TRANSITION);
+        StepResponse opened = learningService.openStep(1L, 20L, user);
+        assertThat(opened.progressStatus()).isEqualTo(StepProgressStatus.IN_PROGRESS);
     }
 
     @Test

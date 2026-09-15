@@ -8,6 +8,7 @@ public record AircraftResponse(
         String name,
         String manufacturer,
         String philosophy,
+        String difficulty,
         int partCount,
         Integer learnedCount
 ) {
@@ -19,6 +20,7 @@ public record AircraftResponse(
                 aircraft.getName(),
                 aircraft.getManufacturer(),
                 aircraft.getPhilosophy(),
+                aircraft.getDifficulty(),
                 partCount,
                 learned
         );

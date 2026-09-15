@@ -4,6 +4,7 @@ import com.aviation.platform.common.response.ApiResponse;
 import com.aviation.platform.common.response.PagedResponse;
 import com.aviation.platform.common.security.principal.CurrentUser;
 import com.aviation.platform.common.util.ClientIp;
+import com.aviation.platform.module.user.dto.request.UpdateKnowledgeLevelRequest;
 import com.aviation.platform.module.user.dto.request.UpdateUserRolesRequest;
 import com.aviation.platform.module.user.dto.request.UpdateUserStatusRequest;
 import com.aviation.platform.module.user.dto.response.UserResponse;
@@ -40,6 +41,15 @@ public class UserController {
     @Operation(summary = "Giriş yapmış kullanıcı")
     public ApiResponse<UserResponse> me(@Parameter(hidden = true) @AuthenticationPrincipal CurrentUser currentUser) {
         return ApiResponse.of(userService.getById(currentUser.id()));
+    }
+
+    @PatchMapping("/me/knowledge-level")
+    @Operation(summary = "Bilgi seviyesi: BEGINNER sırayla önerilir, ADVANCED istediği adıma gider. Tüm adımlar açıktır.")
+    public ApiResponse<UserResponse> updateKnowledgeLevel(
+            @Valid @RequestBody UpdateKnowledgeLevelRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser currentUser
+    ) {
+        return ApiResponse.of(userService.updateKnowledgeLevel(currentUser.id(), request.knowledgeLevel()));
     }
 
     @GetMapping

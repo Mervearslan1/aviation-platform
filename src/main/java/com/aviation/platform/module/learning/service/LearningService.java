@@ -4,6 +4,7 @@ import com.aviation.platform.common.security.principal.CurrentUser;
 import com.aviation.platform.module.learning.dto.request.CompleteStepRequest;
 import com.aviation.platform.module.learning.dto.request.SavePathRequest;
 import com.aviation.platform.module.learning.dto.request.SaveStepRequest;
+import com.aviation.platform.module.learning.dto.response.CatalogResponse;
 import com.aviation.platform.module.learning.dto.response.PathResponse;
 import com.aviation.platform.module.learning.dto.response.StepResponse;
 import com.aviation.platform.module.learning.entity.TrainingTrack;
@@ -29,4 +30,6 @@ public interface LearningService {
     StepResponse openStep(Long pathId, Long stepId, CurrentUser actor);
 
     PathResponse completeStep(Long pathId, Long stepId, CompleteStepRequest request, CurrentUser actor);
+
+    CatalogResponse catalog();
 }

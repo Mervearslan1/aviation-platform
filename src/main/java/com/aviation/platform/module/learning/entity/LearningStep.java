@@ -58,6 +58,10 @@ public class LearningStep {
     private boolean required = true;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "knowledge_level", nullable = false, length = 20)
+    private Difficulty knowledgeLevel = Difficulty.BEGINNER;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private CatalogStatus status = CatalogStatus.PUBLISHED;
 
@@ -161,6 +165,14 @@ public class LearningStep {
 
     public void setRequired(boolean required) {
         this.required = required;
+    }
+
+    public Difficulty getKnowledgeLevel() {
+        return knowledgeLevel == null ? Difficulty.BEGINNER : knowledgeLevel;
+    }
+
+    public void setKnowledgeLevel(Difficulty knowledgeLevel) {
+        this.knowledgeLevel = knowledgeLevel == null ? Difficulty.BEGINNER : knowledgeLevel;
     }
 
     public CatalogStatus getStatus() {

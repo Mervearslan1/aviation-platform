@@ -1,5 +1,6 @@
 package com.aviation.platform.module.learning.dto.request;
 
+import com.aviation.platform.module.learning.entity.Difficulty;
 import com.aviation.platform.module.learning.entity.StepType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -13,6 +14,7 @@ public record SaveStepRequest(
         String contentHtml,
         Map<String, Object> configuration,
         Integer orderIndex,
-        Boolean required
+        Boolean required,
+        Difficulty knowledgeLevel
 ) {
 }

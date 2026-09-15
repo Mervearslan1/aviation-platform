@@ -70,7 +70,8 @@ public class SecurityConfig {
                                 "/api/v1/pilot/paths/{slug}",
                                 "/api/v1/aircraft",
                                 "/api/v1/aircraft/*/parts",
-                                "/api/v1/aircraft/*/simulations"
+                                "/api/v1/aircraft/*/simulations",
+                                "/api/v1/catalog"
                         ).permitAll()
                         .requestMatchers("/writer", "/writer/**", "/tower", "/tower/**", "/pilot", "/pilot/**",
                                 "/cockpit", "/cockpit/**").permitAll()

@@ -1,5 +1,6 @@
 package com.aviation.platform.module.user.dto.response;
 
+import com.aviation.platform.module.user.entity.KnowledgeLevel;
 import com.aviation.platform.module.user.entity.Role;
 import com.aviation.platform.module.user.entity.RoleName;
 import com.aviation.platform.module.user.entity.User;
@@ -17,6 +18,7 @@ public record UserResponse(
         String biography,
         String profileImageUrl,
         UserStatus status,
+        KnowledgeLevel knowledgeLevel,
         Set<RoleName> roles,
         Instant createdAt,
         Instant updatedAt,
@@ -35,6 +37,7 @@ public record UserResponse(
                 user.getBiography(),
                 user.getProfileImageUrl(),
                 user.getStatus(),
+                user.getKnowledgeLevel() == null ? KnowledgeLevel.BEGINNER : user.getKnowledgeLevel(),
                 roles,
                 user.getCreatedAt(),
                 user.getUpdatedAt(),

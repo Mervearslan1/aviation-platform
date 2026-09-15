@@ -73,8 +73,14 @@ public class AircraftServiceImpl implements AircraftService {
     @Transactional(readOnly = true)
     public List<PartResponse> parts(String aircraftCode, CurrentUser actor) {
         Set<Long> learned = learnedIds(actor, aircraftCode);
-        return partRepository.findByAircraftCodeOrderBySortIndexAsc(aircraftCode).stream()
-                .map(p -> PartResponse.from(p, learned.contains(p.getId())))
+        List<CockpitPart> all = partRepository.findByAircraftCodeOrderBySortIndexAsc(aircraftCode);
+        Long recommendedId = all.stream()
+                .filter(p -> !learned.contains(p.getId()))
+                .map(CockpitPart::getId)
+                .findFirst()
+                .orElse(null);
+        return all.stream()
+                .map(p -> PartResponse.from(p, learned.contains(p.getId()), p.getId().equals(recommendedId)))
                 .toList();
     }
 
@@ -91,16 +97,16 @@ public class AircraftServiceImpl implements AircraftService {
 
     @Override
     public PartResponse learn(String aircraftCode, LearnActionRequest request, CurrentUser actor) {
-        PartResponse expected = nextLesson(aircraftCode, actor);
-        if (!expected.code().equals(request.selectedPartCode())) {
-            throw ApiException.badRequest("Yanlış tuş. Beklenen: " + expected.nameTr() + " (" + expected.panel() + ")");
+        CockpitPart part = partRepository.findByCode(request.selectedPartCode())
+                .orElseThrow(() -> ApiException.notFound("Parça yok"));
+        if (!aircraftCode.equals(part.getAircraft().getCode())) {
+            throw ApiException.badRequest("Bu parça bu uçağa ait değil");
         }
-        CockpitPart part = partRepository.findByCode(expected.code()).orElseThrow();
         User user = userRepository.findById(actor.id()).orElseThrow(() -> ApiException.notFound("User not found"));
         if (progressRepository.findByUserIdAndPartId(actor.id(), part.getId()).isEmpty()) {
             progressRepository.save(new UserPartProgress(user, part));
         }
-        return PartResponse.from(part, true);
+        return PartResponse.from(part, true, false);
     }
 
     @Override

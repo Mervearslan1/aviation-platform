@@ -21,6 +21,9 @@
     .dot { width: 28px; height: 28px; border-radius: 50%; background: #2a4d38; display: grid; place-items: center; font-size: 12px; }
     .dot.on { background: #3dd68c; color: #042012; }
     .dot.done { background: #1f8a5b; }
+    .dot { cursor: pointer; }
+    .dot.rec { outline: 2px solid #f0b429; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #0e2718; margin-left: 6px; }
     #login { max-width: 420px; margin: 60px auto; }
   </style>
 </head>
@@ -32,17 +35,25 @@
 
 <section id="login" class="card">
   <h2>Kokpite gir</h2>
-  <p class="muted">ATC ile konuş, read-back yap, adım adım ilerle. Kule hattı ayrı. Admin: admin@aviation-platform.local / Admin123!</p>
+  <p class="muted">Tüm adımlar açık. Yeni başlayan sırayla, bilen istediği kokpit/ATC adımına. Admin: admin@aviation-platform.local / Admin123!</p>
   <label>E-posta</label>
   <input id="email" value="admin@aviation-platform.local"/>
   <label>Şifre</label>
   <input id="password" type="password" value="Admin123!"/>
   <button onclick="login()">Başla</button>
+  <button class="ghost" onclick="browse()">Giriş yapmadan bak</button>
   <p id="loginError" class="muted"></p>
 </section>
 
 <main id="app" hidden>
-  <p class="xp" id="xp">0%</p>
+  <p>
+    <span class="xp" id="xp">0%</span>
+    <span class="muted">Seviye:</span>
+    <button class="ghost" type="button" data-lvl="BEGINNER" onclick="setLevel('BEGINNER')">Yeni</button>
+    <button class="ghost" type="button" data-lvl="INTERMEDIATE" onclick="setLevel('INTERMEDIATE')">Orta</button>
+    <button class="ghost" type="button" data-lvl="ADVANCED" onclick="setLevel('ADVANCED')">İleri</button>
+  </p>
+  <p class="muted" id="links"></p>
   <div class="steps" id="dots"></div>
   <article class="card" id="card"></article>
 </main>
@@ -51,6 +62,9 @@
   let token = localStorage.getItem("aviationToken");
   let path = null;
   let current = null;
+  let guest = false;
+  let knowledge = localStorage.getItem("aviationLevel") || "BEGINNER";
+  const LVL = { BEGINNER: "Yeni", INTERMEDIATE: "Orta", ADVANCED: "İleri" };
 
   async function api(url, options = {}) {
     const headers = Object.assign({}, options.headers || {});
@@ -71,8 +85,14 @@
       token = body.data.accessToken;
       localStorage.setItem("aviationToken", token);
       who.textContent = email.value;
+      guest = false;
       login.hidden = true;
       app.hidden = false;
+      try {
+        const me = await api("/api/v1/users/me");
+        knowledge = me.data.knowledgeLevel || knowledge;
+        localStorage.setItem("aviationLevel", knowledge);
+      } catch (ignore) {}
       await boot();
     } catch (e) {
       loginError.textContent = e.message;
@@ -88,27 +108,62 @@
     render();
   }
 
-  function render() {
-    xp.textContent = (path.progressPercent || 0) + "%  ·  " + (path.enrollmentStatus || "");
-    dots.innerHTML = path.steps.map((s, i) => {
-      const cls = s.progressStatus === "COMPLETED" ? "done" : (s.id === (current && current.id) || s.progressStatus === "AVAILABLE" || s.progressStatus === "IN_PROGRESS" ? "on" : "");
-      return `<div class="dot ${cls}">${i + 1}</div>`;
-    }).join("");
-    current = path.steps.find(s => s.progressStatus === "IN_PROGRESS" || s.progressStatus === "AVAILABLE") || path.steps.find(s => s.progressStatus !== "COMPLETED");
-    if (!current || path.enrollmentStatus === "COMPLETED") {
-      card.innerHTML = `<h2>Pilot oturumu bitti</h2><p>IVAO'da circuit ve ATC ile uç. Sonraki faz: uçaklar.</p>
-        <a href="https://www.ivao.aero" target="_blank"><button>IVAO'ya git</button></a>
-        <a href="/tower/index.html"><button class="ghost">Kule hattı</button></a>`;
-      return;
+  async function browse() {
+    try {
+      guest = true;
+      const list = await api("/api/v1/pilot/paths");
+      const item = list.data[0];
+      if (!item) { loginError.textContent = "Pilot yolu yok."; return; }
+      path = (await api("/api/v1/pilot/paths/" + item.slug)).data;
+      who.textContent = "misafir";
+      login.hidden = true;
+      app.hidden = false;
+      current = path.steps.find(s => s.recommended) || path.steps[0];
+      render();
+    } catch (e) { loginError.textContent = e.message; }
+  }
+
+  async function setLevel(level) {
+    knowledge = level;
+    localStorage.setItem("aviationLevel", level);
+    if (token) {
+      try { await api("/api/v1/users/me/knowledge-level", { method: "PATCH", body: JSON.stringify({ knowledgeLevel: level }) }); }
+      catch (ignore) {}
     }
+    render();
+  }
+
+  function render() {
+    xp.textContent = (path.progressPercent || 0) + "%  ·  " + (path.enrollmentStatus || "önizleme") + "  ·  " + (LVL[knowledge] || knowledge);
+    const ac = (path.relatedAircraft || []).map(c => `<a href="/cockpit/index.html"><button class="ghost">${c}</button></a>`).join(" ");
+    links.innerHTML = `<a href="/"><button class="ghost">Harita</button></a> <a href="/tower/index.html"><button class="ghost">Kule</button></a> ${ac}`;
+    dots.innerHTML = path.steps.map((s, i) => {
+      const cls = [
+        s.progressStatus === "COMPLETED" ? "done" : "",
+        s.id === (current && current.id) ? "on" : "",
+        s.recommended ? "rec" : ""
+      ].filter(Boolean).join(" ");
+      return `<div class="dot ${cls}" title="${s.title} (${LVL[s.knowledgeLevel] || s.knowledgeLevel || ""})" onclick="selectStep(${s.id})">${i + 1}</div>`;
+    }).join("");
+    if (!current) current = path.steps.find(s => s.recommended) || path.steps[0];
     openAndShow();
   }
 
+  async function selectStep(id) {
+    current = path.steps.find(s => s.id === id) || current;
+    await openAndShow();
+  }
+
   async function openAndShow() {
-    const opened = await api(`/api/v1/pilot/paths/${path.id}/steps/${current.id}/open`, { method: "POST", body: "{}" });
-    current = opened.data;
+    if (!guest && token) {
+      try {
+        const opened = await api(`/api/v1/pilot/paths/${path.id}/steps/${current.id}/open`, { method: "POST", body: "{}" });
+        current = Object.assign({}, current, opened.data);
+      } catch (ignore) {}
+    }
     const cfg = current.configuration || {};
-    let inner = `<p class="muted">${current.stepType}</p><h2>${current.title}</h2>${current.contentHtml || ""}`;
+    const rec = current.recommended ? " · önerilen sıra" : "";
+    let inner = `<p class="muted">${current.stepType}<span class="badge">${LVL[current.knowledgeLevel] || current.knowledgeLevel || ""}</span>${rec}</p><h2>${current.title}</h2>${current.contentHtml || ""}`;
     if (current.stepType === "LISTEN") {
       inner += `<p><button onclick="speakText(\`${esc(cfg.promptText || "")}\`)">Çağrıyı dinle</button></p>`;
       inner += (cfg.options || []).map(o => `<button class="opt" onclick="complete({answer:'${esc(o)}'})">${o}</button>`).join("");
@@ -158,12 +213,22 @@
   }
 
   async function complete(payload) {
+    if (guest || !token) {
+      const el = document.getElementById("err");
+      if (el) el.textContent = "İlerlemeyi kaydetmek için giriş yap.";
+      return;
+    }
     try {
       const body = await api(`/api/v1/pilot/paths/${path.id}/steps/${current.id}/complete`, {
         method: "POST",
         body: JSON.stringify(payload)
       });
       path = body.data;
+      if (knowledge !== "ADVANCED") {
+        current = path.steps.find(s => s.recommended) || current;
+      } else {
+        current = path.steps.find(s => s.id === current.id) || current;
+      }
       render();
     } catch (e) {
       const el = document.getElementById("err");

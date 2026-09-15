@@ -7,6 +7,8 @@ import com.aviation.platform.module.audit.service.AuditService;
 import com.aviation.platform.module.learning.dto.request.CompleteStepRequest;
 import com.aviation.platform.module.learning.dto.request.SavePathRequest;
 import com.aviation.platform.module.learning.dto.request.SaveStepRequest;
+import com.aviation.platform.module.aircraft.service.AircraftService;
+import com.aviation.platform.module.learning.dto.response.CatalogResponse;
 import com.aviation.platform.module.learning.dto.response.PathResponse;
 import com.aviation.platform.module.learning.dto.response.StepResponse;
 import com.aviation.platform.module.learning.entity.CatalogStatus;
@@ -49,6 +51,7 @@ public class LearningServiceImpl implements LearningService {
     private final UserRepository userRepository;
     private final AuditService auditService;
     private final LearningStepTermRepository termRepository;
+    private final AircraftService aircraftService;
 
     public LearningServiceImpl(
             LearningPathRepository pathRepository,
@@ -57,7 +60,8 @@ public class LearningServiceImpl implements LearningService {
             UserStepProgressRepository stepProgressRepository,
             UserRepository userRepository,
             AuditService auditService,
-            LearningStepTermRepository termRepository
+            LearningStepTermRepository termRepository,
+            AircraftService aircraftService
     ) {
         this.pathRepository = pathRepository;
         this.stepRepository = stepRepository;
@@ -66,6 +70,7 @@ public class LearningServiceImpl implements LearningService {
         this.userRepository = userRepository;
         this.auditService = auditService;
         this.termRepository = termRepository;
+        this.aircraftService = aircraftService;
     }
 
     @Override
@@ -129,8 +134,11 @@ public class LearningServiceImpl implements LearningService {
         if (request.required() != null) {
             step.setRequired(request.required());
         }
+        if (request.knowledgeLevel() != null) {
+            step.setKnowledgeLevel(request.knowledgeLevel());
+        }
         stepRepository.save(step);
-        return StepResponse.unlocked(step, StepProgressStatus.AVAILABLE, List.of());
+        return StepResponse.unlocked(step, StepProgressStatus.AVAILABLE, List.of(), false);
     }
 
     @Override
@@ -156,12 +164,28 @@ public class LearningServiceImpl implements LearningService {
                 .sorted(Comparator.comparingInt(LearningStep::getOrderIndex))
                 .toList();
         if (actor == null) {
-            List<StepResponse> outline = steps.stream()
-                    .map(step -> StepResponse.outline(step, StepProgressStatus.LOCKED))
+            Long recommended = steps.isEmpty() ? null : steps.get(0).getId();
+            List<StepResponse> open = steps.stream()
+                    .map(step -> StepResponse.unlocked(
+                            step,
+                            StepProgressStatus.AVAILABLE,
+                            glossary(step.getId()),
+                            step.getId().equals(recommended)
+                    ))
                     .toList();
-            return PathResponse.detail(path, outline, null, null);
+            return PathResponse.detail(path, open, null, null, recommended);
         }
         return detailForUser(path, steps, actor.id());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CatalogResponse catalog() {
+        return new CatalogResponse(
+                listWithOutline(TrainingTrack.TOWER),
+                listWithOutline(TrainingTrack.PILOT),
+                aircraftService.list(null)
+        );
     }
 
     @Override
@@ -177,9 +201,8 @@ public class LearningServiceImpl implements LearningService {
         }
         pathProgressRepository.save(new UserPathProgress(user, path));
         List<LearningStep> steps = stepRepository.findByPathIdOrderByOrderIndexAsc(pathId);
-        for (int i = 0; i < steps.size(); i++) {
-            StepProgressStatus status = i == 0 ? StepProgressStatus.AVAILABLE : StepProgressStatus.LOCKED;
-            stepProgressRepository.save(new UserStepProgress(user, steps.get(i), status));
+        for (LearningStep step : steps) {
+            stepProgressRepository.save(new UserStepProgress(user, step, StepProgressStatus.AVAILABLE));
         }
         auditService.record(actor.id(), "LEARNING_ENROLLED", "LearningPath", pathId, Map.of(), null);
         return detailForUser(path, steps, actor.id());
@@ -193,13 +216,13 @@ public class LearningServiceImpl implements LearningService {
             throw ApiException.notFound("Step not found");
         }
         if (progress.getStatus() == StepProgressStatus.LOCKED) {
-            throw ApiException.invalidState("Previous required step is not completed");
+            progress.setStatus(StepProgressStatus.AVAILABLE);
         }
         if (progress.getStatus() == StepProgressStatus.AVAILABLE) {
             progress.setStatus(StepProgressStatus.IN_PROGRESS);
             progress.setStartedAt(Instant.now());
         }
-        return StepResponse.unlocked(step, progress.getStatus(), glossary(step.getId()));
+        return StepResponse.unlocked(step, progress.getStatus(), glossary(step.getId()), false);
     }
 
     @Override
@@ -210,7 +233,7 @@ public class LearningServiceImpl implements LearningService {
             throw ApiException.notFound("Step not found");
         }
         if (progress.getStatus() == StepProgressStatus.LOCKED) {
-            throw ApiException.invalidState("Previous required step is not completed");
+            progress.setStatus(StepProgressStatus.AVAILABLE);
         }
         if (step.getStepType() == StepType.PRACTICE || step.getStepType() == StepType.LISTEN
                 || step.getStepType() == StepType.SCENARIO) {
@@ -237,20 +260,48 @@ public class LearningServiceImpl implements LearningService {
         Map<Long, StepProgressStatus> byStep = new HashMap<>();
         if (enrollment != null) {
             for (UserStepProgress item : stepProgressRepository.findByUserAndPath(userId, path.getId())) {
-                byStep.put(item.getStep().getId(), item.getStatus());
+                StepProgressStatus status = item.getStatus();
+                if (status == StepProgressStatus.LOCKED) {
+                    status = StepProgressStatus.AVAILABLE;
+                }
+                byStep.put(item.getStep().getId(), status);
             }
         }
+        Long recommended = steps.stream()
+                .filter(step -> byStep.getOrDefault(step.getId(), StepProgressStatus.AVAILABLE) != StepProgressStatus.COMPLETED)
+                .map(LearningStep::getId)
+                .findFirst()
+                .orElse(null);
         Map<Long, List<GlossaryTermResponse>> glossaryByStep = glossaryByStepIds(steps.stream().map(LearningStep::getId).toList());
         List<StepResponse> responses = steps.stream().map(step -> {
-            StepProgressStatus status = byStep.getOrDefault(step.getId(), StepProgressStatus.LOCKED);
-            if (enrollment == null || status == StepProgressStatus.LOCKED) {
-                return StepResponse.outline(step, status);
-            }
-            return StepResponse.unlocked(step, status, glossaryByStep.getOrDefault(step.getId(), List.of()));
+            StepProgressStatus status = byStep.getOrDefault(step.getId(), StepProgressStatus.AVAILABLE);
+            return StepResponse.unlocked(
+                    step,
+                    status,
+                    glossaryByStep.getOrDefault(step.getId(), List.of()),
+                    step.getId().equals(recommended)
+            );
         }).toList();
         Integer percent = enrollment == null ? null : enrollment.getProgressPercent();
         PathProgressStatus enrollmentStatus = enrollment == null ? null : enrollment.getStatus();
-        return PathResponse.detail(path, responses, percent, enrollmentStatus);
+        return PathResponse.detail(path, responses, percent, enrollmentStatus, recommended);
+    }
+
+    private List<PathResponse> listWithOutline(TrainingTrack track) {
+        return pathRepository.findByStatusAndTrackOrderByCreatedAtDesc(CatalogStatus.PUBLISHED, track).stream()
+                .map(path -> {
+                    List<LearningStep> steps = stepRepository.findByPathIdOrderByOrderIndexAsc(path.getId());
+                    Long recommended = steps.isEmpty() ? null : steps.get(0).getId();
+                    List<StepResponse> outline = steps.stream()
+                            .map(step -> StepResponse.outline(
+                                    step,
+                                    StepProgressStatus.AVAILABLE,
+                                    step.getId().equals(recommended)
+                            ))
+                            .toList();
+                    return PathResponse.detail(path, outline, null, null, recommended);
+                })
+                .toList();
     }
 
     private void unlockNext(Long userId, Long pathId, LearningStep completed) {

@@ -2,6 +2,7 @@ package com.aviation.platform.module.user.service;
 
 import com.aviation.platform.common.security.principal.CurrentUser;
 import com.aviation.platform.module.user.dto.response.UserResponse;
+import com.aviation.platform.module.user.entity.KnowledgeLevel;
 import com.aviation.platform.module.user.entity.RoleName;
 import com.aviation.platform.module.user.entity.UserStatus;
 import org.springframework.data.domain.Page;
@@ -17,4 +18,6 @@ public interface UserService {
     UserResponse updateStatus(Long targetUserId, UserStatus status, CurrentUser actor, String ipAddress);
 
     UserResponse updateRoles(Long targetUserId, Set<RoleName> roleNames, CurrentUser actor, String ipAddress);
+
+    UserResponse updateKnowledgeLevel(Long userId, KnowledgeLevel knowledgeLevel);
 }

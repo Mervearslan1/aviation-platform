@@ -5,6 +5,7 @@ import com.aviation.platform.common.exception.ApiException;
 import com.aviation.platform.common.pagination.PageParams;
 import com.aviation.platform.common.security.principal.CurrentUser;
 import com.aviation.platform.module.user.dto.response.UserResponse;
+import com.aviation.platform.module.user.entity.KnowledgeLevel;
 import com.aviation.platform.module.user.entity.Role;
 import com.aviation.platform.module.user.entity.RoleName;
 import com.aviation.platform.module.user.entity.User;
@@ -94,6 +95,13 @@ public class UserServiceImpl implements UserService {
                 Map.of("from", previous, "to", roleNames.stream().map(Enum::name).collect(Collectors.toSet())),
                 ipAddress
         );
+        return UserResponse.from(user);
+    }
+
+    @Override
+    public UserResponse updateKnowledgeLevel(Long userId, KnowledgeLevel knowledgeLevel) {
+        User user = loadWithRoles(userId);
+        user.setKnowledgeLevel(knowledgeLevel);
         return UserResponse.from(user);
     }
 

@@ -13,7 +13,8 @@ public interface CockpitPartRepository extends JpaRepository<CockpitPart, Long> 
     @Query("SELECT p FROM CockpitPart p WHERE p.aircraft.code = :code ORDER BY p.sortIndex")
     List<CockpitPart> findByAircraftCodeOrderBySortIndexAsc(@Param("code") String code);
 
-    Optional<CockpitPart> findByCode(String code);
+    @Query("SELECT p FROM CockpitPart p JOIN FETCH p.aircraft WHERE p.code = :code")
+    Optional<CockpitPart> findByCode(@Param("code") String code);
 
     @Query("SELECT COUNT(p) FROM CockpitPart p WHERE p.aircraft.code = :code")
     int countByAircraftCode(@Param("code") String code);

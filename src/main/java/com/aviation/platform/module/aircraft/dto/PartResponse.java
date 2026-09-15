@@ -12,10 +12,15 @@ public record PartResponse(
         String functionTr,
         String category,
         String variant,
-        boolean learned
+        boolean learned,
+        boolean recommended
 ) {
 
     public static PartResponse from(CockpitPart part, boolean learned) {
+        return from(part, learned, false);
+    }
+
+    public static PartResponse from(CockpitPart part, boolean learned, boolean recommended) {
         return new PartResponse(
                 part.getId(),
                 part.getCode(),
@@ -26,7 +31,8 @@ public record PartResponse(
                 part.getFunctionTr(),
                 part.getCategory(),
                 part.getVariant() == null ? "Both" : part.getVariant(),
-                learned
+                learned,
+                recommended
         );
     }
 }

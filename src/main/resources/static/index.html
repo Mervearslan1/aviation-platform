@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Aviation Platform</title>
+  <style>
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: #0c1018; color: #e8eef6; }
+    header { padding: 20px 24px; background: #161d2b; }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    article { background: #121826; border-radius: 12px; padding: 16px; }
+    h2 { margin: 0 0 8px; }
+    a { color: #7ee0ff; }
+    .lvl { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #1c2434; margin-left: 6px; color: #f5c542; }
+    ol { padding-left: 18px; margin: 8px 0 0; }
+    li { margin: 4px 0; color: #8aa0b8; }
+    .muted { color: #8aa0b8; }
+    nav a { margin-right: 12px; }
+  </style>
+</head>
+<body>
+<header>
+  <strong>AVIATION PLATFORM</strong>
+  <p class="muted">Tüm adımlar açık. Yeni başlayan sırayla gider, bilen istediği kule / pilot / uçak adımına bakar.</p>
+  <nav>
+    <a href="/tower/index.html">Kule</a>
+    <a href="/pilot/index.html">Pilot</a>
+    <a href="/cockpit/index.html">Kokpit</a>
+    <a href="/writer/index.html">Yazar</a>
+    <a href="/swagger-ui.html">Swagger</a>
+  </nav>
+</header>
+<main id="root" class="muted">Yükleniyor…</main>
+<script>
+  const LVL = { BEGINNER: "Yeni", INTERMEDIATE: "Orta", ADVANCED: "İleri" };
+  fetch("/api/v1/catalog").then(r => r.json()).then(body => {
+    const data = body.data || {};
+    const col = (title, href, items, renderItem) =>
+      `<article><h2><a href="${href}">${title}</a></h2>${items.map(renderItem).join("") || "<p>Yok</p>"}</article>`;
+    const pathHtml = p => `<div>
+      <p><strong>${p.title}</strong><span class="lvl">${LVL[p.difficulty] || p.difficulty || ""}</span></p>
+      <p class="muted">${p.description || ""}</p>
+      <ol>${(p.steps || []).map(s =>
+        `<li>${s.orderIndex + 1}. ${s.title} <span class="lvl">${LVL[s.knowledgeLevel] || ""}</span> <em>${s.stepType}</em></li>`
+      ).join("")}</ol>
+      ${(p.relatedAircraft || []).length ? `<p>Uçak: ${(p.relatedAircraft || []).join(", ")}</p>` : ""}
+    </div>`;
+    const acHtml = a => `<p><a href="/cockpit/index.html">${a.name}</a>
+      <span class="lvl">${LVL[a.difficulty] || a.difficulty || ""}</span> — ${a.partCount} tuş</p>
+      <p class="muted">${a.philosophy || ""}</p>`;
+    root.innerHTML = `<div class="grid">
+      ${col("Kule ol", "/tower/index.html", data.tower || [], pathHtml)}
+      ${col("Pilot ol", "/pilot/index.html", data.pilot || [], pathHtml)}
+      ${col("Uçaklar", "/cockpit/index.html", data.aircraft || [], acHtml)}
+    </div>`;
+  }).catch(e => { root.textContent = "Katalog yüklenemedi: " + e.message; });
+</script>
+</body>
+</html>

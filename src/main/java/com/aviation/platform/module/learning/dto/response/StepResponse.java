@@ -1,5 +1,6 @@
 package com.aviation.platform.module.learning.dto.response;
 
+import com.aviation.platform.module.learning.entity.Difficulty;
 import com.aviation.platform.module.learning.entity.LearningStep;
 import com.aviation.platform.module.learning.entity.StepProgressStatus;
 import com.aviation.platform.module.learning.entity.StepType;
@@ -18,10 +19,12 @@ public record StepResponse(
         StepProgressStatus progressStatus,
         String contentHtml,
         Map<String, Object> configuration,
-        List<GlossaryTermResponse> glossary
+        List<GlossaryTermResponse> glossary,
+        Difficulty knowledgeLevel,
+        boolean recommended
 ) {
 
-    public static StepResponse outline(LearningStep step, StepProgressStatus progress) {
+    public static StepResponse outline(LearningStep step, StepProgressStatus progress, boolean recommended) {
         return new StepResponse(
                 step.getId(),
                 step.getTitle(),
@@ -33,11 +36,18 @@ public record StepResponse(
                 progress,
                 null,
                 null,
-                List.of()
+                List.of(),
+                step.getKnowledgeLevel(),
+                recommended
         );
     }
 
-    public static StepResponse unlocked(LearningStep step, StepProgressStatus progress, List<GlossaryTermResponse> glossary) {
+    public static StepResponse unlocked(
+            LearningStep step,
+            StepProgressStatus progress,
+            List<GlossaryTermResponse> glossary,
+            boolean recommended
+    ) {
         Map<String, Object> config = step.getConfiguration();
         if (config != null) {
             config = new java.util.LinkedHashMap<>(config);
@@ -56,7 +66,9 @@ public record StepResponse(
                 progress,
                 step.getContentHtml(),
                 config,
-                glossary == null ? List.of() : glossary
+                glossary == null ? List.of() : glossary,
+                step.getKnowledgeLevel(),
+                recommended
         );
     }
 }

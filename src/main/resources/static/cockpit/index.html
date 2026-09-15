@@ -115,7 +115,7 @@
     ["FLARE", "Flare"],
     ["LANDING", "İniş"]
   ];
-  const VALUES = ["ON","OFF","UP","DOWN","FULL","IDLE","TOGA","FLX","BOTH","RICH","CUTOFF","IN","START","GRD","DISCHARGE","CENTER","BACK","HOLD","0","1","5","10","20","30","1+F"];
+  const VALUES = ["ON","OFF","UP","DOWN","FULL","IDLE","TOGA","FLX","BOTH","RICH","CUTOFF","IN","START","CHECK","TAKEOFF","GRD","DISCHARGE","CENTER","BACK","HOLD","0","1","5","10","20","30","1+F"];
 
   let token = localStorage.getItem("aviationToken");
   let mode = "learn";
@@ -156,8 +156,9 @@
 
   async function boot() {
     const list = await api("/api/v1/aircraft");
+    const LVL = { BEGINNER: "Yeni", INTERMEDIATE: "Orta", ADVANCED: "İleri" };
     $("ac").innerHTML = list.data.map(a =>
-      `<option value="${a.code}">${a.name} (${a.learnedCount || 0}/${a.partCount})</option>`
+      `<option value="${a.code}">${a.name} — ${LVL[a.difficulty] || a.difficulty || ""} (${a.learnedCount || 0}/${a.partCount})</option>`
     ).join("");
     await loadLearn();
   }
@@ -178,7 +179,7 @@
       $("msg").className = "msg";
       const variant = lesson.variant && lesson.variant !== "Both"
         ? ` <span class="badge ${lesson.variant.toLowerCase()}">${lesson.variant}</span>` : "";
-      $("msg").innerHTML = `<strong>Bul:</strong> ${lesson.nameTr}${variant}<br><em>${lesson.nameEn}</em><br>${lesson.location}<br>${lesson.functionTr}`;
+      $("msg").innerHTML = `<strong>Önerilen:</strong> ${lesson.nameTr}${variant}<br><em>${lesson.nameEn}</em><br>${lesson.location}<br>${lesson.functionTr}<br><span style="color:#8aa0b8">İstersen başka tuşa da bas; sıra zorunlu değil.</span>`;
     } catch (e) {
       lesson = null;
       $("msg").className = "msg pass";
@@ -199,7 +200,7 @@
     });
     const groups = {};
     visible.forEach(p => { (groups[p.panel] = groups[p.panel] || []).push(p); });
-    const wait = session && session.expectedPart;
+    const wait = (session && session.expectedPart) || (mode === "learn" && parts.find(p => p.recommended)?.code);
     const filterBar = hasVariant
       ? `<div class="filter">${[["ALL","Tümü"],["Classic","Classic"],["G1000","G1000"]].map(([code, label]) =>
           `<button type="button" class="${variantFilter === code ? "on" : ""}" data-variant="${code}">${label}</button>`

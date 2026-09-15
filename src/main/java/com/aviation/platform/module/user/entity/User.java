@@ -50,6 +50,10 @@ public class User {
     @Column(nullable = false, length = 20)
     private UserStatus status = UserStatus.ACTIVE;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "knowledge_level", nullable = false, length = 20)
+    private KnowledgeLevel knowledgeLevel = KnowledgeLevel.BEGINNER;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -76,6 +80,7 @@ public class User {
         this.passwordHash = passwordHash;
         this.displayName = displayName;
         this.status = UserStatus.ACTIVE;
+        this.knowledgeLevel = KnowledgeLevel.BEGINNER;
     }
 
     @PrePersist
@@ -86,6 +91,9 @@ public class User {
         email = normalizeEmail(email);
         if (status == null) {
             status = UserStatus.ACTIVE;
+        }
+        if (knowledgeLevel == null) {
+            knowledgeLevel = KnowledgeLevel.BEGINNER;
         }
     }
 
@@ -149,6 +157,14 @@ public class User {
 
     public void setStatus(UserStatus status) {
         this.status = status;
+    }
+
+    public KnowledgeLevel getKnowledgeLevel() {
+        return knowledgeLevel;
+    }
+
+    public void setKnowledgeLevel(KnowledgeLevel knowledgeLevel) {
+        this.knowledgeLevel = knowledgeLevel == null ? KnowledgeLevel.BEGINNER : knowledgeLevel;
     }
 
     public Instant getCreatedAt() {

@@ -31,7 +31,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/learning-paths")
-@Tag(name = "Learning", description = "Adım adım öğrenme yolu — katalog değil, sıra ile açılır")
+@Tag(name = "Learning", description = "Tüm adımlar açık. Yeni başlayan sırayla gider, bilen istediği adıma atlar.")
 public class LearningController {
 
     private final LearningService learningService;
@@ -49,7 +49,7 @@ public class LearningController {
 
     @GetMapping("/{slug}")
     @SecurityRequirements
-    @Operation(summary = "Yol detayı (kilitli adımların içeriği gizlenir)")
+    @Operation(summary = "Yol detayı — tüm adımlar okunabilir, sıra öneridir")
     public ApiResponse<PathResponse> get(
             @PathVariable String slug,
             @RequestParam(required = false) TrainingTrack track,
@@ -60,7 +60,7 @@ public class LearningController {
 
     @PostMapping("/{id}/enroll")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Yola katıl — ilk adım açılır")
+    @Operation(summary = "Yola katıl — tüm adımlar açık, önerilen adım işaretlenir")
     public ApiResponse<PathResponse> enroll(
             @PathVariable Long id,
             @Parameter(hidden = true) @AuthenticationPrincipal CurrentUser actor

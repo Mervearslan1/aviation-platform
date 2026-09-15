@@ -46,6 +46,9 @@ public class LearningPath {
     @Column(nullable = false, length = 20)
     private TrainingTrack track = TrainingTrack.TOWER;
 
+    @Column(name = "related_aircraft", length = 120)
+    private String relatedAircraft;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -130,6 +133,14 @@ public class LearningPath {
 
     public void setTrack(TrainingTrack track) {
         this.track = track;
+    }
+
+    public String getRelatedAircraft() {
+        return relatedAircraft;
+    }
+
+    public void setRelatedAircraft(String relatedAircraft) {
+        this.relatedAircraft = relatedAircraft;
     }
 
     public Instant getCreatedAt() {
