@@ -53,7 +53,8 @@ INSERT INTO cockpit_parts (aircraft_id, code, panel, name_en, name_tr, location,
 
 UPDATE training_simulations
 SET description = 'Eğitim uçağı: master, yakıt, karışım, primer, magneto. Yanlış sıra motoru öldürür veya kazaya götürür.',
-    config = $json${
+    config = $json$
+{
   "controls": {"C172-037":"ON","C172-017":"CUTOFF","C172-018":"OFF","C172-034":"OFF"},
   "flight": {"phase":"PARKED","ias":0,"altitude":0,"pitch":0,"roll":0,"vs":0,"heading":270,"gear":"FIXED","onGround":true,"n1":0},
   "expected": [
@@ -73,7 +74,8 @@ WHERE code = 'C172-COLD-START';
 
 UPDATE training_simulations
 SET description = 'Park freni, taksi, flap, tam gaz, rotate, tırmanış, final, flare. Yanlış flap/hızda stall.',
-    config = $json${
+    config = $json$
+{
   "controls": {"C172-037":"ON","C172-020":"0","C172-016":"IDLE"},
   "flight": {"phase":"PARKED","ias":0,"altitude":0,"pitch":0,"roll":0,"vs":0,"heading":270,"gear":"FIXED","onGround":true,"n1":18},
   "expected": [

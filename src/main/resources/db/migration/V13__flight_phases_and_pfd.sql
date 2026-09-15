@@ -2,7 +2,8 @@
 
 UPDATE training_simulations
 SET description = 'Park freni, taksi, flap, tam gaz, rotate, tırmanış, final, flare. Yanlış flap/hızda stall.',
-    config = $json${
+    config = $json$
+{
   "controls": {"C172-024":"ON","C172-007":"0","C172-004":"IDLE"},
   "flight": {"phase":"PARKED","ias":0,"altitude":0,"pitch":0,"roll":0,"vs":0,"heading":270,"gear":"FIXED","onGround":true,"n1":18},
   "expected": [
@@ -33,7 +34,8 @@ WHERE code = 'C172-COLD-START';
 
 UPDATE training_simulations
 SET description = 'Taksi, flap, TOGA, rotate, gear up, yaklaşma, flare. Yerde gear up ve düşük itki stall düşürür.',
-    config = $json${
+    config = $json$
+{
   "controls": {"B737-032":"ON","B737-039":"DOWN","B737-030":"0","B737-028":"IDLE"},
   "flight": {"phase":"PARKED","ias":0,"altitude":0,"pitch":0,"roll":0,"vs":0,"heading":90,"gear":"DOWN","onGround":true,"n1":20},
   "expected": [
@@ -66,7 +68,8 @@ WHERE code = 'B737-COLD-START';
 
 UPDATE training_simulations
 SET description = 'Taksi, 1+F, FLX, rotate, gear, full flap, flare. Yanlış konfigürasyon düşürür.',
-    config = $json${
+    config = $json$
+{
   "controls": {"A350-029":"ON","A350-037":"DOWN","A350-028":"0","A350-026":"IDLE"},
   "flight": {"phase":"PARKED","ias":0,"altitude":0,"pitch":0,"roll":0,"vs":0,"heading":90,"gear":"DOWN","onGround":true,"n1":20},
   "expected": [

@@ -60,7 +60,8 @@ INSERT INTO training_simulations (aircraft_id, code, title, description, sim_typ
 SELECT id, 'C172-BEFORE-TAKEOFF', 'C172 kalkış öncesi checklist',
        'Yakıt, yağ, flap, trim, park freni, ışık. Sıra önerilir; atlamak checklist kaçırmaktır.',
        'TUTORIAL',
-       $json${
+       $json$
+{
   "controls": {"C172-037":"ON","C172-020":"0","C172-041":"OFF","C172-042":"OFF"},
   "flight": {"phase":"PARKED","ias":0,"altitude":0,"pitch":0,"roll":0,"vs":0,"heading":270,"gear":"FIXED","onGround":true,"n1":18},
   "expected": [

@@ -2,7 +2,7 @@ spring:
   application:
     name: aviation-platform
   datasource:
-    url: ${AVIATION_DB_URL:jdbc:postgresql://localhost:5433/aviation}
+    url: ${AVIATION_DB_URL:jdbc:postgresql://127.0.0.1:5433/aviation}
     username: ${AVIATION_DB_USERNAME:aviation}
     password: ${AVIATION_DB_PASSWORD:aviation}
   jpa:
@@ -15,6 +15,7 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
+    placeholder-replacement: false
     locations: classpath:db/migration
   servlet:
     multipart:

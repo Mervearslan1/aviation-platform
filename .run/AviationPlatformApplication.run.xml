@@ -5,6 +5,9 @@
     <envs>
       <env name="AVIATION_ADMIN_EMAIL" value="admin@aviation-platform.local" />
       <env name="AVIATION_ADMIN_PASSWORD" value="Admin123!" />
+      <env name="AVIATION_DB_URL" value="jdbc:postgresql://127.0.0.1:5433/aviation" />
+      <env name="AVIATION_DB_USERNAME" value="aviation" />
+      <env name="AVIATION_DB_PASSWORD" value="aviation" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />
