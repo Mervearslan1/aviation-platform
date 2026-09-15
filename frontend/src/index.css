@@ -21,7 +21,7 @@ html.light {
   --header: rgba(244, 247, 251, 0.92);
   --hero-img: url("/atmosphere/day.jpg");
   --blog-bg: url("/blog/bg.jpg");
-  --blog-veil: rgba(244, 247, 251, 0.78);
+  --blog-veil: rgba(244, 247, 251, 0.55);
   --sheet: rgba(255, 255, 255, 0.86);
 }
 
@@ -45,7 +45,7 @@ html.dark {
   --header: rgba(7, 17, 29, 0.92);
   --hero-img: url("/atmosphere/night.jpg");
   --blog-bg: url("/blog/bg.jpg");
-  --blog-veil: rgba(7, 17, 29, 0.68);
+  --blog-veil: rgba(7, 17, 29, 0.45);
   --sheet: rgba(12, 22, 38, 0.78);
 }
 
@@ -87,22 +87,17 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -2;
   background-image: var(--blog-bg);
   background-size: cover;
   background-position: center;
-  opacity: 1;
 }
 .blog-scene::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   background: var(--blog-veil);
-}
-.blog-scene > * {
-  position: relative;
-  z-index: 1;
 }
 .article-sheet {
   background: var(--sheet);

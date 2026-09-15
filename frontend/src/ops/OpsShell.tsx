@@ -8,7 +8,7 @@ export function OpsShell() {
   const { t, locale, setLocale } = useI18n()
   const { theme, setTheme } = useTheme()
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-[var(--bg-2)]">
+    <div className="flex min-h-dvh flex-col bg-[var(--bg-2)]">
       <header className="border-b border-[var(--stroke)] bg-[var(--bg)] px-6 py-3">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link to="/ops" className="flex items-center gap-3">

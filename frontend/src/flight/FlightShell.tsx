@@ -22,7 +22,7 @@ export function FlightShell() {
     setWelcome(false)
   }
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-dvh flex-col">
       {welcome ? <Welcome onDone={dismissWelcome} /> : null}
       <a href="#content" className="skip">Skip</a>
       <header className="site-header">
