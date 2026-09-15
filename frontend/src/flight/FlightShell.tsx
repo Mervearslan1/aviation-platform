@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Logo } from '../shared/Mark'
 import { useI18n } from '../shared/i18n'
 import { useTheme } from '../shared/theme'
@@ -13,6 +13,8 @@ export function FlightShell() {
   const { t, locale, setLocale } = useI18n()
   const { theme, setTheme } = useTheme()
   const signedIn = asUser()
+  const location = useLocation()
+  const loginTo = `/login?next=${encodeURIComponent(location.pathname + location.search)}`
   const [open, setOpen] = useState(false)
   const [welcome, setWelcome] = useState(() => !localStorage.getItem('aviationWelcomed'))
   const dismissWelcome = () => {
@@ -42,7 +44,7 @@ export function FlightShell() {
             <IconBtn label={theme === 'dark' ? t.themeLight : t.themeDark} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
               {theme === 'dark' ? <IconSun /> : <IconMoon />}
             </IconBtn>
-            <Link to="/login" className="grid h-10 w-10 place-items-center rounded-full text-[var(--ink)] hover:bg-[var(--bg-2)]" aria-label={signedIn ? t.logout : t.login} title={DEMO && !token() ? 'Misafir (USER)' : undefined}>
+            <Link to={loginTo} className="grid h-10 w-10 place-items-center rounded-full text-[var(--ink)] hover:bg-[var(--bg-2)]" aria-label={signedIn ? t.logout : t.login} title={DEMO && !token() ? 'Misafir (USER)' : undefined}>
               <IconUser />
             </Link>
             <Button to="/katil" className="hidden min-h-10 px-4 text-sm sm:inline-flex">{t.navJoin}</Button>

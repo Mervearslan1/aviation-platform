@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, setToken } from '../../shared/api'
 import { useI18n } from '../../shared/i18n'
 import { Logo } from '../../shared/Mark'
@@ -8,6 +8,13 @@ import { Button } from '../../shared/Button'
 export function Login() {
   const { t } = useI18n()
   const nav = useNavigate()
+  const [params] = useSearchParams()
+  const next = params.get('next')
+  const stay = () => {
+    if (next && next.startsWith('/') && !next.startsWith('/login')) nav(next)
+    else if (window.history.length > 1) nav(-1)
+    else nav('/')
+  }
   const [mode, setMode] = useState<'in' | 'up'>('in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -28,7 +35,7 @@ export function Login() {
       }
       const tokens = await api.login(email, password)
       setToken(tokens.accessToken)
-      nav('/')
+      stay()
     } catch (err) {
       setError(err instanceof Error ? err.message : t.loginNeed)
     }
@@ -64,9 +71,9 @@ export function Login() {
         <Button className="mt-6 w-full" type="submit">
           {mode === 'in' ? t.login : t.register}
         </Button>
-        <Link to="/" className="mt-4 block text-center text-sm text-[var(--muted)]">
+        <button type="button" className="mt-4 block w-full text-center text-sm text-[var(--muted)]" onClick={stay}>
           {t.guest}
-        </Link>
+        </button>
       </form>
     </div>
   )

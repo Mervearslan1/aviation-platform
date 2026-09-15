@@ -100,7 +100,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                 className="mt-4 max-w-none text-[15px] leading-7 text-[var(--ink)]"
                 dangerouslySetInnerHTML={{ __html: current.contentHtml || current.description || '' }}
               />
-              <Button className="mt-6" to="/login">
+              <Button className="mt-6" to={`/login?next=${encodeURIComponent('/' + track)}`}>
                 {t.continue}
               </Button>
             </>

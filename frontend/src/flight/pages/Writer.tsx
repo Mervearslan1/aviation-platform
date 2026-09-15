@@ -50,7 +50,7 @@ export function Writer() {
     return (
       <div className="mx-auto max-w-lg px-4 py-12 text-center">
         <p>{t.loginFirst}</p>
-        <Button className="mt-4" to="/login">{t.login}</Button>
+        <Button className="mt-4" to="/login?next=%2Fblog%2Fyaz">{t.login}</Button>
       </div>
     )
   }
