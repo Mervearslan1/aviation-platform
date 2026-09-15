@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f3f0e8;
+  --bg-2: #e7e2d6;
+  --ink: #121820;
+  --muted: #5b6573;
+  --panel: rgba(255, 255, 255, 0.72);
+  --stroke: rgba(18, 24, 32, 0.12);
+  --hud: #0b5cab;
+  --amber: #b45309;
+  --good: #0f7a4a;
+  --warn: #b42318;
+  --glass: rgba(255, 255, 255, 0.55);
+  --horizon-sky: #8ec5e8;
+  --horizon-ground: #8a6a45;
+}
+
+html.dark {
+  --bg: #070b12;
+  --bg-2: #0d1420;
+  --ink: #e8eef6;
+  --muted: #8aa0b8;
+  --panel: rgba(12, 18, 28, 0.72);
+  --stroke: rgba(126, 224, 255, 0.16);
+  --hud: #7ee0ff;
+  --amber: #f5c542;
+  --good: #3dd68c;
+  --warn: #ff6b6b;
+  --glass: rgba(8, 12, 20, 0.55);
+  --horizon-sky: #2e6bb2;
+  --horizon-ground: #8a5a2b;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+.font-mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+.glass {
+  background: var(--panel);
+  border: 1px solid var(--stroke);
+  backdrop-filter: blur(16px);
+}
+
+.hud-scan::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    rgba(0, 0, 0, 0.04) 2px 3px
+  );
+}
+
+html.dark .hud-scan::before {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    rgba(126, 224, 255, 0.03) 2px 3px
+  );
+}

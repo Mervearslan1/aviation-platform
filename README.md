@@ -38,6 +38,16 @@ Rehberler: docs/kule-egitim-rehberi.md , docs/pilot-egitim-rehberi.md
 Süreç analizi: docs/egitim-surec-analizi.md  
 Kokpit / eğitim simülasyonları: http://localhost:8080/cockpit/index.html  (C172, B737, A350)
 
+React uçuş yüzeyi (TR/EN, gece/gündüz, ayrı OPS): `frontend/`
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+http://localhost:5173  — backend 8080 açık olmalı.
+
 ## Çalıştırma
 
 ```powershell
