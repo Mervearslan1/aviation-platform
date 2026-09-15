@@ -79,9 +79,18 @@ body {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
 }
 
+.site-footer {
+  position: relative;
+  z-index: 20;
+  margin-top: auto;
+  border-top: 1px solid var(--stroke);
+  background: var(--bg);
+}
+
 .blog-scene {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
 }
 .blog-scene::before {
   content: "";
@@ -99,10 +108,81 @@ body {
   z-index: -1;
   background: var(--blog-veil);
 }
+
+.writer-scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.writer-scene::before {
+  content: "";
+  position: absolute;
+  inset: -40px;
+  z-index: -2;
+  background-image: var(--blog-bg);
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px);
+  transform: scale(1.06);
+}
+.writer-scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(244, 247, 251, 0.78);
+}
+html.dark .writer-scene::after {
+  background: rgba(7, 17, 29, 0.72);
+}
 .article-sheet {
   background: var(--sheet);
   border: 1px solid var(--stroke);
   backdrop-filter: blur(14px);
+}
+
+.join-scene {
+  position: relative;
+  isolation: isolate;
+}
+
+.word-page:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.term-chip {
+  position: relative;
+}
+.term-chip .term-tip {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 30;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 2.5rem));
+  max-height: min(12rem, 40vh);
+  overflow: auto;
+  visibility: hidden;
+  opacity: 0;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: var(--panel);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 400;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  box-shadow: 0 8px 24px rgba(16, 35, 61, 0.12);
+}
+.term-chip:hover .term-tip,
+.term-chip:focus-within .term-tip {
+  visibility: visible;
+  opacity: 1;
 }
 
 .surface,
@@ -290,15 +370,22 @@ textarea:focus-visible {
 .blog-nav {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--stroke);
   border-radius: 999px;
   background: var(--sheet);
   color: var(--ink);
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1;
   cursor: pointer;
+}
+@media (min-width: 640px) {
+  .blog-nav {
+    width: 48px;
+    height: 48px;
+    font-size: 28px;
+  }
 }
 .blog-nav:hover {
   border-color: var(--amber);

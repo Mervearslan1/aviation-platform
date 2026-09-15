@@ -7,7 +7,8 @@ import { token } from '../shared/api'
 import { DEMO, asUser } from '../shared/demo'
 import { Button } from '../shared/Button'
 import { Welcome } from './Welcome'
-import { IconClose, IconFlagGb, IconFlagTr, IconMoon, IconSun, IconUser } from '../shared/Icons'
+import { Footer } from '../shared/Footer'
+import { IconClose, IconCloud, IconFlagGb, IconFlagTr, IconSun, IconUser } from '../shared/Icons'
 
 export function FlightShell() {
   const { t, locale, setLocale } = useI18n()
@@ -27,7 +28,7 @@ export function FlightShell() {
       <a href="#content" className="skip">Skip</a>
       <header className="site-header">
         <div className="flex w-full items-center px-3 py-2 md:px-5">
-          <Link to="/" className="shrink-0" onClick={() => setOpen(false)}>
+          <Link to="/" className="shrink-0" aria-label={t.brand} onClick={() => setOpen(false)}>
             <Logo compact />
           </Link>
           <nav className="ml-4 hidden items-center gap-1 md:flex" aria-label="Main">
@@ -42,7 +43,7 @@ export function FlightShell() {
               {locale === 'tr' ? <IconFlagTr /> : <IconFlagGb />}
             </IconBtn>
             <IconBtn label={theme === 'dark' ? t.themeLight : t.themeDark} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-              {theme === 'dark' ? <IconSun /> : <IconMoon />}
+              {theme === 'dark' ? <IconSun /> : <IconCloud />}
             </IconBtn>
             <Link to={loginTo} className="grid h-10 w-10 place-items-center rounded-full text-[var(--ink)] hover:bg-[var(--bg-2)]" aria-label={signedIn ? t.logout : t.login} title={DEMO && !token() ? 'Misafir (USER)' : undefined}>
               <IconUser />
@@ -68,14 +69,10 @@ export function FlightShell() {
           </div>
         ) : null}
       </header>
-      <main id="content" className="flex-1">
+      <main id="content" className="flex min-h-0 flex-1 flex-col">
         <Outlet />
       </main>
-      <footer className="mt-auto border-t border-[var(--stroke)]">
-        <div className="px-4 pb-8 pt-16 md:px-5 md:pt-20">
-          <p className="text-center text-sm text-[var(--muted)]">{t.copyright}</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

@@ -145,3 +145,39 @@ export function demoReviewApp(id: number, status: 'APPROVED' | 'REJECTED') {
   localStorage.setItem(APPS, JSON.stringify(list))
   return list
 }
+
+const DRAFTS = 'aviationDemoDrafts'
+
+export type DemoTerm = { term: string; def: string }
+export type DemoLink = { title: string; url: string }
+export type DemoImage = { url: string; caption: string }
+
+export type DemoDraft = {
+  id: number
+  title: string
+  slug: string
+  summary: string
+  preface: string
+  contentHtml: string
+  glossary: DemoTerm[]
+  images: DemoImage[]
+  sources: DemoLink[]
+  related: { slug: string; title: string }[]
+  status: 'DRAFT' | 'SUBMITTED'
+  updatedAt: string
+}
+
+export function demoDrafts(): DemoDraft[] {
+  return JSON.parse(localStorage.getItem(DRAFTS) || '[]') as DemoDraft[]
+}
+
+export function demoSaveDraft(draft: DemoDraft): DemoDraft[] {
+  const list = demoDrafts()
+  const next = { ...draft, updatedAt: new Date().toISOString() }
+  const i = list.findIndex((d) => d.id === next.id)
+  if (i >= 0) list[i] = next
+  else list.unshift(next)
+  list.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
+  localStorage.setItem(DRAFTS, JSON.stringify(list))
+  return list
+}

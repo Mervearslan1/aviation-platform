@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../../shared/api'
+import { FIELD_POSTS } from '../../shared/posts'
 import { DEMO, asUser, demoAddChange, demoLike, demoLiked } from '../../shared/demo'
 import { useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
@@ -32,20 +33,34 @@ export function Article() {
     fetch('/blog/landing-accidents.json')
       .then((r) => r.json())
       .then((d: Packed) => {
-        if (d.slug === slug) setDoc(d)
-        else {
-          return api.articleBySlug(slug).then((a) => {
-            setDoc({
-              slug,
-              title: a.title,
-              summary: a.summary || '',
-              cover: a.coverImageUrl || '/blog/cover.jpg',
-              background: '/blog/bg.jpg',
-              html: a.contentHtml || '',
-              terms: {},
-            })
-          })
+        if (d.slug === slug) {
+          setDoc(d)
+          return
         }
+        const field = FIELD_POSTS.find((p) => p.slug === slug)
+        if (field) {
+          setDoc({
+            slug: field.slug,
+            title: field.title,
+            summary: field.summary,
+            cover: field.cover,
+            background: '/blog/bg.jpg',
+            html: `<p>${field.summary}</p>`,
+            terms: {},
+          })
+          return
+        }
+        return api.articleBySlug(slug).then((a) => {
+          setDoc({
+            slug,
+            title: a.title,
+            summary: a.summary || '',
+            cover: a.coverImageUrl || '/blog/cover.jpg',
+            background: '/blog/bg.jpg',
+            html: a.contentHtml || '',
+            terms: {},
+          })
+        })
       })
       .catch(() => setDoc(null))
     if (DEMO) setLiked(demoLiked(slug))

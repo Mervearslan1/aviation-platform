@@ -2,17 +2,17 @@ type IconProps = { className?: string }
 
 export function IconSun({ className = 'h-5 w-5' }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
       <circle cx="12" cy="12" r="4" />
-      <path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6 6l1.5 1.5M16.5 16.5 18 18M18 6l-1.5 1.5M7.5 16.5 6 18" />
+      <path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6" />
     </svg>
   )
 }
 
-export function IconMoon({ className = 'h-5 w-5' }: IconProps) {
+export function IconCloud({ className = 'h-5 w-5' }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <path d="M20 14.5A7.5 7.5 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5Z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M7.2 18h10.2a3.6 3.6 0 0 0 .5-7.15 5.2 5.2 0 0 0-9.9-1.4A3.4 3.4 0 0 0 7.2 18Z" />
     </svg>
   )
 }

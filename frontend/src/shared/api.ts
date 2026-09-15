@@ -121,10 +121,16 @@ export const api = {
     }),
   changeRequests: () =>
     request<Array<{ id: number; articleSlug: string; quote: string; note: string; userEmail: string }>>('/api/v1/articles/change-requests'),
-  createArticle: (body: { title: string; summary: string; contentHtml: string }) =>
-    request<{ id: number }>('/api/v1/articles', { method: 'POST', body: JSON.stringify(body) }),
-  updateArticle: (id: number, body: { title: string; summary: string; contentHtml: string }) =>
-    request<{ id: number }>(`/api/v1/articles/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  createArticle: (body: {
+    title: string
+    summary: string
+    contentHtml: string
+    contentDocument?: Record<string, unknown>
+  }) => request<{ id: number }>('/api/v1/articles', { method: 'POST', body: JSON.stringify(body) }),
+  updateArticle: (
+    id: number,
+    body: { title: string; summary: string; contentHtml: string; contentDocument?: Record<string, unknown> },
+  ) => request<{ id: number }>(`/api/v1/articles/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   submitArticle: (id: number) => request(`/api/v1/articles/${id}/submit`, { method: 'POST', body: '{}' }),
   uploadMedia: async (file: File) => {
     const fd = new FormData()
