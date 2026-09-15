@@ -4,26 +4,68 @@ import { api, type Catalog, type Article } from '../../shared/api'
 import { levelLabel, useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
 
-const FALLBACK_POST: Article = {
-  id: 0,
-  title: 'Havacılıkta iniş safhasının kritik / operasyonel önemi',
-  slug: 'inis-safhasinin-kritik-onemi',
-  summary: '2025–2026’daki iki ölümcül pist kazası üzerinden iniş operasyonunun aşamaları ve emniyet dersleri.',
-}
+const FALLBACK_POSTS: Article[] = [
+  {
+    id: 1,
+    title: 'Havacılıkta iniş safhasının kritik / operasyonel önemi',
+    slug: 'inis-safhasinin-kritik-onemi',
+    summary: '2025–2026 pist kazaları üzerinden iniş operasyonu ve emniyet dersleri.',
+  },
+  {
+    id: 2,
+    title: 'Unstable approach: neden pas geçilir',
+    slug: 'inis-safhasinin-kritik-onemi',
+    summary: 'Kararsız yaklaşmada hız, süzülüş ve konfigürasyon. Go-around bir başarısızlık değil, emniyettir.',
+  },
+  {
+    id: 3,
+    title: 'Flare: eşikte burun, yumuşak temas',
+    slug: 'inis-safhasinin-kritik-onemi',
+    summary: 'Eşikte flare zamanlaması. Erken veya geç flare sert iniş ve pist kazasına gider.',
+  },
+  {
+    id: 4,
+    title: 'ATC ve pist: kule ile aynı resmi görmek',
+    slug: 'inis-safhasinin-kritik-onemi',
+    summary: 'Yer, kule ve yaklaşma aynı piste bakmazsa çakışma başlar. Read-back burada hayat kurtarır.',
+  },
+  {
+    id: 5,
+    title: 'Taksi ve iniş sonrası: pist henüz bitmedi',
+    slug: 'inis-safhasinin-kritik-onemi',
+    summary: 'Teker koyunca uçuş bitmez. Taksi, çıkış ve hold-short hâlâ operasyonun parçası.',
+  },
+]
+
+const COVERS = ['/blog/cover.jpg', '/atmosphere/faq.jpg', '/atmosphere/cockpit.jpg', '/atmosphere/tower.jpg', '/atmosphere/night.jpg']
 
 export function Home() {
   const { t } = useI18n()
   const [catalog, setCatalog] = useState<Catalog | null>(null)
   const [posts, setPosts] = useState<Article[]>([])
   const [sent, setSent] = useState(false)
+  const [hero, setHero] = useState(0)
   useEffect(() => {
     api.catalog().then(setCatalog).catch(() => setCatalog(null))
     api.articles(6).then(setPosts).catch(() => setPosts([]))
   }, [])
+  const slides = [
+    { kicker: t.heroKicker, title: t.heroTitle, lead: t.heroLead },
+    { kicker: t.hero2Kicker, title: t.hero2Title, lead: t.hero2Lead },
+    { kicker: t.hero3Kicker, title: t.hero3Title, lead: t.hero3Lead },
+    { kicker: t.hero4Kicker, title: t.hero4Title, lead: t.hero4Lead },
+    { kicker: t.hero5Kicker, title: t.hero5Title, lead: t.hero5Lead },
+  ]
+  useEffect(() => {
+    const id = window.setInterval(() => setHero((n) => (n + 1) % slides.length), 5200)
+    return () => window.clearInterval(id)
+  }, [slides.length])
   const tower = catalog?.tower[0]
   const pilot = catalog?.pilot[0]
-  const featured = posts[0] || FALLBACK_POST
-  const rest = posts.filter((p) => p.slug !== featured.slug).slice(0, 3)
+  const featured = posts[0] || FALLBACK_POSTS[0]
+  const rest = posts.filter((p) => p.slug !== featured.slug)
+  const carousel = [featured, ...rest, ...FALLBACK_POSTS.filter((p) => p.id !== 1)].slice(0, 5)
+  const now = slides[hero]
   const faqs = [
     [t.faq1q, t.faq1a],
     [t.faq2q, t.faq2a],
@@ -35,9 +77,21 @@ export function Home() {
         <div className="welcome-motion absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'var(--hero-img)' }} />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/20" />
         <div className="relative mx-auto flex min-h-[42vh] max-w-6xl flex-col justify-end px-4 py-8">
-          <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.heroKicker}</p>
-          <h1 className="mt-2 max-w-2xl text-3xl font-extrabold text-white md:text-5xl">{t.heroTitle}</h1>
-          <p className="mt-3 max-w-xl text-white/85">{t.heroLead}</p>
+          <div key={hero} className="hero-copy">
+            <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{now.kicker}</p>
+            <h1 className="mt-2 max-w-2xl text-3xl font-extrabold text-white md:text-5xl">{now.title}</h1>
+            <p className="mt-3 max-w-xl text-white/85">{now.lead}</p>
+          </div>
+          <div className="mt-5 flex gap-2" aria-hidden>
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`h-1.5 rounded-full transition-all ${i === hero ? 'w-8 bg-[var(--amber)]' : 'w-2 bg-white/40'}`}
+                onClick={() => setHero(i)}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -61,25 +115,22 @@ export function Home() {
             <Button to="/blog">{t.blogAll}</Button>
             <Button variant="secondary" to="/blog/yaz">{t.blogWriteCta}</Button>
           </div>
-          <Link to={`/blog/${featured.slug}`} className="article-sheet mt-8 grid overflow-hidden rounded-3xl md:grid-cols-[1.2fr_0.8fr]">
-            <div className="min-h-[240px] bg-cover bg-center md:min-h-[360px]" style={{ backgroundImage: 'url(/blog/cover.jpg)' }} />
-            <div className="flex flex-col justify-center p-6 md:p-10">
-              <p className="font-mono text-xs tracking-[0.2em] text-[var(--amber)]">{t.blogKicker}</p>
-              <h3 className="mt-2 text-2xl font-extrabold md:text-3xl">{featured.title}</h3>
-              <p className="mt-3 leading-7 text-[var(--muted)]">{featured.summary}</p>
-              <span className="mt-6 font-extrabold">{t.navBlog} →</span>
-            </div>
-          </Link>
-          {rest.length > 0 ? (
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              {rest.map((p) => (
-                <Link key={p.id} to={`/blog/${p.slug}`} className="surface rounded-2xl p-5 hover:border-[var(--amber)]">
-                  <h3 className="font-extrabold">{p.title}</h3>
-                  <p className="mt-2 line-clamp-3 text-sm text-[var(--muted)]">{p.summary}</p>
-                </Link>
-              ))}
-            </div>
-          ) : null}
+          <div className="blog-track mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
+            {carousel.map((p, i) => (
+              <Link
+                key={`${p.id}-${i}`}
+                to={`/blog/${p.slug}`}
+                className="article-sheet w-[85%] shrink-0 snap-start overflow-hidden rounded-3xl md:w-[48%]"
+              >
+                <div className="h-44 bg-cover bg-center md:h-56" style={{ backgroundImage: `url(${COVERS[i % COVERS.length]})` }} />
+                <div className="p-5 md:p-7">
+                  <p className="font-mono text-xs text-[var(--amber)]">{String(i + 1).padStart(2, '0')}</p>
+                  <h3 className="mt-2 text-xl font-extrabold md:text-2xl">{p.title}</h3>
+                  <p className="mt-2 line-clamp-3 text-[var(--muted)]">{p.summary}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
