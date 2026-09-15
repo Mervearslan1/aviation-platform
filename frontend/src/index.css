@@ -292,11 +292,22 @@ textarea:focus-visible {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.blog-track {
-  scrollbar-width: thin;
+.blog-nav {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  background: var(--sheet);
+  color: var(--ink);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
 }
-.blog-track::-webkit-scrollbar {
-  height: 6px;
+.blog-nav:hover {
+  border-color: var(--amber);
+  color: var(--amber);
 }
 
 @media (prefers-reduced-motion: reduce) {

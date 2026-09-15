@@ -45,6 +45,7 @@ export function Home() {
   const [posts, setPosts] = useState<Article[]>([])
   const [sent, setSent] = useState(false)
   const [hero, setHero] = useState(0)
+  const [blogI, setBlogI] = useState(0)
   useEffect(() => {
     api.catalog().then(setCatalog).catch(() => setCatalog(null))
     api.articles(6).then(setPosts).catch(() => setPosts([]))
@@ -66,6 +67,10 @@ export function Home() {
   const rest = posts.filter((p) => p.slug !== featured.slug)
   const carousel = [featured, ...rest, ...FALLBACK_POSTS.filter((p) => p.id !== 1)].slice(0, 5)
   const now = slides[hero]
+  const blogPost = carousel[blogI] || carousel[0]
+  const blogCover = COVERS[blogI % COVERS.length]
+  const prevBlog = () => setBlogI((n) => (n - 1 + carousel.length) % carousel.length)
+  const nextBlog = () => setBlogI((n) => (n + 1) % carousel.length)
   const faqs = [
     [t.faq1q, t.faq1a],
     [t.faq2q, t.faq2a],
@@ -115,21 +120,27 @@ export function Home() {
             <Button to="/blog">{t.blogAll}</Button>
             <Button variant="secondary" to="/blog/yaz">{t.blogWriteCta}</Button>
           </div>
-          <div className="blog-track mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
-            {carousel.map((p, i) => (
-              <Link
-                key={`${p.id}-${i}`}
-                to={`/blog/${p.slug}`}
-                className="article-sheet w-[85%] shrink-0 snap-start overflow-hidden rounded-3xl md:w-[48%]"
-              >
-                <div className="h-44 bg-cover bg-center md:h-56" style={{ backgroundImage: `url(${COVERS[i % COVERS.length]})` }} />
-                <div className="p-5 md:p-7">
-                  <p className="font-mono text-xs text-[var(--amber)]">{String(i + 1).padStart(2, '0')}</p>
-                  <h3 className="mt-2 text-xl font-extrabold md:text-2xl">{p.title}</h3>
-                  <p className="mt-2 line-clamp-3 text-[var(--muted)]">{p.summary}</p>
-                </div>
-              </Link>
-            ))}
+          <div className="relative mt-8">
+            <Link
+              to={`/blog/${blogPost.slug}`}
+              className="article-sheet mx-auto grid max-w-4xl overflow-hidden rounded-3xl md:grid-cols-[1.15fr_0.85fr]"
+            >
+              <div className="min-h-[220px] bg-cover bg-center md:min-h-[320px]" style={{ backgroundImage: `url(${blogCover})` }} />
+              <div className="flex flex-col justify-center p-6 md:p-9">
+                <p className="font-mono text-xs text-[var(--amber)]">{String(blogI + 1).padStart(2, '0')} / {String(carousel.length).padStart(2, '0')}</p>
+                <h3 className="mt-2 text-2xl font-extrabold md:text-3xl">{blogPost.title}</h3>
+                <p className="mt-3 leading-7 text-[var(--muted)]">{blogPost.summary}</p>
+                <span className="mt-6 font-extrabold">{t.navBlog} →</span>
+              </div>
+            </Link>
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <button type="button" className="blog-nav" onClick={prevBlog} aria-label="<">
+                ‹
+              </button>
+              <button type="button" className="blog-nav" onClick={nextBlog} aria-label=">">
+                ›
+              </button>
+            </div>
           </div>
         </div>
       </section>
