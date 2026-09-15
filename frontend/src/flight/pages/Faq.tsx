@@ -9,7 +9,7 @@ export function Faq() {
     [t.faq4q, t.faq4a],
   ]
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
       <h1 className="text-3xl font-semibold md:text-4xl">{t.faqTitle}</h1>
       <div className="mt-8 space-y-3">
         {items.map(([q, a]) => (

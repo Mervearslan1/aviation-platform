@@ -22,7 +22,7 @@ export function FlightShell() {
     setWelcome(false)
   }
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-0 flex-1 flex-col">
       {welcome ? <Welcome onDone={dismissWelcome} /> : null}
       <a href="#content" className="skip">Skip</a>
       <header className="site-header">
@@ -68,10 +68,10 @@ export function FlightShell() {
           </div>
         ) : null}
       </header>
-      <main id="content">
+      <main id="content" className="flex-1">
         <Outlet />
       </main>
-      <footer className="border-t border-[var(--stroke)]">
+      <footer className="mt-auto border-t border-[var(--stroke)]">
         <div className="flex w-full flex-col gap-6 px-4 py-6 text-sm text-[var(--muted)] md:px-5">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <Logo compact className="h-8" />

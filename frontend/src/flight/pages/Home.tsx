@@ -45,7 +45,7 @@ export function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-8" id="egitim">
+      <section className="mx-auto max-w-6xl px-4 py-12 md:py-16" id="egitim">
         <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.whyKicker}</p>
         <h2 className="mt-2 max-w-3xl text-2xl font-extrabold md:text-4xl">{t.whyTitle}</h2>
         <p className="mt-4 max-w-3xl leading-7 text-[var(--muted)]">{t.whyLead}</p>
@@ -61,15 +61,15 @@ export function Home() {
         </div>
       </section>
 
-      <section id="blog">
+      <section id="blog" className="py-6 md:py-10">
         <Band img="/blog/cover.jpg" flip={false} kicker={t.blogKicker} title={featured.title} body={featured.summary || ''} to={`/blog/${featured.slug}`} cta={t.navBlog} />
       </section>
 
-      <section id="hakkinda">
+      <section id="hakkinda" className="py-6 md:py-10">
         <Band img="/atmosphere/night.jpg" flip kicker={t.aboutKicker} title={t.whoTitle} body={`${t.whoLead} ${t.aboutLead}`} to="/hakkinda" cta={t.navAbout} />
       </section>
 
-      <section>
+      <section className="py-6 md:py-10">
         <Band img="/atmosphere/day.jpg" flip={false} kicker={t.faqHome} title={t.navFaq} body="">
           <div className="space-y-2">
             {faqs.map(([q, a]) => (
@@ -83,7 +83,7 @@ export function Home() {
         </Band>
       </section>
 
-      <section id="iletisim">
+      <section id="iletisim" className="py-6 md:py-10">
         <div className="mx-auto grid max-w-6xl items-stretch md:grid-cols-2">
           <div className="flex flex-col justify-center px-4 py-8 md:px-8">
             <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.navJoin}</p>
