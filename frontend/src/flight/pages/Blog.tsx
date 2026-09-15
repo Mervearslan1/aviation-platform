@@ -19,11 +19,9 @@ export function Blog() {
   }, [])
   const rest = posts.filter((p) => p.slug !== FEATURED.slug)
   return (
-    <div>
-      <section className="relative overflow-hidden border-b border-[var(--stroke)]">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/blog/bg.jpg)' }} />
-        <div className="absolute inset-0 bg-[var(--bg)]/80" />
-        <div className="relative mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <div className="blog-scene min-h-full">
+      <section className="border-b border-[var(--stroke)]">
+        <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
           <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.blogKicker}</p>
           <h1 className="mt-2 max-w-3xl text-4xl font-extrabold md:text-6xl">{t.blogTitle}</h1>
           <p className="mt-4 max-w-2xl leading-7 text-[var(--muted)]">{t.blogManifest}</p>
@@ -34,7 +32,7 @@ export function Blog() {
         </div>
       </section>
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <Link to={`/blog/${FEATURED.slug}`} className="grid overflow-hidden rounded-3xl border border-[var(--stroke)] bg-[var(--panel)] md:grid-cols-[1.3fr_0.7fr]">
+        <Link to={`/blog/${FEATURED.slug}`} className="article-sheet grid overflow-hidden rounded-3xl md:grid-cols-[1.3fr_0.7fr]">
           <div className="min-h-[240px] bg-cover bg-center md:min-h-[380px]" style={{ backgroundImage: 'url(/blog/cover.jpg)' }} />
           <div className="flex flex-col justify-center p-6 md:p-10">
             <p className="font-mono text-xs text-[var(--amber)]">01</p>

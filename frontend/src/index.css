@@ -20,6 +20,9 @@ html.light {
   --focus: #0b3a7a;
   --header: rgba(244, 247, 251, 0.92);
   --hero-img: url("/atmosphere/day.jpg");
+  --blog-bg: url("/blog/bg.jpg");
+  --blog-veil: rgba(244, 247, 251, 0.78);
+  --sheet: rgba(255, 255, 255, 0.86);
 }
 
 html.dark {
@@ -41,6 +44,9 @@ html.dark {
   --focus: #f5c542;
   --header: rgba(7, 17, 29, 0.92);
   --hero-img: url("/atmosphere/night.jpg");
+  --blog-bg: url("/blog/bg.jpg");
+  --blog-veil: rgba(7, 17, 29, 0.68);
+  --sheet: rgba(12, 22, 38, 0.78);
 }
 
 html,
@@ -71,6 +77,37 @@ body {
 
 .font-mono {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+.blog-scene {
+  position: relative;
+  isolation: isolate;
+}
+.blog-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--blog-bg);
+  background-size: cover;
+  background-position: center;
+  opacity: 1;
+}
+.blog-scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--blog-veil);
+}
+.blog-scene > * {
+  position: relative;
+  z-index: 1;
+}
+.article-sheet {
+  background: var(--sheet);
+  border: 1px solid var(--stroke);
+  backdrop-filter: blur(14px);
 }
 
 .surface,

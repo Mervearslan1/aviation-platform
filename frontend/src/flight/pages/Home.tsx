@@ -52,7 +52,7 @@ export function Home() {
         </div>
       </section>
 
-      <section id="blog" className="border-y border-[var(--stroke)] bg-[var(--panel)] py-12 md:py-16">
+      <section id="blog" className="blog-scene border-y border-[var(--stroke)] py-12 md:py-16">
         <div className="mx-auto max-w-6xl px-4">
           <p className="font-mono text-xs tracking-[0.28em] text-[var(--amber)]">{t.blogKicker}</p>
           <h2 className="mt-2 max-w-3xl text-3xl font-extrabold md:text-5xl">{t.blogTitle}</h2>
@@ -61,7 +61,7 @@ export function Home() {
             <Button to="/blog">{t.blogAll}</Button>
             <Button variant="secondary" to="/blog/yaz">{t.blogWriteCta}</Button>
           </div>
-          <Link to={`/blog/${featured.slug}`} className="mt-8 grid overflow-hidden rounded-3xl border border-[var(--stroke)] bg-[var(--bg)] md:grid-cols-[1.2fr_0.8fr]">
+          <Link to={`/blog/${featured.slug}`} className="article-sheet mt-8 grid overflow-hidden rounded-3xl md:grid-cols-[1.2fr_0.8fr]">
             <div className="min-h-[240px] bg-cover bg-center md:min-h-[360px]" style={{ backgroundImage: 'url(/blog/cover.jpg)' }} />
             <div className="flex flex-col justify-center p-6 md:p-10">
               <p className="font-mono text-xs tracking-[0.2em] text-[var(--amber)]">{t.blogKicker}</p>
