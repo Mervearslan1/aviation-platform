@@ -49,6 +49,8 @@ const dict = {
     opsAudit: 'Kayıt',
     opsSoon: 'Bu panel sonraki dilimde bağlanır. Uçuş yüzeyi ayrı kalır.',
     loginNeed: 'İlerlemeyi kaydetmek için giriş yap.',
+    continue: 'Bu adımla devam',
+    retry: 'Yeniden dene',
   },
   en: {
     brand: 'AVIATION',
@@ -96,6 +98,8 @@ const dict = {
     opsAudit: 'Audit',
     opsSoon: 'This desk wires in the next slice. The flight surface stays separate.',
     loginNeed: 'Sign in to keep progress.',
+    continue: 'Continue this step',
+    retry: 'Try again',
   },
 } as const
 

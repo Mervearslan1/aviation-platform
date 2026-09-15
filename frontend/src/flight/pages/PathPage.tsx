@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, type CatalogPath, type CatalogStep } from '../../shared/api'
 import { levelLabel, useI18n } from '../../shared/i18n'
+import { Button } from '../../shared/Button'
 
 export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const { t } = useI18n()
   const [path, setPath] = useState<CatalogPath | null>(null)
   const [current, setCurrent] = useState<CatalogStep | null>(null)
   const [error, setError] = useState('')
-  useEffect(() => {
+  const load = () => {
+    setError('')
     api
       .catalog()
       .then((c) => {
@@ -20,8 +22,18 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
         })
       })
       .catch((e: Error) => setError(e.message))
-  }, [track])
-  if (error) return <p className="text-[var(--warn)]">{t.catalogFail}</p>
+  }
+  useEffect(load, [track])
+  if (error) {
+    return (
+      <div className="glass rounded-3xl p-8">
+        <p className="text-[var(--warn)]">{t.catalogFail}</p>
+        <Button className="mt-4" onClick={load}>
+          {t.retry}
+        </Button>
+      </div>
+    )
+  }
   if (!path) return <p className="font-mono text-[var(--muted)]">…</p>
   return (
     <div>
@@ -37,14 +49,14 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
           <p className="mt-1 max-w-2xl text-[var(--muted)]">{path.description}</p>
         </div>
         {path.relatedAircraft?.length ? (
-          <Link to="/cockpit" className="font-mono text-xs tracking-widest text-[var(--hud)]">
+          <Button variant="secondary" to="/cockpit">
             ACFT {path.relatedAircraft.join(' · ')}
-          </Link>
+          </Button>
         ) : null}
       </div>
-      <div className="mt-8 grid gap-6 lg:grid-cols-[220px_1fr]">
-        <ol className="glass relative overflow-hidden rounded-3xl p-3">
-          <div className="absolute bottom-3 left-6 top-3 w-px bg-[var(--stroke)]" />
+      <div className="mt-8 grid gap-6 lg:grid-cols-[240px_1fr]">
+        <ol className="glass relative overflow-hidden rounded-3xl p-3" aria-label={t.steps}>
+          <div className="absolute bottom-3 left-7 top-3 w-px bg-[var(--stroke)]" />
           {path.steps.map((step, i) => {
             const on = current?.id === step.id
             return (
@@ -52,13 +64,13 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                 <button
                   type="button"
                   onClick={() => setCurrent(step)}
-                  className={`relative flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${
+                  className={`relative flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${
                     on ? 'bg-[var(--bg-2)]' : ''
                   }`}
                 >
                   <span
                     className={`z-10 grid h-7 w-7 place-items-center rounded-full font-mono text-[11px] ${
-                      on ? 'bg-[var(--hud)] text-[var(--bg)]' : 'border border-[var(--stroke)]'
+                      on ? 'bg-[var(--btn)] text-[var(--btn-ink)]' : 'border border-[var(--stroke)]'
                     }`}
                   >
                     {i + 1}
@@ -83,9 +95,12 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
               </p>
               <h2 className="mt-2 text-2xl font-semibold">{current.title}</h2>
               <div
-                className="prose-flight mt-4 max-w-none text-[15px] leading-7 text-[var(--ink)]"
+                className="mt-4 max-w-none text-[15px] leading-7 text-[var(--ink)]"
                 dangerouslySetInnerHTML={{ __html: current.contentHtml || current.description || '' }}
               />
+              <Button className="mt-6" to="/login">
+                {t.continue}
+              </Button>
             </>
           ) : null}
         </article>

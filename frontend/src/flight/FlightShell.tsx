@@ -1,33 +1,32 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { Mark } from '../shared/Mark'
+import { Logo } from '../shared/Mark'
 import { UtcClock } from '../shared/Clock'
 import { useI18n } from '../shared/i18n'
 import { useTheme } from '../shared/theme'
 import { token, setToken } from '../shared/api'
+import { Button } from '../shared/Button'
 
 export function FlightShell() {
   const { t, locale, setLocale } = useI18n()
   const { theme, setTheme } = useTheme()
   const signedIn = Boolean(token())
   return (
-    <div className="relative min-h-screen overflow-hidden hud-scan">
+    <div className="relative min-h-screen overflow-hidden">
+      <a href="#content" className="skip">
+        Skip
+      </a>
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-2"
+        className="pointer-events-none absolute inset-x-0 top-0 h-1.5"
         style={{
-          background: `linear-gradient(90deg, var(--horizon-sky) 0 50%, var(--horizon-ground) 50% 100%)`,
+          background: `linear-gradient(90deg, var(--horizon-sky), var(--royal), var(--horizon-ground))`,
         }}
       />
-      <header className="relative z-10 mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-4">
-        <Link to="/" className="flex items-center gap-3 text-[var(--hud)]">
-          <Mark className="h-9 w-9" />
-          <span className="leading-none">
-            <span className="block font-mono text-[11px] tracking-[0.35em]">{t.flight}</span>
-            <span className="block text-lg font-semibold tracking-[0.18em] text-[var(--ink)]">
-              {t.brand}
-            </span>
-          </span>
+      <header className="relative z-10 mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
+        <Link to="/" className="flex items-center gap-3">
+          <Logo compact />
+          <span className="font-mono text-[11px] tracking-[0.35em] text-[var(--muted)]">{t.flight}</span>
         </Link>
-        <nav className="flex flex-wrap items-center gap-2 font-mono text-xs">
+        <nav className="flex flex-wrap items-center gap-1 font-mono text-xs" aria-label="Flight">
           <NavLink className={tab} to="/tower">
             TWR
           </NavLink>
@@ -38,37 +37,37 @@ export function FlightShell() {
             ACFT
           </NavLink>
         </nav>
-        <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-[var(--muted)]">
-          <span className="hidden sm:inline">
+        <div className="flex flex-wrap items-center gap-2 text-[var(--muted)]">
+          <span className="hidden font-mono text-[11px] sm:inline">
             {t.utc} <UtcClock />
           </span>
-          <button className={chip} onClick={() => setLocale(locale === 'tr' ? 'en' : 'tr')}>
+          <Button variant="ghost" onClick={() => setLocale(locale === 'tr' ? 'en' : 'tr')}>
             {locale === 'tr' ? 'EN' : 'TR'}
-          </button>
-          <button className={chip} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+          </Button>
+          <Button variant="ghost" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
             {theme === 'dark' ? t.themeLight : t.themeDark}
-          </button>
+          </Button>
           {signedIn ? (
-            <button
-              className={chip}
+            <Button
+              variant="ghost"
               onClick={() => {
                 setToken(null)
                 window.location.reload()
               }}
             >
               {t.logout}
-            </button>
+            </Button>
           ) : (
-            <Link className={chip} to="/login">
+            <Button variant="primary" to="/login" className="min-h-9 px-4 text-sm">
               {t.login}
-            </Link>
+            </Button>
           )}
-          <Link className={`${chip} text-[var(--amber)]`} to="/ops">
+          <Button variant="secondary" to="/ops" className="min-h-9 px-4 text-sm">
             {t.ops}
-          </Link>
+          </Button>
         </div>
       </header>
-      <main className="relative z-10 mx-auto max-w-6xl px-5 pb-16">
+      <main id="content" className="relative z-10 mx-auto max-w-6xl px-5 pb-16">
         <Outlet />
       </main>
     </div>
@@ -76,9 +75,9 @@ export function FlightShell() {
 }
 
 function tab({ isActive }: { isActive: boolean }) {
-  return `rounded-full px-3 py-1.5 tracking-[0.2em] ${
-    isActive ? 'bg-[var(--hud)] text-[var(--bg)]' : 'text-[var(--muted)] hover:text-[var(--ink)]'
+  return `rounded-full px-3 py-2 tracking-[0.2em] ${
+    isActive
+      ? 'bg-[var(--btn)] text-[var(--btn-ink)]'
+      : 'text-[var(--muted)] hover:text-[var(--ink)]'
   }`
 }
-
-const chip = 'rounded-full border border-[var(--stroke)] px-3 py-1.5 hover:border-[var(--hud)]'

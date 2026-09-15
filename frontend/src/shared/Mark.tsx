@@ -1,9 +1,29 @@
-export function Mark({ className = 'h-8 w-8' }: { className?: string }) {
+import { useTheme } from './theme'
+
+export function Logo({
+  compact = false,
+  className = '',
+}: {
+  compact?: boolean
+  className?: string
+}) {
+  const { theme } = useTheme()
+  const plate = theme === 'dark' ? 'bg-white shadow-sm' : 'bg-transparent'
   return (
-    <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-      <circle cx="24" cy="24" r="23" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.35" />
-      <path d="M8 28 L24 10 L40 28 L24 22 Z" fill="currentColor" />
-      <rect x="22.5" y="22" width="3" height="14" fill="var(--amber)" />
-    </svg>
+    <span
+      className={`inline-flex items-center justify-center rounded-2xl ${plate} ${
+        compact ? 'h-11 px-1.5' : 'h-14 px-2'
+      } ${className}`}
+    >
+      <img
+        src="/brand/logo.png"
+        alt="Aviation Platform"
+        className={compact ? 'h-9 w-auto' : 'h-12 w-auto'}
+      />
+    </span>
   )
+}
+
+export function Mark({ className = 'h-8 w-8' }: { className?: string }) {
+  return <Logo compact className={className} />
 }

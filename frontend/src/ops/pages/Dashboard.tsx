@@ -1,4 +1,5 @@
 import { useI18n } from '../../shared/i18n'
+import { Logo } from '../../shared/Mark'
 
 const desks = ['opsUsers', 'opsContent', 'opsCurriculum', 'opsAircraft', 'opsAudit'] as const
 
@@ -6,7 +7,8 @@ export function OpsDashboard() {
   const { t } = useI18n()
   return (
     <div>
-      <h1 className="text-2xl font-semibold">{t.opsTitle}</h1>
+      <Logo compact />
+      <h1 className="mt-4 text-2xl font-semibold">{t.opsTitle}</h1>
       <p className="mt-2 max-w-2xl text-[var(--muted)]">{t.opsLead}</p>
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         {desks.map((key) => (

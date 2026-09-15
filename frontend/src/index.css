@@ -1,35 +1,45 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f3f0e8;
-  --bg-2: #e7e2d6;
-  --ink: #121820;
-  --muted: #5b6573;
-  --panel: rgba(255, 255, 255, 0.72);
-  --stroke: rgba(18, 24, 32, 0.12);
-  --hud: #0b5cab;
-  --amber: #b45309;
+  --navy: #0b3a7a;
+  --royal: #1a4fa3;
+  --sky: #4a9fe8;
+  --bg: #f4f6f8;
+  --bg-2: #e7edf5;
+  --ink: #0b3a7a;
+  --muted: #4d6280;
+  --panel: rgba(255, 255, 255, 0.86);
+  --stroke: rgba(11, 58, 122, 0.14);
+  --hud: #1a4fa3;
+  --amber: #c98900;
+  --btn: #0b3a7a;
+  --btn-ink: #ffffff;
   --good: #0f7a4a;
   --warn: #b42318;
-  --glass: rgba(255, 255, 255, 0.55);
-  --horizon-sky: #8ec5e8;
-  --horizon-ground: #8a6a45;
+  --horizon-sky: #8ec8f5;
+  --horizon-ground: #1a4fa3;
+  --focus: #1a4fa3;
 }
 
 html.dark {
-  --bg: #070b12;
-  --bg-2: #0d1420;
-  --ink: #e8eef6;
-  --muted: #8aa0b8;
-  --panel: rgba(12, 18, 28, 0.72);
-  --stroke: rgba(126, 224, 255, 0.16);
-  --hud: #7ee0ff;
+  --navy: #07101c;
+  --royal: #1a4fa3;
+  --sky: #6bb6f0;
+  --bg: #07101c;
+  --bg-2: #0c1a2e;
+  --ink: #e8f1fa;
+  --muted: #8aa4c2;
+  --panel: rgba(10, 22, 40, 0.78);
+  --stroke: rgba(107, 182, 240, 0.2);
+  --hud: #6bb6f0;
   --amber: #f5c542;
+  --btn: #f5c542;
+  --btn-ink: #0b1220;
   --good: #3dd68c;
   --warn: #ff6b6b;
-  --glass: rgba(8, 12, 20, 0.55);
-  --horizon-sky: #2e6bb2;
-  --horizon-ground: #8a5a2b;
+  --horizon-sky: #1a4fa3;
+  --horizon-ground: #f5c542;
+  --focus: #f5c542;
 }
 
 html,
@@ -55,22 +65,75 @@ body {
   backdrop-filter: blur(16px);
 }
 
-.hud-scan::before {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0 2px,
-    rgba(0, 0, 0, 0.04) 2px 3px
-  );
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
-html.dark .hud-scan::before {
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0 2px,
-    rgba(126, 224, 255, 0.03) 2px 3px
-  );
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.btn-primary {
+  background: var(--btn);
+  color: var(--btn-ink);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--stroke);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  min-height: 36px;
+  padding: 0 12px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -40px;
+  z-index: 50;
+  background: var(--btn);
+  color: var(--btn-ink);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.skip:focus {
+  top: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .card-lift {
+    transition: none;
+  }
+  .btn:hover,
+  .card-lift:hover {
+    transform: none;
+  }
 }
