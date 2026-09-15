@@ -100,7 +100,14 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                 className="mt-4 max-w-none text-[15px] leading-7 text-[var(--ink)]"
                 dangerouslySetInnerHTML={{ __html: current.contentHtml || current.description || '' }}
               />
-              <Button className="mt-6" to={`/login?next=${encodeURIComponent('/' + track)}`}>
+              <Button
+                className="mt-6"
+                onClick={() => {
+                  const i = path.steps.findIndex((s) => s.id === current.id)
+                  const nxt = path.steps[i + 1]
+                  if (nxt) setCurrent(nxt)
+                }}
+              >
                 {t.continue}
               </Button>
             </>

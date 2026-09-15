@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, setToken } from '../../shared/api'
+import { markGuest } from '../../shared/demo'
 import { useI18n } from '../../shared/i18n'
 import { Logo } from '../../shared/Mark'
 import { Button } from '../../shared/Button'
@@ -10,7 +11,7 @@ export function Login() {
   const nav = useNavigate()
   const [params] = useSearchParams()
   const next = params.get('next')
-  const stay = () => {
+  const back = () => {
     if (next && next.startsWith('/') && !next.startsWith('/login')) nav(next)
     else if (window.history.length > 1) nav(-1)
     else nav('/')
@@ -35,7 +36,7 @@ export function Login() {
       }
       const tokens = await api.login(email, password)
       setToken(tokens.accessToken)
-      stay()
+      back()
     } catch (err) {
       setError(err instanceof Error ? err.message : t.loginNeed)
     }
@@ -71,7 +72,14 @@ export function Login() {
         <Button className="mt-6 w-full" type="submit">
           {mode === 'in' ? t.login : t.register}
         </Button>
-        <button type="button" className="mt-4 block w-full text-center text-sm text-[var(--muted)]" onClick={stay}>
+        <button
+          type="button"
+          className="mt-4 block w-full text-center text-sm text-[var(--muted)]"
+          onClick={() => {
+            markGuest()
+            back()
+          }}
+        >
           {t.guest}
         </button>
       </form>

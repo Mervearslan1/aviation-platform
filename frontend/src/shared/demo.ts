@@ -8,9 +8,19 @@ export function isDemoSession() {
   return DEMO && !localStorage.getItem('aviationToken')
 }
 
-/** Gerçek giriş veya sunum: okur yüzeyini aç. */
+const GUEST_KEY = 'aviationGuest'
+
+export function markGuest() {
+  localStorage.setItem(GUEST_KEY, '1')
+}
+
+export function isGuest() {
+  return localStorage.getItem(GUEST_KEY) === '1' && !localStorage.getItem('aviationToken')
+}
+
+/** Gerçek giriş, misafir tercihi veya sunum: okur yüzeyini aç. */
 export function asUser() {
-  return Boolean(localStorage.getItem('aviationToken')) || DEMO
+  return Boolean(localStorage.getItem('aviationToken')) || isGuest() || DEMO
 }
 
 const FB = 'aviationDemoFeedback'

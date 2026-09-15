@@ -3,6 +3,7 @@ import { Button } from '../shared/Button'
 import { useI18n } from '../shared/i18n'
 import { useTheme } from '../shared/theme'
 import { IconClose } from '../shared/Icons'
+import { markGuest } from '../shared/demo'
 
 export function Welcome({ onDone }: { onDone: () => void }) {
   const { t, locale, setLocale } = useI18n()
@@ -18,6 +19,7 @@ export function Welcome({ onDone }: { onDone: () => void }) {
         onClick={() => {
           setLocale('tr')
           setTheme('dark')
+          markGuest()
           onDone()
         }}
       >
@@ -42,7 +44,13 @@ export function Welcome({ onDone }: { onDone: () => void }) {
             {t.themeDark}
           </button>
         </div>
-        <Button className="mt-6 w-full" onClick={onDone}>
+        <Button
+          className="mt-6 w-full"
+          onClick={() => {
+            markGuest()
+            onDone()
+          }}
+        >
           {t.welcomeGo}
         </Button>
       </div>
