@@ -10,6 +10,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const [path, setPath] = useState<CatalogPath | null>(null)
   const [current, setCurrent] = useState<CatalogStep | null>(null)
   const [error, setError] = useState('')
+  const [picked, setPicked] = useState<string | null>(null)
   const load = () => {
     setError('')
     api
@@ -47,7 +48,9 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const prompt = String(cfg.promptText || cfg.situation || '')
   const reply = String(cfg.replyText || 'Roger.')
   const options = (Array.isArray(cfg.options) ? cfg.options : []) as string[]
-  const speakMode = current && (current.stepType === 'SPEAK' || current.stepType === 'SCENARIO') && line
+  const correct = String(cfg.correctOption || '')
+  const speakMode = current && (current.stepType === 'SPEAK' || (current.stepType === 'SCENARIO' && picked && picked === correct)) && line
+  const quizMode = current && (current.stepType === 'LISTEN' || current.stepType === 'SCENARIO') && options.length > 0
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <Link to="/" className="font-mono text-xs tracking-[0.2em] text-[var(--hud)]">← {t.back}</Link>
@@ -67,7 +70,10 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
               <li key={step.id}>
                 <button
                   type="button"
-                  onClick={() => setCurrent(step)}
+                  onClick={() => {
+                    setPicked(null)
+                    setCurrent(step)
+                  }}
                   className={`relative flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${on ? 'bg-[var(--bg-2)]' : ''}`}
                 >
                   <span className={`z-10 grid h-7 w-7 place-items-center rounded-full font-mono text-[11px] ${on ? 'bg-[var(--btn)] text-[var(--btn-ink)]' : 'border border-[var(--stroke)]'}`}>
@@ -92,23 +98,39 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                 dangerouslySetInnerHTML={{ __html: current.contentHtml || '' }}
               />
               {current.stepType === 'LISTEN' && prompt ? (
-                <div className="mt-6">
-                  <Button variant="secondary" onClick={() => {
-                    const u = new SpeechSynthesisUtterance(prompt)
-                    u.lang = 'en-GB'
-                    speechSynthesis.cancel()
-                    speechSynthesis.speak(u)
-                  }}>{t.listenCall}</Button>
-                  {cfg.question ? <p className="mt-4 font-semibold">{String(cfg.question)}</p> : <p className="mt-4 font-semibold">{t.listenQ}</p>}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {options.map((o) => (
-                      <Button key={o} variant="secondary" onClick={goNext}>{o}</Button>
-                    ))}
+                <Button variant="secondary" className="mt-4" onClick={() => {
+                  const u = new SpeechSynthesisUtterance(prompt)
+                  u.lang = 'en-US'
+                  speechSynthesis.cancel()
+                  speechSynthesis.speak(u)
+                }}>{t.listenCall}</Button>
+              ) : null}
+              {quizMode ? (
+                <div className="mt-4">
+                  {cfg.question ? <p className="font-semibold">{String(cfg.question)}</p> : cfg.situation ? <p className="font-semibold">{String(cfg.situation)}</p> : <p className="font-semibold">{t.listenQ}</p>}
+                  <div className="mt-3 flex flex-col gap-2">
+                    {options.map((o) => {
+                      let tone = 'border-[var(--stroke)]'
+                      if (picked) {
+                        if (o === correct) tone = 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                        else if (o === picked) tone = 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300'
+                      }
+                      return (
+                        <button
+                          key={o}
+                          type="button"
+                          className={`rounded-2xl border px-4 py-3 text-left ${tone}`}
+                          onClick={() => setPicked(o)}
+                        >
+                          {o}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               ) : null}
               {speakMode ? (
-                <SpeakDrill prompt={prompt} line={line} reply={reply} onPass={() => undefined} />
+                <SpeakDrill prompt={current.stepType === 'SPEAK' ? prompt : undefined} line={line} reply={reply} onPass={() => undefined} />
               ) : null}
               {current.stepType === 'LIVE_PRACTICE' ? (
                 <p className="mt-6">

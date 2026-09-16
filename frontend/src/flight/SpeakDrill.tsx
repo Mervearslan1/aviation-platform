@@ -15,7 +15,7 @@ function recApi(): RecCtor | null {
   return w.SpeechRecognition || w.webkitSpeechRecognition || null
 }
 
-function speak(text: string, lang = 'en-GB') {
+function speak(text: string, lang = 'en-US') {
   const u = new SpeechSynthesisUtterance(text)
   u.lang = lang
   speechSynthesis.cancel()
@@ -45,7 +45,7 @@ export function SpeakDrill({
     }
     setBusy(true)
     const rec = new Ctor()
-    rec.lang = 'en-GB'
+    rec.lang = 'en-US'
     rec.onresult = (ev) => {
       const text = ev.results[0][0].transcript
       setHeard(text)

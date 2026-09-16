@@ -59,9 +59,9 @@ public record StepResponse(
                 config.put("lineToSpeak", line);
                 config.putIfAbsent("replyText", "Roger.");
             }
-            config.remove("correctOption");
             config.remove("expectedPhrase");
             config.remove("acceptedPhrases");
+            // correctOption LISTEN/SCENARIO şık boyası için kalır.
         }
         return new StepResponse(
                 step.getId(),

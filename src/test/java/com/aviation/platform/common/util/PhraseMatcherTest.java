@@ -25,4 +25,13 @@ class PhraseMatcherTest {
                 List.of()
         )).isFalse();
     }
+
+    @Test
+    void acceptsAccentedApproved() {
+        assertThat(PhraseMatcher.matches(
+                "turkish 123 push start appow",
+                "Turkish 123 push and start approved",
+                List.of()
+        )).isTrue();
+    }
 }
