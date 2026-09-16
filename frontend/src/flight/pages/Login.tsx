@@ -5,9 +5,12 @@ import { markGuest } from '../../shared/demo'
 import { useI18n } from '../../shared/i18n'
 import { Logo } from '../../shared/Mark'
 import { Button } from '../../shared/Button'
+import { useTheme } from '../../shared/theme'
 
 export function Login() {
   const { t } = useI18n()
+  const { theme } = useTheme()
+  const sideImg = theme === 'dark' ? '/atmosphere/night.jpg' : '/atmosphere/login-day.jpg'
   const nav = useNavigate()
   const [params] = useSearchParams()
   const next = params.get('next')
@@ -45,7 +48,7 @@ export function Login() {
     <div className="mx-auto my-6 grid max-w-6xl overflow-hidden rounded-3xl border border-[var(--stroke)] lg:grid-cols-2">
       <div
         className="hidden min-h-[420px] bg-cover bg-center lg:block"
-        style={{ backgroundImage: 'var(--hero-img)' }}
+        style={{ backgroundImage: `url(${sideImg})` }}
       />
       <form onSubmit={submit} className="bg-[var(--panel)] p-8 md:p-12">
         <Logo />
