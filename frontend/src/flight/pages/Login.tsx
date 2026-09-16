@@ -21,9 +21,11 @@ export function Login() {
   const [mode, setMode] = useState<'in' | 'up'>('in')
   const sideImg =
     mode === 'up'
-      ? '/atmosphere/login-register.jpg'
+      ? theme === 'dark'
+        ? '/atmosphere/login-register-night.jpg'
+        : '/atmosphere/login-register.jpg'
       : theme === 'dark'
-        ? '/atmosphere/night.jpg'
+        ? '/atmosphere/login-night.jpg'
         : '/atmosphere/login-day.jpg'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
