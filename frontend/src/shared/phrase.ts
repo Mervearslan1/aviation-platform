@@ -1,32 +1,33 @@
 const FILLER = new Set(['the', 'a', 'an', 'please', 'lutfen', 'ok', 'okay', 'uh', 'um'])
+const PASS_PERCENT = 60
 
 const FAMILIES: string[][] = [
+  ['alpha', 'alfa', 'alfe', 'a'],
+  ['bravo', 'brawo', 'bravoo', 'b'],
   ['charlie', 'charli', 'charley', 'carli', 'sharli', 'sarli', 'c'],
-  ['alpha', 'alfa', 'a'],
-  ['bravo', 'bravo', 'b'],
-  ['delta', 'd'],
-  ['echo', 'eko', 'e'],
-  ['foxtrot', 'fox', 'f'],
-  ['golf', 'g'],
-  ['hotel', 'h'],
-  ['india', 'i'],
-  ['juliet', 'juliett', 'julie', 'j'],
-  ['kilo', 'k'],
-  ['lima', 'l'],
-  ['mike', 'm'],
-  ['november', 'n'],
-  ['oscar', 'o'],
-  ['papa', 'p'],
-  ['quebec', 'kebek', 'q'],
-  ['romeo', 'r'],
-  ['sierra', 's'],
-  ['tango', 't'],
-  ['uniform', 'u'],
-  ['victor', 'v'],
-  ['whiskey', 'w'],
-  ['xray', 'x-ray', 'x'],
-  ['yankee', 'y'],
-  ['zulu', 'z'],
+  ['delta', 'delte', 'd'],
+  ['echo', 'eko', 'eco', 'ecko', 'e'],
+  ['foxtrot', 'fox', 'fokstrot', 'f'],
+  ['golf', 'golfu', 'g'],
+  ['hotel', 'otel', 'h'],
+  ['india', 'indya', 'indyaa', 'i'],
+  ['juliet', 'juliett', 'julie', 'julyet', 'culiet', 'j'],
+  ['kilo', 'killo', 'k'],
+  ['lima', 'leema', 'lyma', 'l'],
+  ['mike', 'mayk', 'maik', 'm'],
+  ['november', 'novembr', 'novembe', 'n'],
+  ['oscar', 'oskar', 'osker', 'o'],
+  ['papa', 'pappa', 'p'],
+  ['quebec', 'kebek', 'kubek', 'kebekq', 'q'],
+  ['romeo', 'romyo', 'romio', 'r'],
+  ['sierra', 'siera', 'siyera', 's'],
+  ['tango', 'tengoo', 'tengo', 't'],
+  ['uniform', 'unifom', 'yuniform', 'u'],
+  ['victor', 'viktor', 'wiktor', 'v'],
+  ['whiskey', 'whisky', 'viski', 'wiski', 'w'],
+  ['xray', 'exray', 'eksray', 'eksrey', 'x'],
+  ['yankee', 'yanki', 'yenki', 'y'],
+  ['zulu', 'zoolu', 'zoulou', 'z'],
   ['turkish', 'thy', 'tk'],
   ['pegasus', 'pgt'],
   ['anadolu', 'ahi'],
@@ -36,7 +37,7 @@ const FAMILIES: string[][] = [
 ]
 
 const NUM: Record<string, string> = {
-  zero: '0', one: '1', two: '2', three: '3', four: '4', five: '5',
+  zero: '0', one: '1', two: '2', three: '3', tree: '3', four: '4', five: '5', fife: '5',
   six: '6', seven: '7', eight: '8', nine: '9', niner: '9',
 }
 
@@ -95,7 +96,7 @@ export function phraseMatches(spoken: string, expected: string) {
   const tokens = normalize(expected).split(' ').filter((t) => t && !FILLER.has(t))
   if (spokenTokens.length === 0 || tokens.length === 0) return false
   const found = tokens.filter((t) => spokenTokens.some((s) => close(s, t))).length
-  return (found * 100) / tokens.length >= 70
+  return (found * 100) / tokens.length >= PASS_PERCENT
 }
 
 export function phraseMatchesAny(spoken: string, expected: string, accepted: string[] = []) {

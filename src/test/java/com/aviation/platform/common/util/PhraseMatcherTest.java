@@ -61,4 +61,30 @@ class PhraseMatcherTest {
                 List.of()
         )).isTrue();
     }
+
+    @Test
+    void acceptsFullAlphabetSpellings() {
+        assertThat(PhraseMatcher.matches("alfa brawo charli", "Alpha Bravo Charlie", List.of())).isTrue();
+        assertThat(PhraseMatcher.matches("delte eko fox", "Delta Echo Foxtrot", List.of())).isTrue();
+        assertThat(PhraseMatcher.matches("otel indya julie", "Hotel India Juliet", List.of())).isTrue();
+        assertThat(PhraseMatcher.matches("kebek viski yanki", "Quebec Whiskey Yankee", List.of())).isTrue();
+    }
+
+    @Test
+    void acceptsSixtyPercentOfALongLine() {
+        assertThat(PhraseMatcher.matches(
+                "turkish 941 hold short runway",
+                "Turkish 941 hold short runway 03 via Charlie",
+                List.of()
+        )).isTrue();
+    }
+
+    @Test
+    void rejectsBelowSixtyPercent() {
+        assertThat(PhraseMatcher.matches(
+                "hold short",
+                "Turkish 941 hold short runway 03 via Charlie",
+                List.of()
+        )).isFalse();
+    }
 }
