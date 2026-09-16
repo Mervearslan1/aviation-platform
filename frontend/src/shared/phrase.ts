@@ -1,5 +1,5 @@
 const FILLER = new Set(['the', 'a', 'an', 'please', 'lutfen', 'ok', 'okay', 'uh', 'um'])
-const PASS_PERCENT = 60
+const PASS_PERCENT = 50
 
 const FAMILIES: string[][] = [
   ['alpha', 'alfa', 'alfe', 'a'],
@@ -30,7 +30,8 @@ const FAMILIES: string[][] = [
   ['zulu', 'zoolu', 'zoulou', 'z'],
   ['turkish', 'thy', 'tk'],
   ['pegasus', 'pgt'],
-  ['anadolu', 'ahi'],
+  ['anadolu', 'ajet', 'anadolujet', 'ahi'],
+  ['sunexpress', 'sxs'],
   ['approved', 'appow', 'aprove', 'approve', 'aproved'],
   ['runway', 'runwey', 'pist'],
   ['taxi', 'taksi'],
@@ -56,6 +57,7 @@ function normalize(value: string) {
     .replaceAll('ö', 'o')
     .replaceAll('ü', 'u')
     .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\bsun express\b/g, 'sunexpress')
     .replace(/([a-z]+)(\d)/g, '$1 $2')
     .replace(/(\d)([a-z]+)/g, '$1 $2')
     .replace(/\s+/g, ' ')

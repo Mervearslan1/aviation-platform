@@ -33,7 +33,7 @@ export function SpeakDrill({
   line: string
   reply?: string
   accepted?: string[]
-  onPass: () => void
+  onPass: (spoken: string) => void
 }) {
   const { t } = useI18n()
   const [heard, setHeard] = useState('')
@@ -55,7 +55,7 @@ export function SpeakDrill({
       if (phraseMatchesAny(text, line, accepted)) {
         setOk(true)
         speak(reply || 'Roger.')
-        onPass()
+        onPass(text)
       } else {
         setOk(false)
       }

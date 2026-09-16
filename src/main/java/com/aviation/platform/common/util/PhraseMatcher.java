@@ -8,7 +8,7 @@ import java.util.Set;
 public final class PhraseMatcher {
 
     private static final Set<String> FILLER = Set.of("the", "a", "an", "please", "lutfen", "ok", "okay", "uh", "um");
-    private static final int PASS_PERCENT = 60;
+    private static final int PASS_PERCENT = 50;
 
     private static final List<List<String>> FAMILIES = List.of(
             List.of("alpha", "alfa", "alfe", "a"),
@@ -39,7 +39,8 @@ public final class PhraseMatcher {
             List.of("zulu", "zoolu", "zoulou", "z"),
             List.of("turkish", "thy", "tk"),
             List.of("pegasus", "pgt"),
-            List.of("anadolu", "ahi"),
+            List.of("anadolu", "ajet", "anadolujet", "ahi"),
+            List.of("sunexpress", "sxs"),
             List.of("approved", "appow", "aprove", "approve", "aproved"),
             List.of("runway", "runwey", "pist"),
             List.of("taxi", "taksi")
@@ -127,6 +128,7 @@ public final class PhraseMatcher {
                 .replace('ö', 'o')
                 .replace('ü', 'u')
                 .replaceAll("[^a-z0-9 ]", " ")
+                .replaceAll("\\bsun express\\b", "sunexpress")
                 .replaceAll("([a-z]+)(\\d)", "$1 $2")
                 .replaceAll("(\\d)([a-z]+)", "$1 $2")
                 .replaceAll("\\s+", " ")

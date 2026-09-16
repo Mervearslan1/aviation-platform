@@ -150,6 +150,43 @@ html.dark .writer-scene::after {
   background: var(--bg);
 }
 
+.track-page {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 100%;
+}
+.track-page::before {
+  content: "";
+  position: absolute;
+  inset: -48px;
+  z-index: -2;
+  background-image: var(--track-img, var(--blog-bg));
+  background-size: cover;
+  background-position: center;
+  filter: blur(34px);
+  transform: scale(1.08);
+}
+.track-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--blog-veil);
+}
+.track-tilt-a {
+  transform: rotate(-1.15deg);
+}
+.track-tilt-b {
+  transform: rotate(0.95deg);
+}
+.track-tilt-c {
+  transform: rotate(-0.6deg);
+}
+.track-tilt-d {
+  transform: rotate(1.2deg);
+}
+
 .word-page:empty::before {
   content: attr(data-placeholder);
   color: var(--muted);

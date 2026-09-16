@@ -71,20 +71,38 @@ class PhraseMatcherTest {
     }
 
     @Test
-    void acceptsSixtyPercentOfALongLine() {
+    void acceptsFiftyPercentOfALongLine() {
         assertThat(PhraseMatcher.matches(
-                "turkish 941 hold short runway",
+                "turkish 941 hold short",
                 "Turkish 941 hold short runway 03 via Charlie",
                 List.of()
         )).isTrue();
     }
 
     @Test
-    void rejectsBelowSixtyPercent() {
+    void rejectsBelowFiftyPercent() {
         assertThat(PhraseMatcher.matches(
                 "hold short",
                 "Turkish 941 hold short runway 03 via Charlie",
                 List.of()
         )).isFalse();
+    }
+
+    @Test
+    void acceptsAjetAsAnadolu() {
+        assertThat(PhraseMatcher.matches(
+                "anadolu 221 taxi via bravo",
+                "AJet 221 taxi via Bravo",
+                List.of()
+        )).isTrue();
+    }
+
+    @Test
+    void acceptsSunExpress() {
+        assertThat(PhraseMatcher.matches(
+                "sun express 773 line up and wait",
+                "SunExpress 773 line up and wait",
+                List.of()
+        )).isTrue();
     }
 }

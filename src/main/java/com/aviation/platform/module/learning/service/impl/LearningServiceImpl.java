@@ -35,7 +35,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,7 +147,7 @@ public class LearningServiceImpl implements LearningService {
                 ? pathRepository.findByStatusOrderByCreatedAtDesc(CatalogStatus.PUBLISHED)
                 : pathRepository.findByStatusAndTrackOrderByCreatedAtDesc(CatalogStatus.PUBLISHED, track);
         return paths.stream()
-                .map(path -> PathResponse.summary(path, stepRepository.countByPathId(path.getId())))
+                .map(path -> PathResponse.summary(path, stepRepository.countByPathIdAndStatus(path.getId(), CatalogStatus.PUBLISHED)))
                 .toList();
     }
 
@@ -160,9 +159,7 @@ public class LearningServiceImpl implements LearningService {
         if (!path.getStatus().isPublic() || (track != null && path.getTrack() != track)) {
             throw ApiException.notFound("Learning path not found");
         }
-        List<LearningStep> steps = path.getSteps().stream()
-                .sorted(Comparator.comparingInt(LearningStep::getOrderIndex))
-                .toList();
+        List<LearningStep> steps = publishedSteps(path.getId());
         if (actor == null) {
             Long recommended = steps.isEmpty() ? null : steps.get(0).getId();
             List<StepResponse> open = steps.stream()
@@ -196,14 +193,11 @@ public class LearningServiceImpl implements LearningService {
             throw ApiException.notFound("Learning path not found");
         }
         User user = userRepository.findById(actor.id()).orElseThrow(() -> ApiException.notFound("User not found"));
-        if (pathProgressRepository.findByUserIdAndPathId(actor.id(), pathId).isPresent()) {
-            return detailForUser(path, stepRepository.findByPathIdOrderByOrderIndexAsc(pathId), actor.id());
+        List<LearningStep> steps = publishedSteps(pathId);
+        if (pathProgressRepository.findByUserIdAndPathId(actor.id(), pathId).isEmpty()) {
+            pathProgressRepository.save(new UserPathProgress(user, path));
         }
-        pathProgressRepository.save(new UserPathProgress(user, path));
-        List<LearningStep> steps = stepRepository.findByPathIdOrderByOrderIndexAsc(pathId);
-        for (LearningStep step : steps) {
-            stepProgressRepository.save(new UserStepProgress(user, step, StepProgressStatus.AVAILABLE));
-        }
+        ensureStepRows(user, steps);
         auditService.record(actor.id(), "LEARNING_ENROLLED", "LearningPath", pathId, Map.of(), null);
         return detailForUser(path, steps, actor.id());
     }
@@ -249,7 +243,7 @@ public class LearningServiceImpl implements LearningService {
         }
         LearningPath path = pathRepository.findByIdWithSteps(pathId)
                 .orElseThrow(() -> ApiException.notFound("Learning path not found"));
-        List<LearningStep> steps = stepRepository.findByPathIdOrderByOrderIndexAsc(pathId);
+        List<LearningStep> steps = publishedSteps(pathId);
         refreshPathPercent(actor.id(), path, steps);
         auditService.record(actor.id(), "LEARNING_STEP_COMPLETED", "LearningStep", stepId, Map.of(), null);
         return detailForUser(path, steps, actor.id());
@@ -290,7 +284,7 @@ public class LearningServiceImpl implements LearningService {
     private List<PathResponse> listWithOutline(TrainingTrack track) {
         return pathRepository.findByStatusAndTrackOrderByCreatedAtDesc(CatalogStatus.PUBLISHED, track).stream()
                 .map(path -> {
-                    List<LearningStep> steps = stepRepository.findByPathIdOrderByOrderIndexAsc(path.getId());
+                    List<LearningStep> steps = publishedSteps(path.getId());
                     Long recommended = steps.isEmpty() ? null : steps.get(0).getId();
                     List<StepResponse> outline = steps.stream()
                             .map(step -> StepResponse.outline(
@@ -305,7 +299,7 @@ public class LearningServiceImpl implements LearningService {
     }
 
     private void unlockNext(Long userId, Long pathId, LearningStep completed) {
-        List<LearningStep> steps = stepRepository.findByPathIdOrderByOrderIndexAsc(pathId);
+        List<LearningStep> steps = publishedSteps(pathId);
         boolean unlock = false;
         for (LearningStep step : steps) {
             if (unlock) {
@@ -370,6 +364,18 @@ public class LearningServiceImpl implements LearningService {
                 : List.of();
         if (!PhraseMatcher.matches(spoken, expected, accepted)) {
             throw ApiException.badRequest("Phrase not accepted. Try again like a tower.");
+        }
+    }
+
+    private List<LearningStep> publishedSteps(Long pathId) {
+        return stepRepository.findByPathIdAndStatusOrderByOrderIndexAsc(pathId, CatalogStatus.PUBLISHED);
+    }
+
+    private void ensureStepRows(User user, List<LearningStep> steps) {
+        for (LearningStep step : steps) {
+            if (stepProgressRepository.findByUserIdAndStepId(user.getId(), step.getId()).isEmpty()) {
+                stepProgressRepository.save(new UserStepProgress(user, step, StepProgressStatus.AVAILABLE));
+            }
         }
     }
 

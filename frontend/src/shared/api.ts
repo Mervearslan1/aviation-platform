@@ -7,6 +7,7 @@ export type CatalogStep = {
   orderIndex: number
   knowledgeLevel?: string
   recommended?: boolean
+  progressStatus?: string
   contentHtml?: string
   configuration?: Record<string, unknown>
   glossary?: { term: string; meaning: string }[]
@@ -19,6 +20,7 @@ export type CatalogPath = {
   description?: string
   difficulty?: string
   relatedAircraft?: string[]
+  progressPercent?: number | null
   steps: CatalogStep[]
 }
 
@@ -84,6 +86,13 @@ export const api = {
   catalog: () => request<Catalog>('/api/v1/catalog'),
   path: (track: 'tower' | 'pilot', slug: string) =>
     request<CatalogPath>(`/api/v1/${track}/paths/${slug}`),
+  enroll: (track: 'tower' | 'pilot', pathId: number) =>
+    request<CatalogPath>(`/api/v1/${track}/paths/${pathId}/enroll`, { method: 'POST', body: '{}' }),
+  completeStep: (track: 'tower' | 'pilot', pathId: number, stepId: number, body: { answer?: string; transcript?: string }) =>
+    request<CatalogPath>(`/api/v1/${track}/paths/${pathId}/steps/${stepId}/complete`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
   login: (email: string, password: string) =>
     request<{ accessToken: string }>('/api/v1/auth/login', {
       method: 'POST',
