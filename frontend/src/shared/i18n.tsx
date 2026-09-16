@@ -96,7 +96,8 @@ const dict = {
     learnTitle: 'Eğitim hatları',
     learnLead: 'Kule, pilot ve uçak aynı platformda. Seviyen görünür, adımlar kilitli değil.',
     blogTitle: 'Blog',
-    blogLead: 'Sahadan notlar, prosedür ve kokpit yazıları.',
+    blogLead:
+      'Burada saha konuşur. İniş, kule, emniyet: bir yazı, bir bakış. Ana sayfada kaydırırsın; burada durur, okursun, içine girersin.',
     blogEmpty: 'Henüz yayımlanmış yazı yok. Yakında.',
     faqTitle: 'Sıkça sorulan sorular',
     aboutTitle: 'Hakkında',
@@ -207,6 +208,9 @@ const dict = {
     faq3a: 'Var. Üst çubuktan Açık / Koyu. Logo şeffaf; her iki zemine oturur.',
     faq4q: 'Nasıl yazar veya editör olurum?',
     faq4a: 'Bize katıl formunu doldur. Admin başvuruyu görür, uygun rolü verir.',
+    faq5q: 'Blog yazımı kim onaylar?',
+    faq5a: 'Oluştur’dan taslak kaydedersin, incelemeye gönderirsin. Admin veya mentor onaylar.',
+    faqLead: 'Kısa, net, beş kapı. Soruyu aç, cevabı oku, sonra eğitim veya blog’a dön.',
   },
   en: {
     brand: 'AVIATION PLATFORM',
@@ -301,7 +305,8 @@ const dict = {
     learnTitle: 'Training tracks',
     learnLead: 'Tower, pilot and aircraft on one platform. Levels are visible; steps are not locked.',
     blogTitle: 'Blog',
-    blogLead: 'Notes from the field, procedure and cockpit writing.',
+    blogLead:
+      'This is where the field talks. Landing, tower, safety — one piece, one look. On the home page you slide past; here you stop, read, and go in.',
     blogEmpty: 'No published posts yet.',
     faqTitle: 'Frequently asked questions',
     aboutTitle: 'About',
@@ -412,6 +417,9 @@ const dict = {
     faq3a: 'Yes. Toggle in the header. The logo is transparent on both.',
     faq4q: 'How do I become an author or editor?',
     faq4a: 'Fill Join us. Admin reviews and grants the role.',
+    faq5q: 'Who approves a blog post?',
+    faq5a: 'Save a draft in Write, submit for review. Admin or mentor signs it off.',
+    faqLead: 'Five doors, short answers. Open one, then go back to training or the blog.',
   },
 } as const
 

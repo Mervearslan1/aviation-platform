@@ -146,6 +146,10 @@ html.dark .writer-scene::after {
   isolation: isolate;
 }
 
+.blog-page {
+  background: var(--bg);
+}
+
 .word-page:empty::before {
   content: attr(data-placeholder);
   color: var(--muted);
@@ -276,6 +280,13 @@ textarea:focus-visible {
   background: var(--header);
   border-bottom: 1px solid var(--stroke);
   backdrop-filter: blur(12px);
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+summary {
+  list-style: none;
 }
 
 .article-body p {

@@ -36,6 +36,8 @@ export function Home() {
     [t.faq1q, t.faq1a],
     [t.faq2q, t.faq2a],
     [t.faq3q, t.faq3a],
+    [t.faq4q, t.faq4a],
+    [t.faq5q, t.faq5a],
   ]
   return (
     <div>
