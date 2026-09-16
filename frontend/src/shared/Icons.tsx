@@ -20,10 +20,17 @@ export function IconCloud({ className = 'h-5 w-5' }: IconProps) {
 export function IconFlagTr({ className = 'h-5 w-7' }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 30 20" aria-hidden>
-      <rect width="30" height="20" fill="#e30a17" />
-      <circle cx="12" cy="10" r="5" fill="#fff" />
-      <circle cx="13.2" cy="10" r="4" fill="#e30a17" />
-      <polygon fill="#fff" points="16.2,10 19.6,11.1 17.4,8.2 17.4,11.8 19.6,8.9" />
+      <defs>
+        <clipPath id="flag-tr-r">
+          <rect width="30" height="20" rx="4.5" ry="4.5" />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#flag-tr-r)">
+        <rect width="30" height="20" fill="#e30a17" />
+        <circle cx="12" cy="10" r="5" fill="#fff" />
+        <circle cx="13.2" cy="10" r="4" fill="#e30a17" />
+        <polygon fill="#fff" points="16.2,10 19.6,11.1 17.4,8.2 17.4,11.8 19.6,8.9" />
+      </g>
     </svg>
   )
 }
@@ -31,11 +38,18 @@ export function IconFlagTr({ className = 'h-5 w-7' }: IconProps) {
 export function IconFlagGb({ className = 'h-5 w-7' }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 60 30" aria-hidden>
-      <rect width="60" height="30" fill="#012169" />
-      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6" />
-      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="2" />
-      <path d="M30,0 V30 M0,15 H60" stroke="#fff" strokeWidth="10" />
-      <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" strokeWidth="6" />
+      <defs>
+        <clipPath id="flag-gb-r">
+          <rect width="60" height="30" rx="8" ry="8" />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#flag-gb-r)">
+        <rect width="60" height="30" fill="#012169" />
+        <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6" />
+        <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="2" />
+        <path d="M30,0 V30 M0,15 H60" stroke="#fff" strokeWidth="10" />
+        <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" strokeWidth="6" />
+      </g>
     </svg>
   )
 }
