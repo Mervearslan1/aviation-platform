@@ -10,7 +10,12 @@ import { useTheme } from '../../shared/theme'
 export function Login() {
   const { t } = useI18n()
   const { theme } = useTheme()
-  const sideImg = theme === 'dark' ? '/atmosphere/night.jpg' : '/atmosphere/login-day.jpg'
+  const sideImg =
+    mode === 'up'
+      ? '/atmosphere/login-register.jpg'
+      : theme === 'dark'
+        ? '/atmosphere/night.jpg'
+        : '/atmosphere/login-day.jpg'
   const nav = useNavigate()
   const [params] = useSearchParams()
   const next = params.get('next')
