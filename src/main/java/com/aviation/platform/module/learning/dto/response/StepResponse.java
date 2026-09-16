@@ -59,9 +59,18 @@ public record StepResponse(
                 config.put("lineToSpeak", line);
                 config.putIfAbsent("replyText", "Roger.");
             }
+            Object opts = config.get("options");
+            Object correctOpt = config.get("correctOption");
+            if (opts instanceof java.util.List<?> list && correctOpt != null) {
+                for (int i = 0; i < list.size(); i++) {
+                    if (String.valueOf(correctOpt).equals(String.valueOf(list.get(i)))) {
+                        config.put("correctIndex", i);
+                        break;
+                    }
+                }
+            }
             config.remove("expectedPhrase");
             config.remove("acceptedPhrases");
-            // correctOption LISTEN/SCENARIO şık boyası için kalır.
         }
         return new StepResponse(
                 step.getId(),

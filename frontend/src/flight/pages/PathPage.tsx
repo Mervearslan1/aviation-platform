@@ -49,7 +49,14 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const reply = String(cfg.replyText || 'Roger.')
   const options = (Array.isArray(cfg.options) ? cfg.options : []) as string[]
   const correct = String(cfg.correctOption || '')
-  const speakMode = current && (current.stepType === 'SPEAK' || (current.stepType === 'SCENARIO' && picked && picked === correct)) && line
+  const correctIndex = typeof cfg.correctIndex === 'number' ? cfg.correctIndex : options.findIndex((o) => o.trim() === correct.trim())
+  const isRightOpt = (i: number, o: string) =>
+    (correctIndex >= 0 && i === correctIndex) || (correct !== '' && o.trim() === correct.trim())
+  const pickedRight = picked != null && options.some((o, i) => o === picked && isRightOpt(i, o))
+  const speakMode =
+    current &&
+    (current.stepType === 'SPEAK' || (current.stepType === 'SCENARIO' && pickedRight)) &&
+    line
   const quizMode = current && (current.stepType === 'LISTEN' || current.stepType === 'SCENARIO') && options.length > 0
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -109,11 +116,12 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                 <div className="mt-4">
                   {cfg.question ? <p className="font-semibold">{String(cfg.question)}</p> : cfg.situation ? <p className="font-semibold">{String(cfg.situation)}</p> : <p className="font-semibold">{t.listenQ}</p>}
                   <div className="mt-3 flex flex-col gap-2">
-                    {options.map((o) => {
-                      let tone = 'border-[var(--stroke)]'
+                    {options.map((o, i) => {
+                      const right = isRightOpt(i, o)
+                      let tone = 'border-[var(--stroke)] bg-[var(--bg)]'
                       if (picked) {
-                        if (o === correct) tone = 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                        else if (o === picked) tone = 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300'
+                        if (right) tone = 'border-emerald-500 bg-emerald-500/20 text-emerald-800 dark:text-emerald-200'
+                        else if (o === picked) tone = 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200'
                       }
                       return (
                         <button
