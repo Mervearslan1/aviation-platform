@@ -105,6 +105,13 @@ const dict = {
       'Aviation Platform bir kurs vitrini değil. Adım adım kule, pilot ve kokpit eğitimi; meraklı bakış ve meslek sahibi için ayrı ritim.',
     aboutBody:
       'İçerik Türkçe ve İngilizce. Tema açık veya koyu. Yönetim (OPS) uçuş yüzeyinden ayrı durur. Roller admin tarafından verilir; ekibe katılmak isteyen formu doldurur.',
+    aboutLine: 'Uçuş öğretir. Blog konuşur. Ekip büyütür.',
+    aboutP1: 'Eğitim',
+    aboutP1h: 'Kule, PIC, kokpit. Sıra açık, seviye sende.',
+    aboutP2: 'Yazı',
+    aboutP2h: 'Sahadan uzun form. Oku, işaretle, yaz.',
+    aboutP3: 'Ekip',
+    aboutP3h: 'Yazar, editör, mentor. Form doldur, rol gelir.',
     joinTitle: 'Bize katıl',
     joinLead:
       'Mesleği pilot, ATC veya eğitmen olanlar içeriği büyütür. Başvuru admin’e düşer; uygun rol orada verilir.',
@@ -314,6 +321,13 @@ const dict = {
       'Aviation Platform is not a course storefront. It is sequential tower, pilot and cockpit training — with a different rhythm for the curious and for professionals.',
     aboutBody:
       'Content is Turkish and English. Theme is light or dark. OPS stays apart from the flight surface. Admins grant roles; people who want in fill the join form.',
+    aboutLine: 'Training teaches. The blog talks. The team grows it.',
+    aboutP1: 'Training',
+    aboutP1h: 'Tower, PIC, cockpit. Steps open, level is yours.',
+    aboutP2: 'Writing',
+    aboutP2h: 'Long form from the field. Read, mark, write.',
+    aboutP3: 'Team',
+    aboutP3h: 'Author, editor, mentor. Fill the form, get the role.',
     joinTitle: 'Join us',
     joinLead:
       'Working pilots, ATC and instructors grow the content. Applications land with admin; the right role is granted there.',
