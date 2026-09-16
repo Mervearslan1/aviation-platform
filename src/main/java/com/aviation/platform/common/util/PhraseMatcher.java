@@ -2,11 +2,54 @@ package com.aviation.platform.common.util;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public final class PhraseMatcher {
 
     private static final Set<String> FILLER = Set.of("the", "a", "an", "please", "lutfen", "ok", "okay", "uh", "um");
+
+    private static final List<List<String>> FAMILIES = List.of(
+            List.of("charlie", "charli", "charley", "carli", "sharli", "sarli", "c"),
+            List.of("alpha", "alfa", "a"),
+            List.of("bravo", "b"),
+            List.of("delta", "d"),
+            List.of("echo", "eko", "e"),
+            List.of("foxtrot", "fox", "f"),
+            List.of("golf", "g"),
+            List.of("hotel", "h"),
+            List.of("india", "i"),
+            List.of("juliet", "juliett", "julie", "j"),
+            List.of("kilo", "k"),
+            List.of("lima", "l"),
+            List.of("mike", "m"),
+            List.of("november", "n"),
+            List.of("oscar", "o"),
+            List.of("papa", "p"),
+            List.of("quebec", "kebek", "q"),
+            List.of("romeo", "r"),
+            List.of("sierra", "s"),
+            List.of("tango", "t"),
+            List.of("uniform", "u"),
+            List.of("victor", "v"),
+            List.of("whiskey", "w"),
+            List.of("xray", "x-ray", "x"),
+            List.of("yankee", "y"),
+            List.of("zulu", "z"),
+            List.of("turkish", "thy", "tk"),
+            List.of("pegasus", "pgt"),
+            List.of("anadolu", "ahi"),
+            List.of("approved", "appow", "aprove", "approve", "aproved"),
+            List.of("runway", "runwey", "pist"),
+            List.of("taxi", "taksi")
+    );
+
+    private static final Map<String, String> NUM = Map.ofEntries(
+            Map.entry("zero", "0"), Map.entry("one", "1"), Map.entry("two", "2"),
+            Map.entry("three", "3"), Map.entry("four", "4"), Map.entry("five", "5"),
+            Map.entry("six", "6"), Map.entry("seven", "7"), Map.entry("eight", "8"),
+            Map.entry("nine", "9"), Map.entry("niner", "9")
+    );
 
     private PhraseMatcher() {
     }
@@ -46,18 +89,28 @@ public final class PhraseMatcher {
     }
 
     static boolean close(String spokenToken, String expected) {
-        if (spokenToken.isBlank() || expected.isBlank()) {
+        String a = family(spokenToken);
+        String b = family(expected);
+        if (a.isBlank() || b.isBlank()) {
             return false;
         }
-        if (spokenToken.equals(expected)) {
+        if (a.equals(b)) {
             return true;
         }
-        if ((spokenToken.contains(expected) || expected.contains(spokenToken))
-                && Math.min(spokenToken.length(), expected.length()) >= 3) {
+        if ((a.contains(b) || b.contains(a)) && Math.min(a.length(), b.length()) >= 3) {
             return true;
         }
-        int allow = Math.max(2, expected.length() * 45 / 100);
-        return levenshtein(spokenToken, expected) <= allow;
+        int allow = Math.max(2, b.length() * 45 / 100);
+        return levenshtein(a, b) <= allow;
+    }
+
+    static String family(String token) {
+        for (List<String> g : FAMILIES) {
+            if (g.contains(token)) {
+                return g.get(0);
+            }
+        }
+        return NUM.getOrDefault(token, token);
     }
 
     public static String normalize(String value) {
@@ -66,7 +119,14 @@ public final class PhraseMatcher {
         }
         return value.toLowerCase(Locale.ROOT)
                 .replace('ı', 'i')
+                .replace('ç', 'c')
+                .replace('ş', 's')
+                .replace('ğ', 'g')
+                .replace('ö', 'o')
+                .replace('ü', 'u')
                 .replaceAll("[^a-z0-9 ]", " ")
+                .replaceAll("([a-z]+)(\\d)", "$1 $2")
+                .replaceAll("(\\d)([a-z]+)", "$1 $2")
                 .replaceAll("\\s+", " ")
                 .trim();
     }

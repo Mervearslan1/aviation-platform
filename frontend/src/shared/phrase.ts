@@ -1,10 +1,62 @@
 const FILLER = new Set(['the', 'a', 'an', 'please', 'lutfen', 'ok', 'okay', 'uh', 'um'])
 
+const FAMILIES: string[][] = [
+  ['charlie', 'charli', 'charley', 'carli', 'sharli', 'sarli', 'c'],
+  ['alpha', 'alfa', 'a'],
+  ['bravo', 'bravo', 'b'],
+  ['delta', 'd'],
+  ['echo', 'eko', 'e'],
+  ['foxtrot', 'fox', 'f'],
+  ['golf', 'g'],
+  ['hotel', 'h'],
+  ['india', 'i'],
+  ['juliet', 'juliett', 'julie', 'j'],
+  ['kilo', 'k'],
+  ['lima', 'l'],
+  ['mike', 'm'],
+  ['november', 'n'],
+  ['oscar', 'o'],
+  ['papa', 'p'],
+  ['quebec', 'kebek', 'q'],
+  ['romeo', 'r'],
+  ['sierra', 's'],
+  ['tango', 't'],
+  ['uniform', 'u'],
+  ['victor', 'v'],
+  ['whiskey', 'w'],
+  ['xray', 'x-ray', 'x'],
+  ['yankee', 'y'],
+  ['zulu', 'z'],
+  ['turkish', 'thy', 'tk'],
+  ['pegasus', 'pgt'],
+  ['anadolu', 'ahi'],
+  ['approved', 'appow', 'aprove', 'approve', 'aproved'],
+  ['runway', 'runwey', 'pist'],
+  ['taxi', 'taksi'],
+]
+
+const NUM: Record<string, string> = {
+  zero: '0', one: '1', two: '2', three: '3', four: '4', five: '5',
+  six: '6', seven: '7', eight: '8', nine: '9', niner: '9',
+}
+
+function family(token: string) {
+  const hit = FAMILIES.find((g) => g.includes(token))
+  return hit ? hit[0] : NUM[token] || token
+}
+
 function normalize(value: string) {
   return value
     .toLowerCase()
     .replaceAll('ı', 'i')
+    .replaceAll('ç', 'c')
+    .replaceAll('ş', 's')
+    .replaceAll('ğ', 'g')
+    .replaceAll('ö', 'o')
+    .replaceAll('ü', 'u')
     .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/([a-z]+)(\d)/g, '$1 $2')
+    .replace(/(\d)([a-z]+)/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -29,14 +81,13 @@ function levenshtein(a: string, b: string) {
 }
 
 function close(spokenToken: string, expected: string) {
-  if (!spokenToken || !expected) return false
-  if (spokenToken === expected) return true
-  if (spokenToken.includes(expected) || expected.includes(spokenToken)) {
-    return Math.min(spokenToken.length, expected.length) >= 3
-  }
-  const dist = levenshtein(spokenToken, expected)
-  const allow = Math.max(2, Math.floor(expected.length * 0.45))
-  return dist <= allow
+  const a = family(spokenToken)
+  const b = family(expected)
+  if (!a || !b) return false
+  if (a === b) return true
+  if ((a.includes(b) || b.includes(a)) && Math.min(a.length, b.length) >= 3) return true
+  const allow = Math.max(2, Math.floor(b.length * 0.45))
+  return levenshtein(a, b) <= allow
 }
 
 export function phraseMatches(spoken: string, expected: string) {
@@ -45,4 +96,9 @@ export function phraseMatches(spoken: string, expected: string) {
   if (spokenTokens.length === 0 || tokens.length === 0) return false
   const found = tokens.filter((t) => spokenTokens.some((s) => close(s, t))).length
   return (found * 100) / tokens.length >= 70
+}
+
+export function phraseMatchesAny(spoken: string, expected: string, accepted: string[] = []) {
+  if (phraseMatches(spoken, expected)) return true
+  return accepted.some((variant) => variant && phraseMatches(spoken, variant))
 }

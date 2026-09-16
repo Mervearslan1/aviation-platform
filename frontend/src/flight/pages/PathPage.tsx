@@ -10,9 +10,10 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const [path, setPath] = useState<CatalogPath | null>(null)
   const [current, setCurrent] = useState<CatalogStep | null>(null)
   const [error, setError] = useState('')
-  const [picked, setPicked] = useState<string | null>(null)
+  const [picked, setPicked] = useState<{ stepId: number; index: number } | null>(null)
   const load = () => {
     setError('')
+    setPicked(null)
     api
       .catalog()
       .then((c) => {
@@ -26,11 +27,17 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
       .catch((e: Error) => setError(e.message))
   }
   useEffect(load, [track])
+  useEffect(() => {
+    setPicked(null)
+  }, [current?.id])
   const goNext = () => {
     if (!path || !current) return
     const i = path.steps.findIndex((s) => s.id === current.id)
     const nxt = path.steps[i + 1]
-    if (nxt) setCurrent(nxt)
+    if (nxt) {
+      setPicked(null)
+      setCurrent(nxt)
+    }
   }
   if (error) {
     return (
@@ -44,15 +51,17 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   }
   if (!path) return <p className="mx-auto max-w-6xl px-4 py-8 font-mono text-[var(--muted)]">…</p>
   const cfg = (current?.configuration || {}) as Record<string, unknown>
-  const line = String(cfg.lineToSpeak || '')
+  const line = String(cfg.lineToSpeak || cfg.expectedPhrase || '')
   const prompt = String(cfg.promptText || cfg.situation || '')
   const reply = String(cfg.replyText || 'Roger.')
   const options = (Array.isArray(cfg.options) ? cfg.options : []) as string[]
+  const accepted = (Array.isArray(cfg.acceptedPhrases) ? cfg.acceptedPhrases : []) as string[]
   const correct = String(cfg.correctOption || '')
   const correctIndex = typeof cfg.correctIndex === 'number' ? cfg.correctIndex : options.findIndex((o) => o.trim() === correct.trim())
   const isRightOpt = (i: number, o: string) =>
     (correctIndex >= 0 && i === correctIndex) || (correct !== '' && o.trim() === correct.trim())
-  const pickedRight = picked != null && options.some((o, i) => o === picked && isRightOpt(i, o))
+  const pickIndex = current && picked?.stepId === current.id ? picked.index : null
+  const pickedRight = pickIndex != null && isRightOpt(pickIndex, options[pickIndex] || '')
   const speakMode =
     current &&
     (current.stepType === 'SPEAK' || (current.stepType === 'SCENARIO' && pickedRight)) &&
@@ -113,22 +122,22 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                 }}>{t.listenCall}</Button>
               ) : null}
               {quizMode ? (
-                <div className="mt-4">
+                <div key={current.id} className="mt-4">
                   {cfg.question ? <p className="font-semibold">{String(cfg.question)}</p> : cfg.situation ? <p className="font-semibold">{String(cfg.situation)}</p> : <p className="font-semibold">{t.listenQ}</p>}
                   <div className="mt-3 flex flex-col gap-2">
                     {options.map((o, i) => {
                       const right = isRightOpt(i, o)
                       let tone = 'border-[var(--stroke)] bg-[var(--bg)]'
-                      if (picked) {
+                      if (pickIndex != null) {
                         if (right) tone = 'border-emerald-500 bg-emerald-500/20 text-emerald-800 dark:text-emerald-200'
-                        else if (o === picked) tone = 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200'
+                        else if (i === pickIndex) tone = 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200'
                       }
                       return (
                         <button
-                          key={o}
+                          key={`${current.id}-${i}`}
                           type="button"
                           className={`rounded-2xl border px-4 py-3 text-left ${tone}`}
-                          onClick={() => setPicked(o)}
+                          onClick={() => setPicked({ stepId: current.id, index: i })}
                         >
                           {o}
                         </button>
@@ -138,7 +147,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                 </div>
               ) : null}
               {speakMode ? (
-                <SpeakDrill prompt={current.stepType === 'SPEAK' ? prompt : undefined} line={line} reply={reply} onPass={() => undefined} />
+                <SpeakDrill key={current.id} prompt={current.stepType === 'SPEAK' ? prompt : undefined} line={line} reply={reply} accepted={accepted} onPass={() => undefined} />
               ) : null}
               {current.stepType === 'LIVE_PRACTICE' ? (
                 <p className="mt-6">

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useI18n } from '../shared/i18n'
-import { phraseMatches } from '../shared/phrase'
+import { phraseMatchesAny } from '../shared/phrase'
 import { Button } from '../shared/Button'
 
 type RecCtor = new () => {
@@ -26,11 +26,13 @@ export function SpeakDrill({
   prompt,
   line,
   reply,
+  accepted,
   onPass,
 }: {
   prompt?: string
   line: string
   reply?: string
+  accepted?: string[]
   onPass: () => void
 }) {
   const { t } = useI18n()
@@ -50,7 +52,7 @@ export function SpeakDrill({
       const text = ev.results[0][0].transcript
       setHeard(text)
       setBusy(false)
-      if (phraseMatches(text, line)) {
+      if (phraseMatchesAny(text, line, accepted)) {
         setOk(true)
         speak(reply || 'Roger.')
         onPass()

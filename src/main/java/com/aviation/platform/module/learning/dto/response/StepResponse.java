@@ -70,7 +70,6 @@ public record StepResponse(
                 }
             }
             config.remove("expectedPhrase");
-            config.remove("acceptedPhrases");
         }
         return new StepResponse(
                 step.getId(),
