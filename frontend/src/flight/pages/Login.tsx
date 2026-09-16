@@ -10,12 +10,6 @@ import { useTheme } from '../../shared/theme'
 export function Login() {
   const { t } = useI18n()
   const { theme } = useTheme()
-  const sideImg =
-    mode === 'up'
-      ? '/atmosphere/login-register.jpg'
-      : theme === 'dark'
-        ? '/atmosphere/night.jpg'
-        : '/atmosphere/login-day.jpg'
   const nav = useNavigate()
   const [params] = useSearchParams()
   const next = params.get('next')
@@ -25,6 +19,12 @@ export function Login() {
     else nav('/')
   }
   const [mode, setMode] = useState<'in' | 'up'>('in')
+  const sideImg =
+    mode === 'up'
+      ? '/atmosphere/login-register.jpg'
+      : theme === 'dark'
+        ? '/atmosphere/night.jpg'
+        : '/atmosphere/login-day.jpg'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
