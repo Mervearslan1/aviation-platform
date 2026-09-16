@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api, type CatalogPath, type CatalogStep } from '../../shared/api'
 import { levelLabel, useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
+import { SpeakDrill } from '../SpeakDrill'
 
 export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const { t } = useI18n()
@@ -24,38 +25,39 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
       .catch((e: Error) => setError(e.message))
   }
   useEffect(load, [track])
+  const goNext = () => {
+    if (!path || !current) return
+    const i = path.steps.findIndex((s) => s.id === current.id)
+    const nxt = path.steps[i + 1]
+    if (nxt) setCurrent(nxt)
+  }
   if (error) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="glass rounded-3xl p-8">
           <p className="text-[var(--warn)]">{t.catalogFail}</p>
-          <Button className="mt-4" onClick={load}>
-            {t.retry}
-          </Button>
+          <Button className="mt-4" onClick={load}>{t.retry}</Button>
         </div>
       </div>
     )
   }
   if (!path) return <p className="mx-auto max-w-6xl px-4 py-8 font-mono text-[var(--muted)]">…</p>
+  const cfg = (current?.configuration || {}) as Record<string, unknown>
+  const line = String(cfg.lineToSpeak || '')
+  const prompt = String(cfg.promptText || cfg.situation || '')
+  const reply = String(cfg.replyText || 'Roger.')
+  const options = (Array.isArray(cfg.options) ? cfg.options : []) as string[]
+  const speakMode = current && (current.stepType === 'SPEAK' || current.stepType === 'SCENARIO') && line
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <Link to="/" className="font-mono text-xs tracking-[0.2em] text-[var(--hud)]">
-        ← {t.back}
-      </Link>
-      <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="font-mono text-[11px] tracking-[0.35em] text-[var(--amber)]">
-            {track === 'tower' ? 'TWR' : 'PIC'} · {levelLabel(t, path.difficulty)}
-          </p>
-          <h1 className="text-3xl font-semibold">{path.title}</h1>
-          <p className="mt-1 max-w-2xl text-[var(--muted)]">{path.description}</p>
-        </div>
-        {path.relatedAircraft?.length ? (
-          <Button variant="secondary" to="/cockpit">
-            ACFT {path.relatedAircraft.join(' · ')}
-          </Button>
-        ) : null}
-      </div>
+      <Link to="/" className="font-mono text-xs tracking-[0.2em] text-[var(--hud)]">← {t.back}</Link>
+      <p className="mt-4 font-mono text-[11px] tracking-[0.35em] text-[var(--amber)]">
+        {track === 'tower' ? 'TWR' : 'PIC'} · {levelLabel(t, path.difficulty)}
+      </p>
+      <h1 className="mt-2 text-3xl font-extrabold md:text-4xl">{path.title}</h1>
+      <p className="mt-3 max-w-3xl leading-7 text-[var(--muted)]">
+        {track === 'tower' ? t.towerIntro : t.pilotIntro}
+      </p>
       <div className="mt-8 grid gap-6 lg:grid-cols-[240px_1fr]">
         <ol className="glass relative overflow-hidden rounded-3xl p-3" aria-label={t.steps}>
           <div className="absolute bottom-3 left-7 top-3 w-px bg-[var(--stroke)]" />
@@ -66,23 +68,14 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                 <button
                   type="button"
                   onClick={() => setCurrent(step)}
-                  className={`relative flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${
-                    on ? 'bg-[var(--bg-2)]' : ''
-                  }`}
+                  className={`relative flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${on ? 'bg-[var(--bg-2)]' : ''}`}
                 >
-                  <span
-                    className={`z-10 grid h-7 w-7 place-items-center rounded-full font-mono text-[11px] ${
-                      on ? 'bg-[var(--btn)] text-[var(--btn-ink)]' : 'border border-[var(--stroke)]'
-                    }`}
-                  >
+                  <span className={`z-10 grid h-7 w-7 place-items-center rounded-full font-mono text-[11px] ${on ? 'bg-[var(--btn)] text-[var(--btn-ink)]' : 'border border-[var(--stroke)]'}`}>
                     {i + 1}
                   </span>
                   <span>
                     <span className="block text-sm font-medium">{step.title}</span>
-                    <span className="font-mono text-[10px] text-[var(--amber)]">
-                      {levelLabel(t, step.knowledgeLevel)}
-                      {step.recommended ? ` · ${t.recommended}` : ''}
-                    </span>
+                    <span className="font-mono text-[10px] text-[var(--amber)]">{step.stepType}</span>
                   </span>
                 </button>
               </li>
@@ -92,24 +85,52 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
         <article className="glass min-h-[360px] rounded-3xl p-6">
           {current ? (
             <>
-              <p className="font-mono text-[11px] tracking-[0.3em] text-[var(--hud)]">
-                {current.stepType} · {t.open}
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold">{current.title}</h2>
+              <h2 className="text-2xl font-extrabold">{current.title}</h2>
+              <p className="mt-2 text-[var(--muted)]">{current.description}</p>
               <div
-                className="mt-4 max-w-none text-[15px] leading-7 text-[var(--ink)]"
-                dangerouslySetInnerHTML={{ __html: current.contentHtml || current.description || '' }}
+                className="article-body mt-4 text-[15px] leading-7"
+                dangerouslySetInnerHTML={{ __html: current.contentHtml || '' }}
               />
-              <Button
-                className="mt-6"
-                onClick={() => {
-                  const i = path.steps.findIndex((s) => s.id === current.id)
-                  const nxt = path.steps[i + 1]
-                  if (nxt) setCurrent(nxt)
-                }}
-              >
-                {t.continue}
-              </Button>
+              {current.stepType === 'LISTEN' && prompt ? (
+                <div className="mt-6">
+                  <Button variant="secondary" onClick={() => {
+                    const u = new SpeechSynthesisUtterance(prompt)
+                    u.lang = 'en-GB'
+                    speechSynthesis.cancel()
+                    speechSynthesis.speak(u)
+                  }}>{t.listenCall}</Button>
+                  {cfg.question ? <p className="mt-4 font-semibold">{String(cfg.question)}</p> : <p className="mt-4 font-semibold">{t.listenQ}</p>}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {options.map((o) => (
+                      <Button key={o} variant="secondary" onClick={goNext}>{o}</Button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {speakMode ? (
+                <SpeakDrill prompt={prompt} line={line} reply={reply} onPass={() => undefined} />
+              ) : null}
+              {current.stepType === 'LIVE_PRACTICE' ? (
+                <p className="mt-6">
+                  <a href={String(cfg.url || 'https://www.ivao.aero')} target="_blank" rel="noreferrer" className="btn btn-secondary">
+                    IVAO
+                  </a>
+                </p>
+              ) : null}
+              {current.glossary && current.glossary.length > 0 ? (
+                <div className="mt-8">
+                  <p className="font-mono text-xs tracking-[0.2em] text-[var(--amber)]">{t.termsHere}</p>
+                  <dl className="mt-3 space-y-3">
+                    {current.glossary.map((g) => (
+                      <div key={g.term} className="rounded-2xl border border-[var(--stroke)] px-4 py-3">
+                        <dt className="font-extrabold">{g.term}</dt>
+                        <dd className="mt-1 text-[var(--muted)]">{g.meaning}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ) : null}
+              <Button className="mt-6" onClick={goNext}>{t.continue}</Button>
             </>
           ) : null}
         </article>

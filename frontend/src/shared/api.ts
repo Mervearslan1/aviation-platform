@@ -8,6 +8,8 @@ export type CatalogStep = {
   knowledgeLevel?: string
   recommended?: boolean
   contentHtml?: string
+  configuration?: Record<string, unknown>
+  glossary?: { term: string; meaning: string }[]
 }
 
 export type CatalogPath = {

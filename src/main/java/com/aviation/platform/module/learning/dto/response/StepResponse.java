@@ -51,6 +51,14 @@ public record StepResponse(
         Map<String, Object> config = step.getConfiguration();
         if (config != null) {
             config = new java.util.LinkedHashMap<>(config);
+            Object line = config.get("expectedPhrase");
+            if (line == null) {
+                line = config.get("correctOption");
+            }
+            if (step.getStepType() == StepType.SPEAK || step.getStepType() == StepType.SCENARIO) {
+                config.put("lineToSpeak", line);
+                config.putIfAbsent("replyText", "Roger.");
+            }
             config.remove("correctOption");
             config.remove("expectedPhrase");
             config.remove("acceptedPhrases");
