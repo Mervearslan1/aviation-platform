@@ -198,7 +198,13 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                     </span>
                     <span>
                       <span className="block text-sm font-medium">{step.title}</span>
-                      <span className="font-mono text-[10px] text-[var(--amber)]">{step.stepType}</span>
+                      <span className="font-mono text-[10px] text-[var(--amber)]">
+                        {step.stepType === 'SPEAK' ? t.stepSpeak
+                          : step.stepType === 'LISTEN' ? t.stepListen
+                            : step.stepType === 'SCENARIO' ? t.stepScenario
+                              : step.stepType === 'LIVE_PRACTICE' ? t.stepLive
+                                : t.stepContent}
+                      </span>
                     </span>
                   </button>
                 </li>
