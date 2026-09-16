@@ -42,7 +42,7 @@ public final class PhraseMatcher {
                 }
             }
         }
-        return needed > 0 && found * 100 / needed >= 50;
+        return needed > 0 && found * 100 / needed >= 70;
     }
 
     static boolean close(String spokenToken, String expected) {

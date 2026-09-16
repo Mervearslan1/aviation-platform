@@ -44,5 +44,5 @@ export function phraseMatches(spoken: string, expected: string) {
   const tokens = normalize(expected).split(' ').filter((t) => t && !FILLER.has(t))
   if (spokenTokens.length === 0 || tokens.length === 0) return false
   const found = tokens.filter((t) => spokenTokens.some((s) => close(s, t))).length
-  return (found * 100) / tokens.length >= 50
+  return (found * 100) / tokens.length >= 70
 }

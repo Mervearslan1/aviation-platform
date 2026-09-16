@@ -82,13 +82,18 @@ export function SpeakDrill({
           {busy ? '…' : t.tapMic}
         </Button>
       </div>
-      {heard ? (
-        <p className="mt-3 text-sm text-[var(--muted)]">
-          {t.heard}: {heard}
+      {heard || ok ? (
+        <p
+          className={`mt-4 rounded-2xl px-4 py-4 text-lg font-semibold leading-7 ${
+            ok
+              ? 'border border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+              : 'border border-rose-400 bg-rose-500/10 text-[var(--ink)]'
+          }`}
+        >
+          {ok ? line : heard}
         </p>
       ) : null}
-      {ok ? <p className="mt-3 font-semibold text-[var(--good)]">{t.correct}</p> : null}
-      {heard && !ok ? <p className="mt-3 text-[var(--warn)]">{t.tryAgain}</p> : null}
+      {heard && !ok ? <p className="mt-2 text-sm text-[var(--warn)]">{t.tryAgain}</p> : null}
     </div>
   )
 }
