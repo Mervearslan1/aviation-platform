@@ -186,14 +186,25 @@ html.dark .track-page::after {
   position: relative;
   z-index: 1;
 }
+.radar-board {
+  background: #06140c;
+  border: 1px solid #1a5c34;
+  color: #c8ffd8;
+}
+.radar-board .article-sheet,
+.radar-board [class*="bg-[var(--panel)]"] {
+  background: #0c2416;
+  border-color: #1f6b3a;
+  color: #d4ffe4;
+}
 .radar-scope {
   display: block;
   width: 100%;
-  max-width: 640px;
+  max-width: 720px;
   margin-inline: auto;
   background: #020804;
   border-radius: 50%;
-  box-shadow: inset 0 0 80px #003b18, 0 0 0 8px #0a1f12, 0 0 40px #0b3a1a;
+  box-shadow: inset 0 0 80px #003b18, 0 0 0 10px #0a1f12, 0 0 40px #0b3a1a;
 }
 .radar-sweep {
   transform-origin: 320px 320px;

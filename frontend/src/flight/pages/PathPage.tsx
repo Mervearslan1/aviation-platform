@@ -65,7 +65,12 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
         }
         const ordered = sortedSteps(detail.steps)
         setPath({ ...detail, steps: ordered })
-        const start = ordered.find((s) => s.progressStatus !== 'COMPLETED') || ordered[0] || null
+        const training = ordered.filter((s) => stageOf(s) < 5)
+        const start =
+          training.find((s) => s.progressStatus !== 'COMPLETED') ||
+          training[0] ||
+          ordered[0] ||
+          null
         setCurrent(start)
         if (start) setStage(stageOf(start))
         const finished = new Set<number>()
@@ -99,17 +104,28 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const goNext = () => {
     if (!path || !current) return
     if (current.stepType === 'CONTENT' && !done.has(current.id)) persist()
-    const i = path.steps.findIndex((s) => s.id === current.id)
-    const nxt = path.steps[i + 1]
+    const here = stageOf(current)
+    if (here >= 5) return
+    const inStage = path.steps.filter((s) => stageOf(s) === here)
+    const i = inStage.findIndex((s) => s.id === current.id)
+    const nxt = inStage[i + 1]
     if (nxt) {
+      setPicked(null)
+      setCurrent(nxt)
+      return
+    }
+    if (here === 4 && track === 'tower') {
       const pts = path.steps.filter((s) => done.has(s.id) || s.progressStatus === 'COMPLETED').length
-      if (stageOf(nxt) === 5 && track === 'tower' && RADAR_UNLOCK_POINTS > 0 && !(token() && pts >= RADAR_UNLOCK_POINTS)) {
+      if (RADAR_UNLOCK_POINTS > 0 && !(token() && pts >= RADAR_UNLOCK_POINTS)) {
         setLockMsg(t.stage5Locked)
         return
       }
-      setPicked(null)
-      setCurrent(nxt)
-      setStage(stageOf(nxt))
+      const radar = path.steps.find((s) => (s.configuration || {}).game === 'radar')
+      if (radar) {
+        setPicked(null)
+        setCurrent(radar)
+        setStage(5)
+      }
     }
   }
   if (error) {
@@ -151,10 +167,11 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const total = path.steps.length
   const finishedTrack = loggedIn && total > 0 && score >= total
   const radarOpen = track === 'tower' && (RADAR_UNLOCK_POINTS === 0 || (loggedIn && score >= RADAR_UNLOCK_POINTS))
-  const gameOn = Boolean(cfg.game === 'radar')
+  const radarView = track === 'tower' && stage === 5
+  const gameOn = Boolean(cfg.game === 'radar') || radarView
   return (
     <div className="track-page flex-1">
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className={`mx-auto px-4 py-8 ${radarView ? 'max-w-7xl' : 'max-w-6xl'}`}>
         <Link to="/" className="font-mono text-xs tracking-[0.2em] text-[var(--hud)]">← {t.back}</Link>
         <p className="mt-4 font-mono text-[11px] tracking-[0.35em] text-[var(--amber)]">
           {track === 'tower' ? 'TWR' : 'PIC'} · {levelLabel(t, path.difficulty)}
@@ -193,7 +210,10 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                   }
                   setLockMsg('')
                   setStage(s.id)
-                  const first = path.steps.find((st) => stageOf(st) === s.id)
+                  const first =
+                    s.id === 5
+                      ? path.steps.find((st) => (st.configuration || {}).game === 'radar') || path.steps.find((st) => stageOf(st) === 5)
+                      : path.steps.find((st) => stageOf(st) === s.id)
                   if (first) {
                     setPicked(null)
                     setCurrent(first)
@@ -212,6 +232,11 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
             )
           })}
         </div>
+        {radarView ? (
+          <div className="mt-8">
+            <TowerGame />
+          </div>
+        ) : (
         <div className="mt-8 grid gap-6 lg:grid-cols-[240px_1fr]">
           <ol className="article-sheet overflow-hidden rounded-3xl p-3" aria-label={t.steps}>
             {stageSteps.map((step, i) => {
@@ -297,7 +322,6 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                     onPass={(spoken) => persist(undefined, spoken)}
                   />
                 ) : null}
-                {gameOn ? <TowerGame /> : null}
                 {current.stepType === 'LIVE_PRACTICE' && !gameOn ? (
                   <p className="mt-6">
                     <a
@@ -330,6 +354,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
             ) : null}
           </article>
         </div>
+        )}
       </div>
     </div>
   )

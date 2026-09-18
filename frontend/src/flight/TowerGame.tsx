@@ -246,7 +246,8 @@ export function TowerGame() {
   }
 
   return (
-    <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_280px]">
+    <div className="radar-board rounded-3xl p-4 md:p-6">
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_300px]">
       <div>
         <div className="flex flex-wrap items-center gap-2">
           {(['APP', 'TWR', 'GND'] as Role[]).map((r) => (
@@ -371,6 +372,7 @@ export function TowerGame() {
           {sent ? <p className="mt-2 text-xs text-[var(--muted)]">{sent}</p> : null}
         </div>
       </aside>
+    </div>
     </div>
   )
 }
