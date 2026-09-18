@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, token } from '../shared/api'
 import { phraseMatchesAny } from '../shared/phrase'
-import { speakAtc, silenceRadio, play5247Tape, type VoiceKind } from '../shared/atcSpeech'
+import { speakAtc, silenceRadio, play5247Pilot, type VoiceKind } from '../shared/atcSpeech'
 import { DEMO, demoAddChange, isGuest } from '../shared/demo'
 import { useI18n } from '../shared/i18n'
 import { Button } from '../shared/Button'
@@ -86,40 +86,47 @@ const AC5247: Ac = {
   id: '5247', cs: '5247', x: 300, y: 210, hdg: 60, spd: 140, alt: 1800, phase: 'final', squawk: '5247', lang: 'tr', voice: '5247', last: '',
 }
 
-const LOC_STEPS: { keys: string[]; say: string[]; hint: string }[] = [
+const LOC_STEPS: { keys: string[]; say: string[]; clips: number[]; hint: string }[] = [
   {
     keys: ['gunaydin', 'günaydın', 'inis serbest', 'iniş serbest', 'ruzgar sakin', 'rüzgar sakin', 'serbest'],
     say: ['Serbest sakin.', 'Efendim sizin 06 nın localizerı yok.'],
+    clips: [1, 2],
     hint: 'Günaydın, iniş serbest, rüzgar sakin',
   },
   {
     keys: ['anlasildi', 'anlaşıldı', 'devam', 'haber'],
     say: [],
+    clips: [],
     hint: 'Anlaşıldı, yaklaşıma devam edin, ilgili yerlere haber veriyoruz',
   },
   {
     keys: ['ils', 'els', 'i l s', 'aisle', 'eyes', 'aliyor', 'alıyor', 'musunuz', 'sinyal', '5247', 'localizer', 'lokal', 'gidip'],
     say: ['Efendim sinyal devamlı var ama localizer şu anda gidip gidip geliyor.'],
+    clips: [3],
     hint: 'ILS alıyor musunuz?',
   },
   {
     keys: ['inecek', 'inecek misiniz'],
     say: ['İneceğiz tabi efendim ne olacak ki, gayet güzel iniyoruz.'],
+    clips: [],
     hint: 'İnecek misiniz?',
   },
   {
     keys: ['iyi inis', 'iyi iniş', 'sakin'],
     say: ['Anladım sağol.'],
+    clips: [],
     hint: 'Tamam iyi inişler, rüzgar hala sakin',
   },
   {
     keys: ['gecmeyin', 'geçmeyin', 'buyrun', 'inin'],
     say: ['Biz eskiden inerken hiç localizer yoktu ki.'],
+    clips: [],
     hint: 'Geçmeyin tabii efendim, buyrun inin',
   },
   {
     keys: ['anlasildi', 'anlaşıldı', 'anladim', 'anladım'],
     say: [],
+    clips: [],
     hint: 'Anlaşıldı',
   },
 ]
@@ -324,7 +331,7 @@ export function TowerGame() {
       setLocStep(0)
       setWho('5247')
       setStrip('İstanbul günaydın 5247 pist 06 establish')
-      play5247Tape()
+      play5247Pilot(0, 'İstanbul günaydın 5247 pist 06 establish')
       window.setTimeout(() => setStrip(LOC_STEPS[0].hint), 3500)
       setFleet((prev) => prev.map((x) => (x.id === '5247' ? { ...x, last: 'called' } : x)))
     }, 5000)
@@ -398,16 +405,19 @@ export function TowerGame() {
     const step = LOC_STEPS[locStep]
     if (!locHit(text, step.keys) && !isTurkishTalk(text)) return false
     const lines = step.say
+    const clips = step.clips
     if (lines[0]) {
       setWho('5247')
       setStrip(lines[0])
-      speakAtc(lines[0], 'tr-TR', 1, '5247')
+      if (clips[0] != null) play5247Pilot(clips[0], lines[0])
+      else speakAtc(lines[0], 'tr-TR', 1, '5247')
     }
     if (lines[1]) {
       window.setTimeout(() => {
         setWho('5247')
         setStrip(lines[1])
-        speakAtc(lines[1], 'tr-TR', 1, '5247')
+        if (clips[1] != null) play5247Pilot(clips[1], lines[1])
+        else speakAtc(lines[1], 'tr-TR', 1, '5247')
       }, 2200)
     }
     const nxt = locStep + 1
@@ -733,7 +743,7 @@ export function TowerGame() {
               <p className="font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">5247 · TÜRKÇE</p>
               <p className="mt-2 text-[#8fb89a]">Pilot: İstanbul günaydın, 5247, pist 06 establish</p>
               <p className="mt-3 text-base font-semibold text-[#e8ffe8]">Sen söyle: {LOC_STEPS[locStep].hint}</p>
-              <button type="button" className="mt-2 text-xs underline text-[#7dffb0]" onClick={() => play5247Tape()}>Orijinal kaydı dinle</button>
+              <p className="mt-2 text-xs text-[#8fb89a]">Kuleyu sen söyle. Kayıtta yalnız pilot var.</p>
             </div>
           ) : null}
         </div>

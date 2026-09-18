@@ -175,15 +175,16 @@ export function speakAtc(text: string, lang = 'en-US', volume = 1, kind?: VoiceK
 
 let tape: HTMLAudioElement | null = null
 
-export function play5247Tape() {
+/** Pilot-only clip. Tower is never in these files. */
+export function play5247Pilot(clip: number, fallback: string) {
   speechSynthesis.cancel()
   try { tape?.pause() } catch { /* */ }
-  tape = new Audio('/audio/5247.webm')
-  tape.volume = 0.95
+  const a = new Audio(`/audio/5247/p${clip}.wav`)
+  a.volume = 0.95
+  tape = a
   click()
-  return tape.play().catch(() => {
-    speakAtc('İstanbul günaydın 5247 pist 06 establish', 'tr-TR', 1, '5247')
-  })
+  a.onerror = () => speakAtc(fallback, 'tr-TR', 1, '5247')
+  return a.play().catch(() => speakAtc(fallback, 'tr-TR', 1, '5247'))
 }
 
 export function silenceRadio() {
