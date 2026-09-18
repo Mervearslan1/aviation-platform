@@ -141,6 +141,14 @@ function blipColor(a: Ac) {
   return '#f4f7fb'
 }
 
+function isRealTalk(text: string) {
+  const n = text.toLowerCase().replace(/[^a-z0-9çğıöşü ]/gi, ' ').replace(/\s+/g, ' ').trim()
+  if (n.length < 5) return false
+  const noise = new Set(['uh', 'um', 'ah', 'eh', 'hmm', 'mm', 'ı', 'e', 'a', 'aa', 'ee', 'ıı'])
+  const words = n.split(' ').filter((w) => w.length > 1 && !noise.has(w))
+  return words.length >= 1 && (n.length >= 6 || /\d/.test(n))
+}
+
 function has(text: string, bits: string[]) {
   const n = text.toLowerCase()
   return bits.some((b) => n.includes(b.toLowerCase()))
@@ -325,6 +333,7 @@ export function TowerGame() {
   }
 
   const listen = () => {
+    if (recRef.current) return
     const Ctor = (window as unknown as { SpeechRecognition?: new () => MicRec; webkitSpeechRecognition?: new () => MicRec }).SpeechRecognition
       || (window as unknown as { webkitSpeechRecognition?: new () => MicRec }).webkitSpeechRecognition
     if (!Ctor) {
@@ -338,9 +347,10 @@ export function TowerGame() {
     rec.continuous = false
     rec.interimResults = false
     rec.onresult = (ev) => {
-      const text = ev.results[ev.results.length - 1][0].transcript
+      const text = (ev.results[ev.results.length - 1][0].transcript || '').trim()
       rec.stop()
       setBusy(false)
+      if (!isRealTalk(text)) return
       hear(text)
     }
     rec.onend = () => setBusy(false)
@@ -367,6 +377,11 @@ export function TowerGame() {
   }
 
   listenRef.current = listen
+  const stopListen = () => {
+    try { recRef.current?.stop() } catch { /* */ }
+    recRef.current = null
+    setBusy(false)
+  }
   const busyRef = useRef(false)
   busyRef.current = busy
   const selRef = useRef(sel)
@@ -377,10 +392,25 @@ export function TowerGame() {
   fleetRef.current = fleet
 
   useEffect(() => {
-    if (!sel || busy) return
-    const tmr = window.setTimeout(() => listenRef.current(), 1400)
-    return () => window.clearTimeout(tmr)
-  }, [sel, cmd, busy])
+    const down = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || e.repeat) return
+      const tag = (e.target as HTMLElement | null)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      e.preventDefault()
+      if (!busyRef.current) listenRef.current()
+    }
+    const up = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return
+      e.preventDefault()
+      stopListen()
+    }
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+    }
+  }, [])
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -493,11 +523,23 @@ export function TowerGame() {
             </g>
             <text x={CX} y="26" textAnchor="middle" fill="#7dffb0" fontSize="13">LTFM IGA · {role}</text>
           </svg>
-          <div className="mt-2 flex h-10 items-center gap-3 rounded-xl border border-[#1f6b3a] px-3">
+          <div className="mt-2 flex min-h-12 items-center gap-3 rounded-xl border border-[#1f6b3a] px-3">
             <span className={`h-2 w-2 rounded-full ${busy ? 'bg-rose-400' : 'bg-[#3dff8a]'}`} />
             <span className="font-mono text-xs text-[#f5c542]">{who || role}</span>
-            <span className="truncate text-sm">{busy ? t.listening : strip}</span>
+            <span className="min-w-0 flex-1 truncate text-sm">{busy ? t.listening : strip}</span>
+            <button
+              type="button"
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${busy ? 'bg-rose-500 text-white' : 'bg-[#3dff8a] text-[#04140a]'}`}
+              onMouseDown={(e) => { e.preventDefault(); listen() }}
+              onMouseUp={stopListen}
+              onMouseLeave={stopListen}
+              onTouchStart={(e) => { e.preventDefault(); listen() }}
+              onTouchEnd={stopListen}
+            >
+              {busy ? 'Konuş…' : 'Bas konuş'}
+            </button>
           </div>
+          <p className="mt-1 font-mono text-[10px] text-[#6fdd9a]">Space veya bas konuş. Nefes sayılmaz.</p>
         </div>
         <aside className="min-h-[520px] space-y-3">
           <div className="rounded-2xl border border-[#1f6b3a] p-3 text-xs">
