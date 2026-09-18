@@ -173,21 +173,6 @@ export function speakAtc(text: string, lang = 'en-US', volume = 1, kind?: VoiceK
   speechSynthesis.speak(u)
 }
 
-let tape: HTMLAudioElement | null = null
-
-/** Pilot-only clip. Tower is never in these files. */
-export function play5247Pilot(clip: number, fallback: string) {
-  speechSynthesis.cancel()
-  try { tape?.pause() } catch { /* */ }
-  const a = new Audio(`/audio/5247/p${clip}.wav`)
-  a.volume = 0.95
-  tape = a
-  click()
-  a.onerror = () => speakAtc(fallback, 'tr-TR', 1, '5247')
-  return a.play().catch(() => speakAtc(fallback, 'tr-TR', 1, '5247'))
-}
-
 export function silenceRadio() {
   speechSynthesis.cancel()
-  try { tape?.pause() } catch { /* */ }
 }

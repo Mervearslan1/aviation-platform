@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, token } from '../shared/api'
 import { phraseMatchesAny } from '../shared/phrase'
-import { speakAtc, silenceRadio, play5247Pilot, type VoiceKind } from '../shared/atcSpeech'
+import { speakAtc, silenceRadio, type VoiceKind } from '../shared/atcSpeech'
 import { DEMO, demoAddChange, isGuest } from '../shared/demo'
 import { useI18n } from '../shared/i18n'
 import { Button } from '../shared/Button'
@@ -86,23 +86,25 @@ const AC5247: Ac = {
   id: '5247', cs: '5247', x: 300, y: 210, hdg: 60, spd: 140, alt: 1800, phase: 'final', squawk: '5247', lang: 'tr', voice: '5247', last: '',
 }
 
-const LOC_STEPS: { keys: string[]; say: string[]; clips: number[]; hint: string }[] = [
+const LOC_STEPS: { keys: string[]; say: string[]; hint: string }[] = [
   {
-    keys: ['gunaydin', 'günaydın', 'inis', 'iniş', 'serbest', 'ruzgar', 'rüzgar', 'sakin', 'inecek'],
+    keys: ['gunaydin', 'günaydın', 'inis', 'iniş', 'serbest', 'ruzgar', 'rüzgar', 'sakin'],
+    say: ['Serbest sakin. Efendim sizin 06 nın localizerı yok.'],
+    hint: 'Günaydın, iniş serbest, rüzgar sakin',
+  },
+  {
+    keys: ['anlasildi', 'anlaşıldı', 'devam', 'haber', 'ils', 'aliyor', 'inecek'],
     say: ['İneceğiz tabi efendim ne olacak ki, gayet güzel iniyoruz.'],
-    clips: [1],
-    hint: 'Günaydın, iniş serbest, rüzgar sakin. İnecek misiniz?',
+    hint: 'Anlaşıldı, yaklaşıma devam. ILS alıyor musunuz? İnecek misiniz?',
   },
   {
     keys: ['tamam', 'iyi', 'sakin', 'inis', 'iniş'],
     say: ['Yani localizer yok diye pas mı geçeyim?'],
-    clips: [2],
     hint: 'Tamam, iyi inişler, rüzgar hala sakin',
   },
   {
     keys: ['gecmeyin', 'geçmeyin', 'buyrun', 'inin', 'tabii', 'tabi'],
-    say: [],
-    clips: [],
+    say: ['Anladım, sağol.'],
     hint: 'Geçmeyin tabii efendim, buyrun inin',
   },
 ]
@@ -307,7 +309,7 @@ export function TowerGame() {
       setLocStep(0)
       setWho('5247')
       setStrip('İstanbul günaydın 5247 pist 06 establish')
-      play5247Pilot(0, 'İstanbul günaydın 5247 pist 06 establish')
+      speakAtc('İstanbul günaydın 5247 pist 06 establish', 'tr-TR', 1, '5247')
       window.setTimeout(() => setStrip(LOC_STEPS[0].hint), 3500)
       setFleet((prev) => prev.map((x) => (x.id === '5247' ? { ...x, last: 'called' } : x)))
     }, 5000)
@@ -381,28 +383,17 @@ export function TowerGame() {
     const step = LOC_STEPS[locStep]
     if (!locHit(text, step.keys) && !isTurkishTalk(text)) return false
     const lines = step.say
-    const clips = step.clips
     if (lines[0]) {
       setWho('5247')
       setStrip(lines[0])
-      if (clips[0] != null) play5247Pilot(clips[0], lines[0])
-      else speakAtc(lines[0], 'tr-TR', 1, '5247')
-    }
-    if (lines[1]) {
-      window.setTimeout(() => {
-        setWho('5247')
-        setStrip(lines[1])
-        if (clips[1] != null) play5247Pilot(clips[1], lines[1])
-        else speakAtc(lines[1], 'tr-TR', 1, '5247')
-      }, 2200)
+      speakAtc(lines[0], 'tr-TR', 1, '5247')
     }
     const nxt = locStep + 1
     setLocStep(nxt)
     if (nxt >= LOC_STEPS.length) {
       localStorage.setItem(LOC_KEY, '1')
+      setLocStep(-1)
       setStrip('Anlaşıldı.')
-    } else if (!lines.length) {
-      setStrip(LOC_STEPS[nxt].hint)
     }
     return true
   }
@@ -715,12 +706,7 @@ export function TowerGame() {
           </div>
           <p className="mt-1 font-mono text-[10px] text-[#6fdd9a]">Space veya bas konuş. Nefes sayılmaz.</p>
           {locStep >= 0 && locStep < LOC_STEPS.length ? (
-            <div className="mt-3 rounded-2xl border border-amber-400/50 bg-[#0c2416] p-4 text-sm leading-6">
-              <p className="font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">5247 · TÜRKÇE</p>
-              <p className="mt-2 text-[#8fb89a]">Pilot: İstanbul günaydın, 5247, pist 06 establish</p>
-              <p className="mt-3 text-base font-semibold text-[#e8ffe8]">Sen söyle: {LOC_STEPS[locStep].hint}</p>
-              <p className="mt-2 text-xs text-[#8fb89a]">Kadın kuleyu sen oku. Kayıtta yalnız erkek pilot.</p>
-            </div>
+            <p className="mt-2 text-xs text-[#8fb89a]">5247 · {LOC_STEPS[locStep].hint}</p>
           ) : null}
         </div>
         <aside className="min-h-[520px] space-y-3">
