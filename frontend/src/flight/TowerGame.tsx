@@ -61,6 +61,7 @@ const CMDS: Cmd[] = [
   { id: 'des', label: 'Descend', line: (cs, ac) => `${cs} descend ${ac.alt}`, roles: ['APP'] },
   { id: 'may', label: 'Roger MAYDAY', line: (cs) => `${cs} roger MAYDAY runway 16 Left is yours`, roles: ['TWR', 'APP'] },
   { id: 'pan', label: 'Roger PAN', line: (cs) => `${cs} roger PAN PAN number 1`, roles: ['TWR', 'APP'] },
+  { id: 'rel', label: 'Relay', line: (cs) => `${cs} relay, request their status`, roles: ['APP', 'TWR'] },
 ]
 
 const POOL: Ac[] = [
@@ -75,6 +76,7 @@ const POOL: Ac[] = [
   { id: 'i', cs: 'FedEx 16', x: 340, y: 268, hdg: 160, spd: 70, alt: 0, phase: 'dep', squawk: '6016', last: '' },
   { id: 'j', cs: 'Ryanair 92', x: 360, y: 200, hdg: 160, spd: 150, alt: 1200, phase: 'final', squawk: '1192', last: '' },
   { id: 'k', cs: 'Turkish 632', x: 150, y: 280, hdg: 70, spd: 20, alt: 0, phase: 'taxi', squawk: '1632', last: '' },
+  { id: 'n', cs: 'KLM 18', x: 500, y: 300, hdg: 250, spd: 170, alt: 4500, phase: 'hold', squawk: '7600', emerg: 'nordo', last: '' },
 ]
 
 const AC5247: Ac = {
@@ -138,7 +140,25 @@ function startFleet(role: Role) {
 function emergCall(a: Ac) {
   if (a.emerg === 'mayday') return `MAYDAY MAYDAY MAYDAY, ${a.cs}`
   if (a.emerg === 'pan') return `PAN PAN PAN, ${a.cs}`
+  if (a.emerg === 'nordo') return ''
   return `${a.cs}, Istanbul Tower`
+}
+
+function statusLine(a: Ac) {
+  if (a.emerg === 'nordo') return ''
+  if (a.emerg === 'mayday') {
+    return `${a.cs}, engine failure, ${a.alt} feet, ${a.spd} knots, request the field`
+  }
+  if (a.emerg === 'pan') {
+    return `${a.cs}, medical on board, ${a.alt || 'ground'}, request priority`
+  }
+  if (a.phase === 'app') return `${a.cs}, approaching, ${a.alt} feet, ${a.spd} knots`
+  if (a.phase === 'final') return `${a.cs}, ILS 16 Left, ${a.alt} feet, ${a.spd} knots`
+  if (a.phase === 'hold') return `${a.cs}, holding, ${a.alt} feet, ${a.spd} knots`
+  if (a.phase === 'dep') return `${a.cs}, airborne, coming to tower, ${a.spd} knots`
+  if (a.phase === 'rw') return `${a.cs}, on the runway, ready for departure`
+  if (a.phase === 'taxi') return `${a.cs}, taxi, request`
+  return `${a.cs}, ${a.alt} feet, ${a.spd} knots`
 }
 
 function blipColor(a: Ac) {
@@ -220,7 +240,8 @@ export function TowerGame() {
         const have = new Set(prev.map((a) => a.id))
         const next = POOL.find((a) => forRole(a, role) && !have.has(a.id))
         if (!next || prev.filter((a) => forRole(a, role)).length >= 3) return prev
-        if (next.emerg) {
+        if (next.emerg === 'nordo' && Math.random() > 0.12) return prev
+        if (next.emerg === 'mayday' || next.emerg === 'pan') {
           window.setTimeout(() => {
             setWho(next.cs)
             setStrip(emergCall(next))
@@ -263,7 +284,12 @@ export function TowerGame() {
   }
 
   const replyFor = (id: string, a: Ac) => {
-    if (id === 'ahead') return `${a.cs}, go ahead.`
+    if (id === 'ahead') return statusLine(a) || `${a.cs}, (no radio)`
+    if (id === 'rel') {
+      const nordo = fleet.find((x) => x.emerg === 'nordo')
+      if (nordo) return `${a.cs}, relaying, ${nordo.cs} squawk 7600, no radio, ${nordo.alt} feet`
+      return `${a.cs}, nothing to relay.`
+    }
     if (id === 'cont') return `${a.cs}, continuing.`
     if (id === 'aff') return `${a.cs}, affirm.`
     if (id === 'unb') return `${a.cs}, roger, unable.`
@@ -314,7 +340,7 @@ export function TowerGame() {
       }
     }
     const pack = shown
-    const named = findCs(text, pack) || ac
+    const named = findCs(text, pack) || ac || pack.find((a) => a.cs === who)
     if (!named) {
       const hit = CMDS.filter((c) => c.roles.includes(role)).find((c) =>
         has(text, [c.label, c.id === 'cont' ? 'continue' : '', c.id === 'aff' ? 'affirm' : '', c.id === 'unb' ? 'unable' : '', c.id === 'ahead' ? 'go ahead' : ''].filter(Boolean)),
@@ -338,9 +364,16 @@ export function TowerGame() {
     const onlyName = phraseMatchesAny(text, named.cs, [named.cs.split(' ').pop() || named.cs])
       && !has(text, ['cleared', 'taxi', 'heading', 'descend', 'contact', 'go around', 'continue', 'affirm', 'unable', 'say again', 'go ahead', 'ils', 'land', 'take'])
     if (onlyName || has(text, ['go ahead'])) {
+      const report = statusLine(named)
+      if (!report) {
+        setWho(named.cs)
+        setStrip(`${named.cs} RA, no reply`)
+        return
+      }
       setWho(named.cs)
-      setStrip(`${named.cs}, go ahead.`)
-      speakAtc(`${named.cs} go ahead`)
+      setStrip(report)
+      speakAtc(report)
+      setFleet((prev) => prev.map((x) => (x.id === named.id ? { ...x, last: 'reported' } : x)))
       return
     }
     const hit =
@@ -446,8 +479,10 @@ export function TowerGame() {
       const wait = fleetRef.current.filter((a) => forRole(a, r) && a.id !== selRef.current)
       if (!wait.length) return
       const a = wait[Math.floor(Math.random() * wait.length)]
+      if (a.emerg === 'nordo') return
       silenceRadio()
-      const line = emergCall(a)
+      const line = a.last === 'reported' ? `${a.cs}, Istanbul Tower` : emergCall(a)
+      if (!line) return
       setWho(a.cs)
       setStrip(line)
       speakAtc(line)
@@ -541,6 +576,8 @@ export function TowerGame() {
                         <text x={a.x + 10} y={a.y + 6} fill="#ff8ad4" fontSize="10" fontWeight="700">EM</text>
                       ) : a.emerg === 'pan' ? (
                         <text x={a.x + 10} y={a.y + 6} fill="#ff3b3b" fontSize="10" fontWeight="700">PAN</text>
+                      ) : a.emerg === 'nordo' || a.squawk === '7600' ? (
+                        <text x={a.x + 10} y={a.y + 6} fill="#ffb347" fontSize="10" fontWeight="700">RA</text>
                       ) : (
                         <text x={a.x + 10} y={a.y + 6} fill="#9ad7b0" fontSize="9">{a.alt || 'GND'} {a.hdg}°</text>
                       )}
@@ -585,7 +622,7 @@ export function TowerGame() {
                   className={`flex w-full items-center justify-between rounded-lg px-2 py-1 text-left text-xs ${sel === a.id ? 'bg-emerald-500/20' : ''}`}
                 >
                   <span style={{ color: blipColor(a) }}>{a.cs}</span>
-                  <span className="font-mono text-[#8fb89a]">{a.emerg === 'mayday' ? 'EM' : a.emerg === 'pan' ? 'PAN' : a.phase}</span>
+                  <span className="font-mono text-[#8fb89a]">{a.emerg === 'mayday' ? 'EM' : a.emerg === 'pan' ? 'PAN' : a.emerg === 'nordo' || a.squawk === '7600' ? 'RA' : a.phase}</span>
                 </button>
               ))}
             </div>

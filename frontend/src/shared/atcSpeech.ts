@@ -76,7 +76,7 @@ function hissBurst(ms: number) {
   bp.frequency.value = 1400
   bp.Q.value = 0.8
   const g = c.createGain()
-  g.gain.value = 0.04
+  g.gain.value = 0.035
   src.connect(bp)
   bp.connect(g)
   g.connect(c.destination)
@@ -84,7 +84,42 @@ function hissBurst(ms: number) {
   src.stop(c.currentTime + ms / 1000)
 }
 
-/** Radio tone only while a line is spoken. Stops everyone else first. */
+function cabinBurst(ms: number) {
+  const c = ctx()
+  const t0 = c.currentTime
+  const t1 = t0 + ms / 1000
+  const rumble = c.createOscillator()
+  rumble.type = 'sawtooth'
+  rumble.frequency.value = 92
+  const rg = c.createGain()
+  rg.gain.value = 0.018
+  const lp = c.createBiquadFilter()
+  lp.type = 'lowpass'
+  lp.frequency.value = 280
+  rumble.connect(lp)
+  lp.connect(rg)
+  rg.connect(c.destination)
+  rumble.start()
+  rumble.stop(t1)
+  const n = Math.floor(c.sampleRate * (ms / 1000))
+  const buf = c.createBuffer(1, Math.max(n, 1), c.sampleRate)
+  const data = buf.getChannelData(0)
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.12
+  const src = c.createBufferSource()
+  src.buffer = buf
+  const air = c.createBiquadFilter()
+  air.type = 'highpass'
+  air.frequency.value = 400
+  const ag = c.createGain()
+  ag.gain.value = 0.02
+  src.connect(air)
+  air.connect(ag)
+  ag.connect(c.destination)
+  src.start()
+  src.stop(t1)
+}
+
+/** Radio + light cabin. Stops everyone else first. */
 export function speakAtc(text: string, lang = 'en-US', volume = 1) {
   speechSynthesis.cancel()
   const u = new SpeechSynthesisUtterance(atcSpoken(text))
@@ -92,8 +127,10 @@ export function speakAtc(text: string, lang = 'en-US', volume = 1) {
   u.rate = 1.04
   u.pitch = 0.74
   u.volume = Math.max(0.2, Math.min(1, volume))
+  const ms = Math.min(2200, 500 + text.length * 20)
   click()
-  hissBurst(Math.min(1800, 400 + text.length * 18))
+  hissBurst(ms)
+  cabinBurst(ms)
   speechSynthesis.speak(u)
 }
 
