@@ -125,7 +125,11 @@ const TR_DIGIT: Record<string, string> = {
 }
 
 function trSpeak(text: string) {
-  return text.replace(/\d/g, (d) => `${TR_DIGIT[d] || d} `)
+  return text
+    .replace(/\b5247\b/g, 'beş iki dört yedi')
+    .replace(/\b0\s*6\b/g, 'sıfır altı')
+    .replace(/\b06\b/g, 'sıfır altı')
+    .replace(/\d/g, (d) => `${TR_DIGIT[d] || d} `)
 }
 
 export type VoiceKind = 'f' | 'm' | '5247'

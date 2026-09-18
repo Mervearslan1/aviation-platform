@@ -89,23 +89,38 @@ const AC5247: Ac = {
 const LOC_STEPS: { keys: string[]; say: string[]; hint: string }[] = [
   {
     keys: ['gunaydin', 'günaydın', 'inis', 'iniş', 'serbest', 'ruzgar', 'rüzgar', 'sakin'],
-    say: ['Serbest sakin. Efendim sizin 06 nın localizerı yok.'],
+    say: ['Serbest sakin.', 'Efendim sizin sıfır altının localizerı yok.'],
     hint: 'Günaydın, iniş serbest, rüzgar sakin',
   },
   {
-    keys: ['anlasildi', 'anlaşıldı', 'devam', 'haber', 'ils', 'aliyor', 'inecek'],
-    say: ['İneceğiz tabi efendim ne olacak ki, gayet güzel iniyoruz.'],
-    hint: 'Anlaşıldı, yaklaşıma devam. ILS alıyor musunuz? İnecek misiniz?',
+    keys: ['anlasildi', 'anlaşıldı', 'devam', 'haber'],
+    say: [],
+    hint: 'Anlaşıldı, yaklaşıma devam edin, ilgili yerlere haber veriyoruz, olmazsa pas geçersiniz',
   },
   {
-    keys: ['tamam', 'iyi', 'sakin', 'inis', 'iniş'],
-    say: ['Yani localizer yok diye pas mı geçeyim?'],
-    hint: 'Tamam, iyi inişler, rüzgar hala sakin',
+    keys: ['ils', 'els', 'aliyor', 'alıyor', 'musunuz', 'sinyal'],
+    say: ['Efendim sinyal devamlı var ama localizer şu anda gidip gidip geliyor.'],
+    hint: 'Beş iki dört yedi, ILS alıyor musunuz?',
   },
   {
-    keys: ['gecmeyin', 'geçmeyin', 'buyrun', 'inin', 'tabii', 'tabi'],
-    say: ['Anladım, sağol.'],
+    keys: ['inecek'],
+    say: ['İneceğiz tabi efendim ne olacak ki yani gayet güzel iniyoruz.'],
+    hint: 'İnecek misiniz?',
+  },
+  {
+    keys: ['tamam', 'iyi', 'sakin'],
+    say: ['Anladım sağol.'],
+    hint: 'Tamam iyi inişler, rüzgar hala sakin',
+  },
+  {
+    keys: ['gecmeyin', 'geçmeyin', 'buyrun', 'inin'],
+    say: ['Biz eskiden inerken hiç localizer yoktu ki.'],
     hint: 'Geçmeyin tabii efendim, buyrun inin',
+  },
+  {
+    keys: ['anlasildi', 'anlaşıldı', 'anladim', 'anladım'],
+    say: [],
+    hint: 'Anlaşıldı',
   },
 ]
 
@@ -309,7 +324,7 @@ export function TowerGame() {
       setLocStep(0)
       setWho('5247')
       setStrip('İstanbul günaydın 5247 pist 06 establish')
-      speakAtc('İstanbul günaydın 5247 pist 06 establish', 'tr-TR', 1, '5247')
+      speakAtc('İstanbul günaydın, beş iki dört yedi, pist sıfır altı establish', 'tr-TR', 1, '5247')
       window.setTimeout(() => setStrip(LOC_STEPS[0].hint), 3500)
       setFleet((prev) => prev.map((x) => (x.id === '5247' ? { ...x, last: 'called' } : x)))
     }, 5000)
@@ -387,6 +402,13 @@ export function TowerGame() {
       setWho('5247')
       setStrip(lines[0])
       speakAtc(lines[0], 'tr-TR', 1, '5247')
+    }
+    if (lines[1]) {
+      window.setTimeout(() => {
+        setWho('5247')
+        setStrip(lines[1])
+        speakAtc(lines[1], 'tr-TR', 1, '5247')
+      }, 2000)
     }
     const nxt = locStep + 1
     setLocStep(nxt)
