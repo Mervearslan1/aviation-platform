@@ -88,46 +88,22 @@ const AC5247: Ac = {
 
 const LOC_STEPS: { keys: string[]; say: string[]; clips: number[]; hint: string }[] = [
   {
-    keys: ['gunaydin', 'günaydın', 'inis serbest', 'iniş serbest', 'ruzgar sakin', 'rüzgar sakin', 'serbest'],
-    say: ['Serbest sakin.', 'Efendim sizin 06 nın localizerı yok.'],
-    clips: [1, 2],
-    hint: 'Günaydın, iniş serbest, rüzgar sakin',
-  },
-  {
-    keys: ['anlasildi', 'anlaşıldı', 'devam', 'haber'],
-    say: [],
-    clips: [],
-    hint: 'Anlaşıldı, yaklaşıma devam edin, ilgili yerlere haber veriyoruz',
-  },
-  {
-    keys: ['ils', 'els', 'i l s', 'aisle', 'eyes', 'aliyor', 'alıyor', 'musunuz', 'sinyal', '5247', 'localizer', 'lokal', 'gidip'],
-    say: ['Efendim sinyal devamlı var ama localizer şu anda gidip gidip geliyor.'],
-    clips: [3],
-    hint: 'ILS alıyor musunuz?',
-  },
-  {
-    keys: ['inecek', 'inecek misiniz'],
+    keys: ['gunaydin', 'günaydın', 'inis', 'iniş', 'serbest', 'ruzgar', 'rüzgar', 'sakin', 'inecek'],
     say: ['İneceğiz tabi efendim ne olacak ki, gayet güzel iniyoruz.'],
-    clips: [],
-    hint: 'İnecek misiniz?',
+    clips: [1],
+    hint: 'Günaydın, iniş serbest, rüzgar sakin. İnecek misiniz?',
   },
   {
-    keys: ['iyi inis', 'iyi iniş', 'sakin'],
-    say: ['Anladım sağol.'],
-    clips: [],
-    hint: 'Tamam iyi inişler, rüzgar hala sakin',
+    keys: ['tamam', 'iyi', 'sakin', 'inis', 'iniş'],
+    say: ['Yani localizer yok diye pas mı geçeyim?'],
+    clips: [2],
+    hint: 'Tamam, iyi inişler, rüzgar hala sakin',
   },
   {
-    keys: ['gecmeyin', 'geçmeyin', 'buyrun', 'inin'],
-    say: ['Biz eskiden inerken hiç localizer yoktu ki.'],
+    keys: ['gecmeyin', 'geçmeyin', 'buyrun', 'inin', 'tabii', 'tabi'],
+    say: [],
     clips: [],
     hint: 'Geçmeyin tabii efendim, buyrun inin',
-  },
-  {
-    keys: ['anlasildi', 'anlaşıldı', 'anladim', 'anladım'],
-    say: [],
-    clips: [],
-    hint: 'Anlaşıldı',
   },
 ]
 
@@ -743,7 +719,7 @@ export function TowerGame() {
               <p className="font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">5247 · TÜRKÇE</p>
               <p className="mt-2 text-[#8fb89a]">Pilot: İstanbul günaydın, 5247, pist 06 establish</p>
               <p className="mt-3 text-base font-semibold text-[#e8ffe8]">Sen söyle: {LOC_STEPS[locStep].hint}</p>
-              <p className="mt-2 text-xs text-[#8fb89a]">Kuleyu sen söyle. Kayıtta yalnız pilot var.</p>
+              <p className="mt-2 text-xs text-[#8fb89a]">Kadın kuleyu sen oku. Kayıtta yalnız erkek pilot.</p>
             </div>
           ) : null}
         </div>
