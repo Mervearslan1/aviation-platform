@@ -93,14 +93,9 @@ const LOC_STEPS: { keys: string[]; say: string[]; hint: string }[] = [
     hint: 'Günaydın, iniş serbest, rüzgar sakin',
   },
   {
-    keys: ['anlasildi', 'anlaşıldı', 'devam', 'haber'],
-    say: [],
-    hint: 'Anlaşıldı, yaklaşıma devam edin, ilgili yerlere haber veriyoruz, olmazsa pas geçersiniz',
-  },
-  {
-    keys: ['ils', 'els', 'aliyor', 'alıyor', 'musunuz', 'sinyal'],
+    keys: ['anlasildi', 'anlaşıldı', 'devam', 'haber', 'pas', 'ils', 'aliyor', 'alıyor', 'musunuz'],
     say: ['Efendim sinyal devamlı var ama localizer şu anda gidip gidip geliyor.'],
-    hint: 'Beş iki dört yedi, ILS alıyor musunuz?',
+    hint: 'Anlaşıldı, yaklaşıma devam edin, ilgili yerlere haber veriyoruz. ILS alıyor musunuz?',
   },
   {
     keys: ['inecek'],
@@ -325,7 +320,9 @@ export function TowerGame() {
       setWho('5247')
       setStrip('İstanbul günaydın 5247 pist 06 establish')
       speakAtc('İstanbul günaydın, beş iki dört yedi, pist sıfır altı establish', 'tr-TR', 1, '5247')
-      window.setTimeout(() => setStrip(LOC_STEPS[0].hint), 3500)
+      window.setTimeout(() => {
+        setStrip((cur) => (cur.includes('pist sıfır') || cur.includes('5247 pist') ? LOC_STEPS[0].hint : cur))
+      }, 3500)
       setFleet((prev) => prev.map((x) => (x.id === '5247' ? { ...x, last: 'called' } : x)))
     }, 5000)
     return () => window.clearTimeout(tmr)
@@ -416,6 +413,9 @@ export function TowerGame() {
       localStorage.setItem(LOC_KEY, '1')
       setLocStep(-1)
       setStrip('Anlaşıldı.')
+    } else {
+      const wait = lines[1] ? 4500 : lines[0] ? 2800 : 400
+      window.setTimeout(() => setStrip('Sen: ' + LOC_STEPS[nxt].hint), wait)
     }
     return true
   }
