@@ -106,7 +106,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   if (error) {
     return (
       <div className="track-page mx-auto max-w-6xl px-4 py-8">
-        <div className="glass rounded-3xl p-8">
+        <div className="article-sheet rounded-3xl p-8">
           <p className="text-[var(--warn)]">{t.catalogFail}</p>
           <Button className="mt-4" onClick={load}>{t.retry}</Button>
         </div>
@@ -143,9 +143,8 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const finishedTrack = loggedIn && total > 0 && score >= total
   const radarOpen = track === 'tower' && (RADAR_UNLOCK_POINTS === 0 || (loggedIn && score >= RADAR_UNLOCK_POINTS))
   const gameOn = Boolean(cfg.game === 'radar')
-  const trackImg = track === 'tower' ? 'url("/atmosphere/tower.jpg")' : 'url("/atmosphere/pilot.jpg")'
   return (
-    <div className="track-page flex-1" style={{ ['--track-img' as string]: trackImg }}>
+    <div className="track-page flex-1">
       <div className="mx-auto max-w-6xl px-4 py-8">
         <Link to="/" className="font-mono text-xs tracking-[0.2em] text-[var(--hud)]">← {t.back}</Link>
         <p className="mt-4 font-mono text-[11px] tracking-[0.35em] text-[var(--amber)]">
@@ -191,7 +190,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                     setCurrent(first)
                   }
                 }}
-                className={`glass ${s.tilt} rounded-3xl px-4 py-4 text-left transition ${on ? 'ring-2 ring-[var(--amber)]' : ''} ${locked ? 'opacity-60' : ''}`}
+                className={`article-sheet ${s.tilt} rounded-3xl px-4 py-4 text-left transition ${on ? 'ring-2 ring-[var(--amber)]' : ''} ${locked ? 'opacity-60' : ''}`}
               >
                 <span className="block font-extrabold">{s.title}</span>
                 <span className="mt-1 block text-sm text-[var(--muted)]">{s.hint}</span>
@@ -205,7 +204,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
           })}
         </div>
         <div className="mt-8 grid gap-6 lg:grid-cols-[240px_1fr]">
-          <ol className="glass relative overflow-hidden rounded-3xl p-3" aria-label={t.steps}>
+          <ol className="article-sheet relative overflow-hidden rounded-3xl p-3" aria-label={t.steps}>
             <div className="absolute bottom-3 left-7 top-3 w-px bg-[var(--stroke)]" />
             {stageSteps.map((step, i) => {
               const on = current?.id === step.id
@@ -238,7 +237,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
               )
             })}
           </ol>
-          <article className="glass min-h-[360px] rounded-3xl p-6">
+          <article className="article-sheet min-h-[360px] rounded-3xl p-6">
             {current ? (
               <>
                 <h2 className="text-2xl font-extrabold">{displayTitle(current, locale)}</h2>

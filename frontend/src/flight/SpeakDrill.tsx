@@ -89,7 +89,7 @@ export function SpeakDrill({
     timerRef.current = window.setTimeout(stopRec, 8000)
   }
   return (
-    <div className="mt-6 rounded-3xl border border-[var(--stroke)] bg-[var(--bg)] p-5">
+    <div className="mt-6 rounded-3xl border border-[var(--stroke)] bg-[var(--sheet)] p-5 text-[var(--ink)]">
       {prompt ? (
         <div className="mb-4">
           <p className="font-mono text-xs tracking-[0.2em] text-[var(--amber)]">{t.otherParty}</p>
@@ -100,7 +100,7 @@ export function SpeakDrill({
         </div>
       ) : null}
       <p className="font-mono text-xs tracking-[0.2em] text-[var(--amber)]">{t.speakThis}</p>
-      <p className="mt-3 rounded-2xl bg-[var(--panel)] px-4 py-5 text-xl font-semibold leading-8">{line}</p>
+      <p className="mt-3 rounded-2xl border border-[var(--stroke)] bg-[var(--bg-2)] px-4 py-5 text-xl font-semibold leading-8 text-[var(--ink)]">{line}</p>
       <div className="mt-4 flex flex-wrap gap-3">
         <Button onClick={listen} disabled={busy}>
           {busy ? t.listening : t.tapMic}
