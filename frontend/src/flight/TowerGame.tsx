@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, token } from '../shared/api'
 import { phraseMatchesAny } from '../shared/phrase'
-import { speakAtc, silenceRadio } from '../shared/atcSpeech'
+import { speakAtc, silenceRadio, type VoiceKind } from '../shared/atcSpeech'
 import { DEMO, demoAddChange, isGuest } from '../shared/demo'
 import { useI18n } from '../shared/i18n'
 import { Button } from '../shared/Button'
@@ -21,6 +21,7 @@ type Ac = {
   squawk: string
   emerg?: 'pan' | 'mayday' | 'nordo'
   lang?: 'tr' | 'en'
+  voice?: VoiceKind
   last: string
 }
 
@@ -67,22 +68,22 @@ const CMDS: Cmd[] = [
 ]
 
 const POOL: Ac[] = [
-  { id: 'a', cs: 'Turkish 941', x: 230, y: 150, hdg: 160, spd: 180, alt: 4000, phase: 'app', squawk: '2201', last: '' },
-  { id: 'b', cs: 'SunExpress 773', x: 390, y: 175, hdg: 170, spd: 160, alt: 2200, phase: 'final', squawk: '3344', last: '' },
-  { id: 'c', cs: 'Anadolu 221', x: 318, y: 300, hdg: 160, spd: 50, alt: 0, phase: 'rw', squawk: '1200', last: '' },
-  { id: 'd', cs: 'Sunturk 12', x: 270, y: 360, hdg: 90, spd: 18, alt: 0, phase: 'taxi', squawk: '4412', last: '' },
-  { id: 'e', cs: 'Turkish 777', x: 470, y: 240, hdg: 160, spd: 190, alt: 5000, phase: 'app', squawk: '7700', emerg: 'mayday', last: '' },
-  { id: 'f', cs: 'Emirates 412', x: 200, y: 230, hdg: 155, spd: 170, alt: 3500, phase: 'app', squawk: '4521', last: '' },
-  { id: 'g', cs: 'KLM 441', x: 430, y: 430, hdg: 340, spd: 160, alt: 6000, phase: 'hold', squawk: '2211', last: '' },
-  { id: 'h', cs: 'Sunturk 88', x: 180, y: 390, hdg: 40, spd: 16, alt: 0, phase: 'taxi', squawk: '1200', emerg: 'pan', last: '' },
-  { id: 'i', cs: 'FedEx 16', x: 340, y: 268, hdg: 160, spd: 70, alt: 0, phase: 'dep', squawk: '6016', last: '' },
-  { id: 'j', cs: 'Ryanair 92', x: 360, y: 200, hdg: 160, spd: 150, alt: 1200, phase: 'final', squawk: '1192', last: '' },
-  { id: 'k', cs: 'Turkish 632', x: 150, y: 280, hdg: 70, spd: 20, alt: 0, phase: 'taxi', squawk: '1632', last: '' },
-  { id: 'n', cs: 'KLM 18', x: 500, y: 300, hdg: 160, spd: 170, alt: 4500, phase: 'app', squawk: '7600', emerg: 'nordo', last: '' },
+  { id: 'a', cs: 'Turkish 941', x: 230, y: 150, hdg: 160, spd: 180, alt: 4000, phase: 'app', squawk: '2201', voice: 'm', last: '' },
+  { id: 'b', cs: 'SunExpress 773', x: 390, y: 175, hdg: 170, spd: 160, alt: 2200, phase: 'final', squawk: '3344', voice: 'f', last: '' },
+  { id: 'c', cs: 'Anadolu 221', x: 318, y: 300, hdg: 160, spd: 50, alt: 0, phase: 'rw', squawk: '1200', voice: 'm', last: '' },
+  { id: 'd', cs: 'Sunturk 12', x: 270, y: 360, hdg: 90, spd: 18, alt: 0, phase: 'taxi', squawk: '4412', voice: 'f', last: '' },
+  { id: 'e', cs: 'Turkish 777', x: 470, y: 240, hdg: 160, spd: 190, alt: 5000, phase: 'app', squawk: '7700', emerg: 'mayday', voice: 'm', last: '' },
+  { id: 'f', cs: 'Emirates 412', x: 200, y: 230, hdg: 155, spd: 170, alt: 3500, phase: 'app', squawk: '4521', voice: 'f', last: '' },
+  { id: 'g', cs: 'KLM 441', x: 430, y: 430, hdg: 340, spd: 160, alt: 6000, phase: 'hold', squawk: '2211', voice: 'm', last: '' },
+  { id: 'h', cs: 'Sunturk 88', x: 180, y: 390, hdg: 40, spd: 16, alt: 0, phase: 'taxi', squawk: '1200', emerg: 'pan', voice: 'f', last: '' },
+  { id: 'i', cs: 'FedEx 16', x: 340, y: 268, hdg: 160, spd: 70, alt: 0, phase: 'dep', squawk: '6016', voice: 'm', last: '' },
+  { id: 'j', cs: 'Ryanair 92', x: 360, y: 200, hdg: 160, spd: 150, alt: 1200, phase: 'final', squawk: '1192', voice: 'f', last: '' },
+  { id: 'k', cs: 'Turkish 632', x: 150, y: 280, hdg: 70, spd: 20, alt: 0, phase: 'taxi', squawk: '1632', voice: 'm', last: '' },
+  { id: 'n', cs: 'KLM 18', x: 500, y: 300, hdg: 160, spd: 170, alt: 4500, phase: 'app', squawk: '7600', emerg: 'nordo', voice: 'm', last: '' },
 ]
 
 const AC5247: Ac = {
-  id: '5247', cs: '5247', x: 300, y: 210, hdg: 60, spd: 140, alt: 1800, phase: 'final', squawk: '5247', lang: 'tr', last: '',
+  id: '5247', cs: '5247', x: 300, y: 210, hdg: 60, spd: 140, alt: 1800, phase: 'final', squawk: '5247', lang: 'tr', voice: '5247', last: '',
 }
 
 const LOC_STEPS: { keys: string[]; say: string[]; hint: string }[] = [
@@ -97,8 +98,8 @@ const LOC_STEPS: { keys: string[]; say: string[]; hint: string }[] = [
     hint: 'Anlaşıldı, yaklaşıma devam edin, ilgili yerlere haber veriyoruz',
   },
   {
-    keys: ['ils', 'aliyor', 'alıyor'],
-    say: ['Efendim sinyal devamlı var ama localizer şu anda gip gip geliyor.'],
+    keys: ['ils', 'aliyor', 'alıyor', 'gidip'],
+    say: ['Efendim sinyal devamlı var ama localizer şu anda gidip gidip geliyor.'],
     hint: '5247 ILS alıyor musunuz?',
   },
   {
@@ -306,7 +307,7 @@ export function TowerGame() {
           window.setTimeout(() => {
             setWho(next.cs)
             setStrip(emergCall(next))
-            speakAtc(emergCall(next))
+            speakAtc(emergCall(next), 'en-US', 1, next.voice)
           }, 800)
         }
         return [...prev, { ...next, last: next.emerg ? 'emerg' : '' }]
@@ -323,7 +324,7 @@ export function TowerGame() {
       setLocStep(0)
       setWho('5247')
       setStrip('İstanbul günaydın 5247 pist 06 establish')
-      speakAtc('İstanbul günaydın 5247 pist 06 establish', 'tr-TR')
+      speakAtc('İstanbul günaydın 5247 pist 06 establish', 'tr-TR', 1, '5247')
       window.setTimeout(() => setStrip(LOC_STEPS[0].hint), 3500)
       setFleet((prev) => prev.map((x) => (x.id === '5247' ? { ...x, last: 'called' } : x)))
     }, 5000)
@@ -400,13 +401,13 @@ export function TowerGame() {
     if (lines[0]) {
       setWho('5247')
       setStrip(lines[0])
-      speakAtc(lines[0], 'tr-TR')
+      speakAtc(lines[0], 'tr-TR', 1, '5247')
     }
     if (lines[1]) {
       window.setTimeout(() => {
         setWho('5247')
         setStrip(lines[1])
-        speakAtc(lines[1], 'tr-TR')
+        speakAtc(lines[1], 'tr-TR', 1, '5247')
       }, 2200)
     }
     const nxt = locStep + 1
@@ -442,7 +443,7 @@ export function TowerGame() {
       if (advanceLoc(text)) return
       if (sel === '5247') {
         setStrip(`Tekrar eder misiniz. (${LOC_STEPS[locStep].hint})`)
-        speakAtc('Tekrar eder misiniz', 'tr-TR')
+        speakAtc('Tekrar eder misiniz', 'tr-TR', 1, '5247')
         return
       }
     }
@@ -457,14 +458,14 @@ export function TowerGame() {
         const ans = replyFor(hit.id, any)
         setWho(any.cs)
         setStrip(ans)
-        speakAtc(ans)
+        speakAtc(ans, 'en-US', 1, any.voice)
         setHandled((n) => n + 1)
         return
       }
       const whoCs = any?.cs || 'Traffic'
       setWho(whoCs)
       setStrip(`${whoCs}, roger.`)
-      speakAtc(`${whoCs} roger`)
+      speakAtc(`${whoCs} roger`, 'en-US', 1, any?.voice)
       return
     }
     setSel(named.id)
@@ -484,7 +485,7 @@ export function TowerGame() {
       }
       setWho(named.cs)
       setStrip(report)
-      speakAtc(report, lang)
+      speakAtc(report, lang, 1, named.voice)
       setFleet((prev) => prev.map((x) => (x.id === named.id ? { ...x, last: 'reported' } : x)))
       return
     }
@@ -495,7 +496,7 @@ export function TowerGame() {
       const again = trVoice(named) ? `${named.cs}, tekrar eder misiniz.` : `${named.cs}, say again.`
       setWho(named.cs)
       setStrip(again)
-      speakAtc(again, lang)
+      speakAtc(again, lang, 1, named.voice)
       return
     }
     if (hit.id === 'wx') {
@@ -507,7 +508,7 @@ export function TowerGame() {
     const ans = replyFor(hit.id, named)
     setWho(named.cs)
     setStrip(ans)
-    speakAtc(ans, lang)
+    speakAtc(ans, lang, 1, named.voice)
     setHandled((n) => n + 1)
   }
 
@@ -569,6 +570,8 @@ export function TowerGame() {
   roleRef.current = role
   const fleetRef = useRef(fleet)
   fleetRef.current = fleet
+  const locStepRef = useRef(locStep)
+  locStepRef.current = locStep
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -593,7 +596,7 @@ export function TowerGame() {
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      if (busyRef.current) return
+      if (busyRef.current || locStepRef.current >= 0) return
       const r = roleRef.current
       const wait = fleetRef.current.filter((a) => forRole(a, r) && a.id !== selRef.current)
       if (!wait.length) return
@@ -604,7 +607,7 @@ export function TowerGame() {
       if (!line) return
       setWho(a.cs)
       setStrip(line)
-      speakAtc(line)
+      speakAtc(line, 'en-US', 1, a.voice)
     }, 32000)
     return () => window.clearInterval(id)
   }, [])
@@ -725,6 +728,13 @@ export function TowerGame() {
             </button>
           </div>
           <p className="mt-1 font-mono text-[10px] text-[#6fdd9a]">Space veya bas konuş. Nefes sayılmaz.</p>
+          {locStep >= 0 && locStep < LOC_STEPS.length ? (
+            <div className="mt-3 rounded-2xl border border-amber-400/50 bg-[#0c2416] p-4 text-sm leading-6">
+              <p className="font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">5247 · TÜRKÇE</p>
+              <p className="mt-2 text-[#8fb89a]">Pilot: İstanbul günaydın, 5247, pist 06 establish</p>
+              <p className="mt-3 text-base font-semibold text-[#e8ffe8]">Sen söyle: {LOC_STEPS[locStep].hint}</p>
+            </div>
+          ) : null}
         </div>
         <aside className="min-h-[520px] space-y-3">
           <div className="rounded-2xl border border-[#1f6b3a] p-3 text-xs">

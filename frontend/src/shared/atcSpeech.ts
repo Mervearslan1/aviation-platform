@@ -128,14 +128,43 @@ function trSpeak(text: string) {
   return text.replace(/\d/g, (d) => `${TR_DIGIT[d] || d} `)
 }
 
+export type VoiceKind = 'f' | 'm' | '5247'
+
+function pickVoice(lang: string, kind?: VoiceKind) {
+  const all = speechSynthesis.getVoices()
+  const prefix = lang.toLowerCase().startsWith('tr') ? 'tr' : 'en'
+  const pool = all.filter((v) => v.lang.toLowerCase().startsWith(prefix))
+  const src = pool.length ? pool : all
+  const female = /female|zira|hazel|samantha|victoria|karen|moira|tessa|fiona|hedda|katja|anna|filiz|yelda|emel|susan|salli/i
+  const male = /male|david|mark|daniel|george|thomas|fred|yavuz|tolga|ahmet|mehmet|emre/i
+  if (kind === 'f') return src.find((v) => female.test(v.name)) || src[0]
+  if (kind === '5247') return src.find((v) => male.test(v.name) && v.lang.toLowerCase().startsWith('tr')) || src.find((v) => male.test(v.name)) || src[0]
+  return src.find((v) => male.test(v.name)) || src[Math.min(1, src.length - 1)] || src[0]
+}
+
+if (typeof window !== 'undefined' && window.speechSynthesis) {
+  speechSynthesis.getVoices()
+  speechSynthesis.addEventListener?.('voiceschanged', () => speechSynthesis.getVoices())
+}
+
 /** Radio + light cabin. Stops everyone else first. */
-export function speakAtc(text: string, lang = 'en-US', volume = 1) {
+export function speakAtc(text: string, lang = 'en-US', volume = 1, kind?: VoiceKind) {
   speechSynthesis.cancel()
   const spoken = lang.toLowerCase().startsWith('tr') ? trSpeak(text) : atcSpoken(text)
   const u = new SpeechSynthesisUtterance(spoken)
   u.lang = lang.startsWith('tr') ? 'tr-TR' : lang
-  u.rate = lang.startsWith('tr') ? 0.98 : 1.04
-  u.pitch = lang.startsWith('tr') ? 1 : 0.74
+  const v = pickVoice(u.lang, kind)
+  if (v) u.voice = v
+  if (kind === '5247') {
+    u.rate = 0.9
+    u.pitch = 0.82
+  } else if (kind === 'f') {
+    u.rate = lang.startsWith('tr') ? 1 : 1.05
+    u.pitch = 1.18
+  } else {
+    u.rate = lang.startsWith('tr') ? 0.98 : 1.04
+    u.pitch = lang.startsWith('tr') ? 0.95 : 0.74
+  }
   u.volume = Math.max(0.2, Math.min(1, volume))
   const ms = Math.min(2200, 500 + text.length * 20)
   click()
