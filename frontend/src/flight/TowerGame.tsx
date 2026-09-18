@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, token } from '../shared/api'
 import { phraseMatchesAny } from '../shared/phrase'
-import { speakAtc } from '../shared/atcSpeech'
+import { speakAtc, startRadioBed } from '../shared/atcSpeech'
 import { DEMO, demoAddChange, isGuest } from '../shared/demo'
 import { useI18n } from '../shared/i18n'
 import { Button } from '../shared/Button'
@@ -25,7 +25,7 @@ type Ac = {
 
 type Cmd = { id: string; label: string; line: (cs: string, ac: Ac) => string; roles: Role[] }
 
-const SAVE = 'towerGameV2'
+const SAVE = 'towerGameV3'
 const W = 640
 const CX = 320
 const CY = 320
@@ -66,14 +66,23 @@ const CMDS: Cmd[] = [
 function seed(): Ac[] {
   return [
     { id: 'a', cs: 'Turkish 941', x: 230, y: 150, hdg: 160, spd: 210, alt: 4000, phase: 'app', squawk: '2201', last: '' },
-    { id: 'b', cs: 'SunExpress 773', x: 390, y: 175, hdg: 170, spd: 190, alt: 3000, phase: 'final', squawk: '3344', last: '' },
-    { id: 'c', cs: 'AJet 221', x: 318, y: 312, hdg: 160, spd: 0, alt: 0, phase: 'rw', squawk: '1200', last: '' },
-    { id: 'd', cs: 'Pegasus 12', x: 280, y: 355, hdg: 90, spd: 20, alt: 0, phase: 'taxi', squawk: '4412', last: '' },
+    { id: 'b', cs: 'SunExpress 773', x: 390, y: 175, hdg: 170, spd: 180, alt: 2200, phase: 'final', squawk: '3344', last: '' },
+    { id: 'c', cs: 'Anadolu 221', x: 318, y: 300, hdg: 160, spd: 60, alt: 0, phase: 'rw', squawk: '1200', last: '' },
+    { id: 'd', cs: 'Sunturk 12', x: 270, y: 360, hdg: 90, spd: 22, alt: 0, phase: 'taxi', squawk: '4412', last: '' },
     { id: 'e', cs: 'Turkish 777', x: 470, y: 240, hdg: 250, spd: 220, alt: 5000, phase: 'hold', squawk: '7700', emerg: 'mayday', last: '' },
-    { id: 'f', cs: 'AJet 45C', x: 260, y: 210, hdg: 155, spd: 180, alt: 2500, phase: 'app', squawk: '4521', emerg: 'tcas', last: '' },
-    { id: 'g', cs: 'SunExpress 58T', x: 430, y: 430, hdg: 340, spd: 200, alt: 6000, phase: 'hold', squawk: '7600', emerg: 'nordo', last: '' },
-    { id: 'h', cs: 'Pegasus 88', x: 200, y: 400, hdg: 40, spd: 18, alt: 0, phase: 'taxi', squawk: '1200', emerg: 'pan', last: '' },
+    { id: 'f', cs: 'Emirates 412', x: 200, y: 230, hdg: 155, spd: 200, alt: 3500, phase: 'app', squawk: '4521', last: '' },
+    { id: 'g', cs: 'KLM 441', x: 430, y: 430, hdg: 340, spd: 190, alt: 6000, phase: 'hold', squawk: '2211', last: '' },
+    { id: 'h', cs: 'Sunturk 88', x: 180, y: 390, hdg: 40, spd: 18, alt: 0, phase: 'taxi', squawk: '1200', emerg: 'pan', last: '' },
+    { id: 'i', cs: 'FedEx 16', x: 340, y: 268, hdg: 160, spd: 80, alt: 0, phase: 'dep', squawk: '6016', last: '' },
+    { id: 'j', cs: 'Ryanair 92', x: 360, y: 200, hdg: 160, spd: 160, alt: 1200, phase: 'final', squawk: '1192', last: '' },
+    { id: 'k', cs: 'Turkish 632', x: 150, y: 280, hdg: 70, spd: 25, alt: 0, phase: 'taxi', squawk: '1632', last: '' },
   ]
+}
+
+function blipColor(a: Ac) {
+  if (a.emerg === 'mayday') return '#ff8ad4'
+  if (a.phase === 'dep' || (a.phase === 'rw' && a.spd >= 40)) return '#ffe566'
+  return '#f4f7fb'
 }
 
 function loadSave(): { role: Role; handled: number; fleet: Ac[] } | null {
@@ -98,8 +107,15 @@ export function TowerGame() {
   const [note, setNote] = useState('')
   const [sent, setSent] = useState('')
   const recRef = useRef<{ stop: () => void } | null>(null)
+  const fleetRef = useRef(fleet)
+  const busyRef = useRef(false)
+  const selRef = useRef(sel)
+  const [cutIn, setCutIn] = useState('')
   const ac = fleet.find((a) => a.id === sel) || null
   const cmds = useMemo(() => CMDS.filter((c) => c.roles.includes(role)), [role])
+  fleetRef.current = fleet
+  busyRef.current = busy
+  selRef.current = sel
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -127,6 +143,44 @@ export function TowerGame() {
   useEffect(() => {
     localStorage.setItem(SAVE, JSON.stringify({ role, handled, fleet }))
   }, [role, handled, fleet])
+
+  useEffect(() => {
+    const stopBed = startRadioBed()
+    const chatter = [
+      'Istanbul Ground, KLM 441, request push and start',
+      'Ryanair 92, final runway 16 Left',
+      'FedEx 16, ready for departure',
+      'Emirates 412, request descent 3000',
+      'SunExpress 773, holding short 16 Left',
+      'Sunturk 12, taxi via Bravo',
+      'Turkish 632, request taxi',
+    ]
+    const id = window.setInterval(() => {
+      const pack = fleetRef.current
+      if (!pack.length) return
+      if (busyRef.current) {
+        if (Math.random() > 0.4) return
+        const other = pack.filter((a) => a.id !== selRef.current)
+        const a = other[Math.floor(Math.random() * other.length)]
+        if (!a) return
+        const line = a.emerg === 'mayday'
+          ? `BREAK BREAK, MAYDAY ${a.cs}`
+          : `${a.cs}, Istanbul Tower, ${a.phase === 'final' ? 'final 16 Left' : 'requesting'}`
+        setCutIn(line)
+        setWho(a.cs)
+        setStrip(line)
+        speakAtc(line, 'en-US', 0.95)
+        return
+      }
+      if (Math.random() > 0.5) return
+      const line = chatter[Math.floor(Math.random() * chatter.length)]
+      speakAtc(line, 'en-US', 0.32)
+    }, 8000)
+    return () => {
+      stopBed()
+      window.clearInterval(id)
+    }
+  }, [])
 
   const bump = (field: 'alt' | 'spd' | 'hdg', delta: number) => {
     if (!sel) return
@@ -175,15 +229,26 @@ export function TowerGame() {
       const text = ev.results[ev.results.length - 1][0].transcript
       rec.stop()
       setBusy(false)
-      const ok = phraseMatchesAny(text, line, [ac.cs, cmd.label])
+      const ok = phraseMatchesAny(text, line, [ac.cs, cmd.label, 'sunturk', 'turkish', 'sun express'])
       const from = ac.cs
-      if (ok) {
-        const ans = replyFor(cmd, ac)
-        const good = positive(cmd, ac)
+      if (ok && Math.random() < 0.18) {
         setWho(from)
-        setStrip(ans)
-        speakAtc(ans)
-        setHandled((n) => n + (good ? 1 : 0))
+        setStrip(`${from}, say again from the start.`)
+        speakAtc(`${from} say again`)
+      } else if (ok) {
+        let ans = replyFor(cmd, ac)
+        const good = positive(cmd, ac)
+        if (good && Math.random() < 0.2 && cmd.id !== 'may' && cmd.id !== 'pan') {
+          ans = `${from}, unable due traffic.`
+          setWho(from)
+          setStrip(ans)
+          speakAtc(ans)
+        } else {
+          setWho(from)
+          setStrip(ans)
+          speakAtc(ans)
+          setHandled((n) => n + (good ? 1 : 0))
+        }
         setFleet((prev) => prev.map((a) => (a.id === ac.id ? { ...a, last: ans } : a)))
       } else {
         setWho(from)
@@ -288,28 +353,52 @@ export function TowerGame() {
             <line x1={CX} y1={CY - RR} x2={CX} y2={CY + RR} stroke="#1f8a4d" strokeWidth="1" opacity="0.4" />
             <line x1={CX - RR} y1={CY} x2={CX + RR} y2={CY} stroke="#1f8a4d" strokeWidth="1" opacity="0.4" />
             <g transform={`rotate(-20 ${CX} ${CY})`}>
-              <rect x={CX - 5} y={CY - 88} width="4" height="176" fill="#3dff8a" opacity="0.7" />
-              <rect x={CX + 10} y={CY - 88} width="4" height="176" fill="#3dff8a" opacity="0.55" />
+              <rect x={CX - 10} y={CY - 100} width="6" height="200" fill="#3dff8a" opacity="0.85" />
+              <rect x={CX + 12} y={CY - 100} width="6" height="200" fill="#3dff8a" opacity="0.7" />
+              <text x={CX - 7} y={CY - 108} fill="#b8ffd0" fontSize="11" fontFamily="IBM Plex Mono, monospace">16L</text>
+              <text x={CX + 15} y={CY - 108} fill="#b8ffd0" fontSize="11" fontFamily="IBM Plex Mono, monospace">16R</text>
+              <text x={CX - 7} y={CY + 116} fill="#b8ffd0" fontSize="11" fontFamily="IBM Plex Mono, monospace">34R</text>
+              <text x={CX + 15} y={CY + 116} fill="#b8ffd0" fontSize="11" fontFamily="IBM Plex Mono, monospace">34L</text>
+              <text x={CX + 28} y={CY - 40} fill="#6fdd9a" fontSize="9" fontFamily="IBM Plex Mono, monospace">160°</text>
+              <text x={CX + 28} y={CY + 48} fill="#6fdd9a" fontSize="9" fontFamily="IBM Plex Mono, monospace">340°</text>
+              <line x1={CX - 40} y1={CY + 40} x2={CX - 10} y2={CY + 40} stroke="#2fa05a" strokeWidth="1.5" />
+              <text x={CX - 52} y={CY + 44} fill="#6fdd9a" fontSize="9" fontFamily="IBM Plex Mono, monospace">A</text>
+              <line x1={CX + 18} y1={CY - 20} x2={CX + 48} y2={CY - 20} stroke="#2fa05a" strokeWidth="1.5" />
+              <text x={CX + 52} y={CY - 16} fill="#6fdd9a" fontSize="9" fontFamily="IBM Plex Mono, monospace">B</text>
             </g>
+            <text x={CX - 12} y={CY - RR + 18} fill="#7dffb0" fontSize="10" fontFamily="IBM Plex Mono, monospace">360</text>
+            <text x={CX + RR - 28} y={CY + 4} fill="#7dffb0" fontSize="10" fontFamily="IBM Plex Mono, monospace">090</text>
+            <text x={CX - 12} y={CY + RR - 8} fill="#7dffb0" fontSize="10" fontFamily="IBM Plex Mono, monospace">180</text>
+            <text x={CX - RR + 8} y={CY + 4} fill="#7dffb0" fontSize="10" fontFamily="IBM Plex Mono, monospace">270</text>
             <g className="radar-sweep">
               <path d={`M ${CX} ${CY} L ${CX} ${CY - RR} A ${RR} ${RR} 0 0 1 ${CX + RR * 0.35} ${CY - RR * 0.94} Z`} fill="url(#beam)" />
               <line x1={CX} y1={CY} x2={CX} y2={CY - RR} stroke="#d8ffe8" strokeWidth="2" />
             </g>
             {fleet.map((a) => {
-              const tone = a.emerg === 'mayday' ? '#ff5a5a' : a.emerg === 'pan' ? '#ffe566' : a.emerg === 'tcas' ? '#7ecbff' : '#5cff9a'
+              const tone = blipColor(a)
               return (
                 <g key={a.id} onClick={() => { setSel(a.id); setCmd(null) }} className="cursor-pointer">
                   <rect x={a.x - 4} y={a.y - 4} width="8" height="8" transform={`rotate(45 ${a.x} ${a.y})`} fill={tone} stroke={sel === a.id ? '#fff' : tone} strokeWidth={sel === a.id ? 2 : 0} />
                   <line x1={a.x} y1={a.y} x2={a.x + Math.cos(((a.hdg - 90) * Math.PI) / 180) * 14} y2={a.y + Math.sin(((a.hdg - 90) * Math.PI) / 180) * 14} stroke={tone} strokeWidth="1.5" />
-                  <text x={a.x + 10} y={a.y - 8} fill="#b8ffd0" fontSize="11" fontFamily="IBM Plex Mono, monospace">{a.cs}</text>
-                  <text x={a.x + 10} y={a.y + 6} fill="#6fdd9a" fontSize="9" fontFamily="IBM Plex Mono, monospace">{a.alt || 'GND'} {a.hdg}°</text>
+                  <text x={a.x + 10} y={a.y - 8} fill={tone} fontSize="11" fontFamily="IBM Plex Mono, monospace">{a.cs}</text>
+                  {a.emerg === 'mayday' ? (
+                    <text x={a.x + 10} y={a.y + 6} fill="#ff8ad4" fontSize="10" fontFamily="IBM Plex Mono, monospace" fontWeight="700">EM</text>
+                  ) : a.emerg === 'pan' ? (
+                    <text x={a.x + 10} y={a.y + 6} fill="#ff3b3b" fontSize="10" fontFamily="IBM Plex Mono, monospace" fontWeight="700">PAN</text>
+                  ) : (
+                    <text x={a.x + 10} y={a.y + 6} fill="#9ad7b0" fontSize="9" fontFamily="IBM Plex Mono, monospace">{a.alt || 'GND'} {a.hdg}° {a.phase === 'rw' || a.phase === 'dep' ? '16L' : ''}</text>
+                  )}
                 </g>
               )
             })}
           </g>
-          <text x={CX} y="36" textAnchor="middle" fill="#7dffb0" fontSize="13" fontFamily="IBM Plex Mono, monospace">LTFM IGA</text>
-          <text x={CX} y="54" textAnchor="middle" fill="#3d9a62" fontSize="10" fontFamily="IBM Plex Mono, monospace">16L / 16R</text>
+          <text x={CX} y="28" textAnchor="middle" fill="#7dffb0" fontSize="13" fontFamily="IBM Plex Mono, monospace">LTFM IGA</text>
+          <text x={CX} y="44" textAnchor="middle" fill="#3d9a62" fontSize="10" fontFamily="IBM Plex Mono, monospace">RWY 16L/34R · 16R/34L · HDG 160/340</text>
         </svg>
+        <p className="mt-3 font-mono text-[11px] text-[#7dffb0]">
+          beyaz: trafik · sarı: kalkış · pembe+EM: acil · kırmızı PAN
+        </p>
+        {cutIn ? <p className="mt-2 rounded-xl border border-amber-400/50 bg-amber-500/15 px-3 py-2 text-sm">{cutIn}</p> : null}
         <div className="mt-3 rounded-2xl border border-[var(--stroke)] bg-[var(--panel)] px-4 py-3">
           <p className="font-mono text-[11px] tracking-[0.2em] text-[var(--amber)]">{who || 'TWR'}</p>
           <p className="mt-1 text-sm leading-6">{strip}</p>
