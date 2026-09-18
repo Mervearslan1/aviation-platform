@@ -20,6 +20,7 @@ type Ac = {
   phase: Phase
   squawk: string
   emerg?: 'pan' | 'mayday' | 'nordo'
+  lang?: 'tr' | 'en'
   last: string
 }
 
@@ -69,18 +70,18 @@ const POOL: Ac[] = [
   { id: 'b', cs: 'SunExpress 773', x: 390, y: 175, hdg: 170, spd: 160, alt: 2200, phase: 'final', squawk: '3344', last: '' },
   { id: 'c', cs: 'Anadolu 221', x: 318, y: 300, hdg: 160, spd: 50, alt: 0, phase: 'rw', squawk: '1200', last: '' },
   { id: 'd', cs: 'Sunturk 12', x: 270, y: 360, hdg: 90, spd: 18, alt: 0, phase: 'taxi', squawk: '4412', last: '' },
-  { id: 'e', cs: 'Turkish 777', x: 470, y: 240, hdg: 250, spd: 190, alt: 5000, phase: 'hold', squawk: '7700', emerg: 'mayday', last: '' },
+  { id: 'e', cs: 'Turkish 777', x: 470, y: 240, hdg: 160, spd: 190, alt: 5000, phase: 'app', squawk: '7700', emerg: 'mayday', last: '' },
   { id: 'f', cs: 'Emirates 412', x: 200, y: 230, hdg: 155, spd: 170, alt: 3500, phase: 'app', squawk: '4521', last: '' },
   { id: 'g', cs: 'KLM 441', x: 430, y: 430, hdg: 340, spd: 160, alt: 6000, phase: 'hold', squawk: '2211', last: '' },
   { id: 'h', cs: 'Sunturk 88', x: 180, y: 390, hdg: 40, spd: 16, alt: 0, phase: 'taxi', squawk: '1200', emerg: 'pan', last: '' },
   { id: 'i', cs: 'FedEx 16', x: 340, y: 268, hdg: 160, spd: 70, alt: 0, phase: 'dep', squawk: '6016', last: '' },
   { id: 'j', cs: 'Ryanair 92', x: 360, y: 200, hdg: 160, spd: 150, alt: 1200, phase: 'final', squawk: '1192', last: '' },
   { id: 'k', cs: 'Turkish 632', x: 150, y: 280, hdg: 70, spd: 20, alt: 0, phase: 'taxi', squawk: '1632', last: '' },
-  { id: 'n', cs: 'KLM 18', x: 500, y: 300, hdg: 250, spd: 170, alt: 4500, phase: 'hold', squawk: '7600', emerg: 'nordo', last: '' },
+  { id: 'n', cs: 'KLM 18', x: 500, y: 300, hdg: 160, spd: 170, alt: 4500, phase: 'app', squawk: '7600', emerg: 'nordo', last: '' },
 ]
 
 const AC5247: Ac = {
-  id: '5247', cs: '5247', x: 300, y: 210, hdg: 60, spd: 140, alt: 1800, phase: 'final', squawk: '5247', last: '',
+  id: '5247', cs: '5247', x: 300, y: 210, hdg: 60, spd: 140, alt: 1800, phase: 'final', squawk: '5247', lang: 'tr', last: '',
 }
 
 const LOC_STEPS: { expect: string[]; say: string[] }[] = [
@@ -128,6 +129,10 @@ const WX_BAD = {
 }
 
 function forRole(a: Ac, role: Role) {
+  if (a.emerg === 'mayday' || a.emerg === 'pan' || a.emerg === 'nordo') {
+    if (role === 'GND') return a.phase === 'taxi'
+    return role === 'APP' || role === 'TWR'
+  }
   if (role === 'APP') return a.phase === 'app' || a.phase === 'hold'
   if (role === 'TWR') return a.phase === 'final' || a.phase === 'rw' || a.phase === 'dep'
   return a.phase === 'taxi'
@@ -144,8 +149,17 @@ function emergCall(a: Ac) {
   return `${a.cs}, Istanbul Tower`
 }
 
+function trVoice(a: Ac) {
+  return a.lang === 'tr' || a.id === '5247'
+}
+
 function statusLine(a: Ac) {
   if (a.emerg === 'nordo') return ''
+  if (trVoice(a)) {
+    if (a.emerg === 'mayday') return `${a.cs}, motor arızası, ${a.alt} feet, pist istiyoruz`
+    if (a.phase === 'final' || a.phase === 'app') return `${a.cs}, yaklaşmada, ${a.alt} feet`
+    return `${a.cs}, ${a.alt} feet`
+  }
   if (a.emerg === 'mayday') {
     return `${a.cs}, engine failure, ${a.alt} feet, ${a.spd} knots, request the field`
   }
@@ -216,18 +230,27 @@ export function TowerGame() {
       setFleet((prev) =>
         prev.map((a) => {
           if (a.phase === 'rw' || a.phase === 'taxi' || a.spd < 8) return a
-          const rad = ((a.hdg - 90) * Math.PI) / 180
+          let hdg = a.hdg
+          if (a.emerg === 'mayday' || a.emerg === 'pan' || a.emerg === 'nordo') {
+            hdg = (Math.atan2(CY - a.y, CX - a.x) * 180) / Math.PI + 90
+            if (hdg < 0) hdg += 360
+          }
+          const rad = ((hdg - 90) * Math.PI) / 180
           const step = a.spd / 320
           let x = a.x + Math.cos(rad) * step
           let y = a.y + Math.sin(rad) * step
           const dx = x - CX
           const dy = y - CY
-          if (Math.hypot(dx, dy) > RR - 18) {
-            a = { ...a, hdg: (a.hdg + 140) % 360 }
-            x = CX + (dx / Math.hypot(dx, dy)) * (RR - 24)
-            y = CY + (dy / Math.hypot(dx, dy)) * (RR - 24)
+          const dist = Math.hypot(dx, dy)
+          if (a.emerg && dist < 40) {
+            return { ...a, x, y, hdg, phase: 'final' as Phase }
           }
-          return { ...a, x, y }
+          if (!a.emerg && dist > RR - 18) {
+            hdg = (hdg + 140) % 360
+            x = CX + (dx / dist) * (RR - 24)
+            y = CY + (dy / dist) * (RR - 24)
+          }
+          return { ...a, x, y, hdg }
         }),
       )
     }, 1400)
@@ -284,6 +307,16 @@ export function TowerGame() {
   }
 
   const replyFor = (id: string, a: Ac) => {
+    if (trVoice(a)) {
+      if (id === 'ahead') return statusLine(a)
+      if (id === 'cont') return `${a.cs}, devam ediyoruz.`
+      if (id === 'aff') return `${a.cs}, teyit.`
+      if (id === 'unb') return `${a.cs}, yapamıyoruz.`
+      if (id === 'say') return `${a.cs}, tekrar eder misiniz.`
+      if (id === 'land') return `${a.cs}, iniş serbest.`
+      if (id === 'ga') return `${a.cs}, pas geçiyoruz.`
+      return `${a.cs}, anlaşıldı.`
+    }
     if (id === 'ahead') return statusLine(a) || `${a.cs}, (no radio)`
     if (id === 'rel') {
       const nordo = fleet.find((x) => x.emerg === 'nordo')
@@ -306,7 +339,12 @@ export function TowerGame() {
     if (id === 'land') return `${a.cs}, cleared to land 16 Left.`
     if (id === 'to') return a.phase === 'rw' || a.phase === 'dep' ? `${a.cs}, rolling.` : `${a.cs}, unable, not on the runway.`
     if (id === 'luw') return `${a.cs}, lining up.`
-    if (id === 'hold') return `${a.cs}, holding short.`
+    if (id === 'hold') {
+      if (a.emerg === 'mayday' || a.emerg === 'pan') {
+        return trVoice(a) ? `${a.cs}, hold yok, piste geliyoruz.` : `${a.cs}, unable, emergency, inbound.`
+      }
+      return `${a.cs}, holding short.`
+    }
     if (id === 'ga') return `${a.cs}, going around.`
     if (id === 'taxi') return `${a.cs}, taxi via Bravo.`
     if (id === 'may') return `${a.cs}, runway in sight.`
@@ -334,8 +372,8 @@ export function TowerGame() {
     if (sel === '5247' || locStep >= 0) {
       if (advanceLoc(text)) return
       if (locStep >= 0 && locStep < LOC_STEPS.length) {
-        setStrip('Say again.')
-        speakAtc('Say again', 'en-US')
+        setStrip('Tekrar eder misiniz.')
+        speakAtc('Tekrar eder misiniz', 'tr-TR')
         return
       }
     }
@@ -361,6 +399,11 @@ export function TowerGame() {
       return
     }
     setSel(named.id)
+    if (has(text, ['günaydın', 'gunaydin', 'istanbul gunaydin', 'efendim'])) {
+      named.lang = 'tr'
+      setFleet((prev) => prev.map((x) => (x.id === named.id ? { ...x, lang: 'tr' as const } : x)))
+    }
+    const lang = trVoice(named) ? 'tr-TR' : 'en-US'
     const onlyName = phraseMatchesAny(text, named.cs, [named.cs.split(' ').pop() || named.cs])
       && !has(text, ['cleared', 'taxi', 'heading', 'descend', 'contact', 'go around', 'continue', 'affirm', 'unable', 'say again', 'go ahead', 'ils', 'land', 'take'])
     if (onlyName || has(text, ['go ahead'])) {
@@ -372,7 +415,7 @@ export function TowerGame() {
       }
       setWho(named.cs)
       setStrip(report)
-      speakAtc(report)
+      speakAtc(report, lang)
       setFleet((prev) => prev.map((x) => (x.id === named.id ? { ...x, last: 'reported' } : x)))
       return
     }
@@ -380,15 +423,16 @@ export function TowerGame() {
       CMDS.filter((c) => c.roles.includes(role)).find((c) => has(text, [c.label, c.id === 'cont' ? 'continue' : '', c.id === 'aff' ? 'affirm' : '', c.id === 'unb' ? 'unable' : '', c.id === 'ahead' ? 'go ahead' : ''].filter(Boolean)))
       || cmd
     if (!hit) {
+      const again = trVoice(named) ? `${named.cs}, tekrar eder misiniz.` : `${named.cs}, say again.`
       setWho(named.cs)
-      setStrip(`${named.cs}, say again.`)
-      speakAtc(`${named.cs} say again`)
+      setStrip(again)
+      speakAtc(again, lang)
       return
     }
     const ans = replyFor(hit.id, named)
     setWho(named.cs)
     setStrip(ans)
-    speakAtc(ans)
+    speakAtc(ans, lang)
     setHandled((n) => n + 1)
   }
 
@@ -403,7 +447,7 @@ export function TowerGame() {
     silenceRadio()
     setBusy(true)
     const rec = new Ctor()
-    rec.lang = locStep >= 0 ? 'tr-TR' : 'en-US'
+    rec.lang = locStep >= 0 || (ac && trVoice(ac)) ? 'tr-TR' : 'en-US'
     rec.continuous = false
     rec.interimResults = false
     rec.onresult = (ev) => {
