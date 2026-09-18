@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, token } from '../shared/api'
 import { phraseMatchesAny } from '../shared/phrase'
-import { speakAtc, silenceRadio, type VoiceKind } from '../shared/atcSpeech'
+import { speakAtc, silenceRadio, play5247Tape, type VoiceKind } from '../shared/atcSpeech'
 import { DEMO, demoAddChange, isGuest } from '../shared/demo'
 import { useI18n } from '../shared/i18n'
 import { Button } from '../shared/Button'
@@ -98,9 +98,9 @@ const LOC_STEPS: { keys: string[]; say: string[]; hint: string }[] = [
     hint: 'Anlaşıldı, yaklaşıma devam edin, ilgili yerlere haber veriyoruz',
   },
   {
-    keys: ['ils', 'aliyor', 'alıyor', 'gidip'],
+    keys: ['ils', 'els', 'i l s', 'aisle', 'eyes', 'aliyor', 'alıyor', 'musunuz', 'sinyal', '5247', 'localizer', 'lokal', 'gidip'],
     say: ['Efendim sinyal devamlı var ama localizer şu anda gidip gidip geliyor.'],
-    hint: '5247 ILS alıyor musunuz?',
+    hint: 'ILS alıyor musunuz?',
   },
   {
     keys: ['inecek', 'inecek misiniz'],
@@ -137,10 +137,9 @@ function foldTr(s: string) {
 }
 
 function locHit(spoken: string, keys: string[]) {
-  const n = foldTr(spoken)
+  const n = foldTr(spoken).replace(/i l s/g, 'ils')
   const uniq = [...new Set(keys.map(foldTr))]
-  const hit = uniq.filter((k) => n.includes(k)).length
-  return hit >= Math.max(1, Math.ceil(uniq.length * 0.4))
+  return uniq.some((k) => n.includes(k))
 }
 
 function isTurkishTalk(spoken: string) {
@@ -221,11 +220,12 @@ function blipColor(a: Ac) {
 }
 
 function isRealTalk(text: string) {
-  const n = text.toLowerCase().replace(/[^a-z0-9çğıöşü ]/gi, ' ').replace(/\s+/g, ' ').trim()
-  if (n.length < 5) return false
-  const noise = new Set(['uh', 'um', 'ah', 'eh', 'hmm', 'mm', 'ı', 'e', 'a', 'aa', 'ee', 'ıı'])
+  const n = foldTr(text).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()
+  if (/\d/.test(n) || n.includes('ils') || n.includes('els') || n.includes('lokal')) return n.length >= 2
+  if (n.length < 4) return false
+  const noise = new Set(['uh', 'um', 'ah', 'eh', 'hmm', 'mm', 'i', 'e', 'a', 'aa', 'ee'])
   const words = n.split(' ').filter((w) => w.length > 1 && !noise.has(w))
-  return words.length >= 1 && (n.length >= 6 || /\d/.test(n))
+  return words.length >= 1
 }
 
 function has(text: string, bits: string[]) {
@@ -324,7 +324,7 @@ export function TowerGame() {
       setLocStep(0)
       setWho('5247')
       setStrip('İstanbul günaydın 5247 pist 06 establish')
-      speakAtc('İstanbul günaydın 5247 pist 06 establish', 'tr-TR', 1, '5247')
+      play5247Tape()
       window.setTimeout(() => setStrip(LOC_STEPS[0].hint), 3500)
       setFleet((prev) => prev.map((x) => (x.id === '5247' ? { ...x, last: 'called' } : x)))
     }, 5000)
@@ -733,6 +733,7 @@ export function TowerGame() {
               <p className="font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">5247 · TÜRKÇE</p>
               <p className="mt-2 text-[#8fb89a]">Pilot: İstanbul günaydın, 5247, pist 06 establish</p>
               <p className="mt-3 text-base font-semibold text-[#e8ffe8]">Sen söyle: {LOC_STEPS[locStep].hint}</p>
+              <button type="button" className="mt-2 text-xs underline text-[#7dffb0]" onClick={() => play5247Tape()}>Orijinal kaydı dinle</button>
             </div>
           ) : null}
         </div>

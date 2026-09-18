@@ -173,6 +173,20 @@ export function speakAtc(text: string, lang = 'en-US', volume = 1, kind?: VoiceK
   speechSynthesis.speak(u)
 }
 
+let tape: HTMLAudioElement | null = null
+
+export function play5247Tape() {
+  speechSynthesis.cancel()
+  try { tape?.pause() } catch { /* */ }
+  tape = new Audio('/audio/5247.webm')
+  tape.volume = 0.95
+  click()
+  return tape.play().catch(() => {
+    speakAtc('İstanbul günaydın 5247 pist 06 establish', 'tr-TR', 1, '5247')
+  })
+}
+
 export function silenceRadio() {
   speechSynthesis.cancel()
+  try { tape?.pause() } catch { /* */ }
 }
