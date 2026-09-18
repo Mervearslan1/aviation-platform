@@ -63,6 +63,7 @@ const CMDS: Cmd[] = [
   { id: 'may', label: 'Roger MAYDAY', line: (cs) => `${cs} roger MAYDAY runway 16 Left is yours`, roles: ['TWR', 'APP'] },
   { id: 'pan', label: 'Roger PAN', line: (cs) => `${cs} roger PAN PAN number 1`, roles: ['TWR', 'APP'] },
   { id: 'rel', label: 'Relay', line: (cs) => `${cs} relay, request their status`, roles: ['APP', 'TWR'] },
+  { id: 'wx', label: 'Standby METAR', line: () => 'All stations, standby for METAR', roles: ['APP', 'TWR', 'GND'] },
 ]
 
 const POOL: Ac[] = [
@@ -317,6 +318,7 @@ export function TowerGame() {
       if (id === 'ga') return `${a.cs}, pas geçiyoruz.`
       return `${a.cs}, anlaşıldı.`
     }
+    if (id === 'wx') return 'All stations, standby for METAR.'
     if (id === 'ahead') return statusLine(a) || `${a.cs}, (no radio)`
     if (id === 'rel') {
       const nordo = fleet.find((x) => x.emerg === 'nordo')
@@ -369,6 +371,19 @@ export function TowerGame() {
   }
 
   const hear = (text: string) => {
+    if (has(text, ['all planes standby', 'all stations standby', 'all aircraft standby', 'standby metar', 'standby atis', 'all planes standby metar'])) {
+      setWho('TWR')
+      setStrip('All stations, standby for METAR.')
+      speakAtc(`All stations, standby for METAR. ${wx.atis}`)
+      window.setTimeout(() => {
+        const any = shown[0]
+        if (!any) return
+        setWho(any.cs)
+        setStrip(`${any.cs}, roger, listening.`)
+        speakAtc(`${any.cs} roger`)
+      }, 6500)
+      return
+    }
     if (sel === '5247' || locStep >= 0) {
       if (advanceLoc(text)) return
       if (locStep >= 0 && locStep < LOC_STEPS.length) {
@@ -427,6 +442,12 @@ export function TowerGame() {
       setWho(named.cs)
       setStrip(again)
       speakAtc(again, lang)
+      return
+    }
+    if (hit.id === 'wx') {
+      setWho('TWR')
+      setStrip('All stations, standby for METAR.')
+      speakAtc(`All stations, standby for METAR. ${wx.atis}`)
       return
     }
     const ans = replyFor(hit.id, named)
@@ -570,7 +591,8 @@ export function TowerGame() {
               </radialGradient>
               <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="#39ff88" stopOpacity="0" />
-                <stop offset="100%" stopColor="#b6ffd0" stopOpacity="0.85" />
+                <stop offset="70%" stopColor="#39ff88" stopOpacity="0.04" />
+                <stop offset="100%" stopColor="#b6ffd0" stopOpacity="0.18" />
               </linearGradient>
               <clipPath id="scope"><circle cx={CX} cy={CY} r={RR} /></clipPath>
             </defs>
@@ -607,15 +629,15 @@ export function TowerGame() {
                   ) : null}
                 </g>
                 <g className="radar-sweep">
-                  <path d={`M ${CX} ${CY} L ${CX} ${CY - RR} A ${RR} ${RR} 0 0 1 ${CX + RR * 0.35} ${CY - RR * 0.94} Z`} fill="url(#beam)" />
-                  <line x1={CX} y1={CY} x2={CX} y2={CY - RR} stroke="#d8ffe8" strokeWidth="2" />
+                  <path d={`M ${CX} ${CY} L ${CX} ${CY - RR} A ${RR} ${RR} 0 0 1 ${CX + RR * 0.22} ${CY - RR * 0.98} Z`} fill="url(#beam)" />
+                  <line x1={CX} y1={CY} x2={CX} y2={CY - RR} stroke="#3dff8a" strokeWidth="1" opacity="0.35" />
                 </g>
                 {shown.map((a) => {
                   const tone = blipColor(a)
                   return (
                     <g key={a.id} onClick={() => { setSel(a.id); setCmd(null) }} className="cursor-pointer">
                       <rect x={a.x - 4} y={a.y - 4} width="8" height="8" transform={`rotate(45 ${a.x} ${a.y})`} fill={tone} stroke={sel === a.id ? '#fff' : tone} strokeWidth={sel === a.id ? 2 : 0} />
-                      <text x={a.x + 10} y={a.y - 8} fill={tone} fontSize="11">{a.cs}</text>
+                      <text x={a.x + 10} y={a.y - 8} fill={tone} fontSize="11" stroke="#04140a" strokeWidth="3" paintOrder="stroke fill">{a.cs}</text>
                       {a.emerg === 'mayday' ? (
                         <text x={a.x + 10} y={a.y + 6} fill="#ff8ad4" fontSize="10" fontWeight="700">EM</text>
                       ) : a.emerg === 'pan' ? (

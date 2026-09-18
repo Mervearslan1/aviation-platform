@@ -208,7 +208,9 @@ html.dark .track-page::after {
 }
 .radar-sweep {
   transform-origin: 320px 320px;
-  animation: radar-spin 4s linear infinite;
+  animation: radar-spin 7s linear infinite;
+  pointer-events: none;
+  opacity: 0.28;
 }
 @keyframes radar-spin {
   to {
