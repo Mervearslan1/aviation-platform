@@ -22,6 +22,14 @@ function displayTitle(step: CatalogStep, locale: string) {
   return step.title
 }
 
+function sortedSteps(steps: CatalogStep[]) {
+  return [...steps].sort((a, b) => {
+    const ds = stageOf(a) - stageOf(b)
+    if (ds !== 0) return ds
+    return a.orderIndex - b.orderIndex
+  })
+}
+
 export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const { t, locale } = useI18n()
   const [path, setPath] = useState<CatalogPath | null>(null)
@@ -55,8 +63,9 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
             /* catalog path still usable */
           }
         }
-        setPath(detail)
-        const start = detail.steps.find((s) => s.recommended) || detail.steps[0] || null
+        const ordered = sortedSteps(detail.steps)
+        setPath({ ...detail, steps: ordered })
+        const start = ordered.find((s) => s.progressStatus !== 'COMPLETED') || ordered[0] || null
         setCurrent(start)
         if (start) setStage(stageOf(start))
         const finished = new Set<number>()
@@ -78,7 +87,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
     api
       .completeStep(track, path.id, current.id, { answer, transcript })
       .then((next) => {
-        setPath(next)
+        setPath({ ...next, steps: sortedSteps(next.steps) })
         const finished = new Set<number>()
         for (const s of next.steps) {
           if (s.progressStatus === 'COMPLETED') finished.add(s.id)

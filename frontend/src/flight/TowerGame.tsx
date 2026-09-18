@@ -25,9 +25,11 @@ type Ac = {
 
 type Cmd = { id: string; label: string; line: (cs: string, ac: Ac) => string; roles: Role[] }
 
-const SAVE = 'towerGameV1'
+const SAVE = 'towerGameV2'
 const W = 640
-const H = 520
+const CX = 320
+const CY = 320
+const RR = 292
 
 type MicRec = {
   lang: string
@@ -63,14 +65,14 @@ const CMDS: Cmd[] = [
 
 function seed(): Ac[] {
   return [
-    { id: 'a', cs: 'Turkish 941', x: 180, y: 90, hdg: 160, spd: 210, alt: 4000, phase: 'app', squawk: '2201', last: '' },
-    { id: 'b', cs: 'SunExpress 773', x: 420, y: 70, hdg: 170, spd: 190, alt: 3000, phase: 'final', squawk: '3344', last: '' },
-    { id: 'c', cs: 'AJet 221', x: 300, y: 250, hdg: 160, spd: 0, alt: 0, phase: 'rw', squawk: '1200', last: '' },
-    { id: 'd', cs: 'Pegasus 12', x: 80, y: 320, hdg: 90, spd: 20, alt: 0, phase: 'taxi', squawk: '4412', last: '' },
-    { id: 'e', cs: 'Turkish 777', x: 520, y: 200, hdg: 250, spd: 220, alt: 5000, phase: 'hold', squawk: '7700', emerg: 'mayday', last: '' },
-    { id: 'f', cs: 'AJet 45C', x: 240, y: 140, hdg: 155, spd: 180, alt: 2500, phase: 'app', squawk: '4521', emerg: 'tcas', last: '' },
-    { id: 'g', cs: 'SunExpress 58T', x: 560, y: 380, hdg: 340, spd: 200, alt: 6000, phase: 'hold', squawk: '7600', emerg: 'nordo', last: '' },
-    { id: 'h', cs: 'Pegasus 88', x: 140, y: 400, hdg: 40, spd: 18, alt: 0, phase: 'taxi', squawk: '1200', emerg: 'pan', last: '' },
+    { id: 'a', cs: 'Turkish 941', x: 230, y: 150, hdg: 160, spd: 210, alt: 4000, phase: 'app', squawk: '2201', last: '' },
+    { id: 'b', cs: 'SunExpress 773', x: 390, y: 175, hdg: 170, spd: 190, alt: 3000, phase: 'final', squawk: '3344', last: '' },
+    { id: 'c', cs: 'AJet 221', x: 318, y: 312, hdg: 160, spd: 0, alt: 0, phase: 'rw', squawk: '1200', last: '' },
+    { id: 'd', cs: 'Pegasus 12', x: 280, y: 355, hdg: 90, spd: 20, alt: 0, phase: 'taxi', squawk: '4412', last: '' },
+    { id: 'e', cs: 'Turkish 777', x: 470, y: 240, hdg: 250, spd: 220, alt: 5000, phase: 'hold', squawk: '7700', emerg: 'mayday', last: '' },
+    { id: 'f', cs: 'AJet 45C', x: 260, y: 210, hdg: 155, spd: 180, alt: 2500, phase: 'app', squawk: '4521', emerg: 'tcas', last: '' },
+    { id: 'g', cs: 'SunExpress 58T', x: 430, y: 430, hdg: 340, spd: 200, alt: 6000, phase: 'hold', squawk: '7600', emerg: 'nordo', last: '' },
+    { id: 'h', cs: 'Pegasus 88', x: 200, y: 400, hdg: 40, spd: 18, alt: 0, phase: 'taxi', squawk: '1200', emerg: 'pan', last: '' },
   ]
 }
 
@@ -105,13 +107,16 @@ export function TowerGame() {
         prev.map((a) => {
           if (a.phase === 'rw' || a.spd < 5) return a
           const rad = ((a.hdg - 90) * Math.PI) / 180
-          const step = a.spd / 140
+          const step = a.spd / 160
           let x = a.x + Math.cos(rad) * step
           let y = a.y + Math.sin(rad) * step
-          if (x < 20 || x > W - 20) a = { ...a, hdg: (a.hdg + 180) % 360 }
-          if (y < 20 || y > H - 20) a = { ...a, hdg: (a.hdg + 180) % 360 }
-          x = Math.min(W - 20, Math.max(20, x))
-          y = Math.min(H - 20, Math.max(20, y))
+          const dx = x - CX
+          const dy = y - CY
+          if (Math.hypot(dx, dy) > RR - 18) {
+            a = { ...a, hdg: (a.hdg + 140) % 360 }
+            x = CX + (dx / Math.hypot(dx, dy)) * (RR - 24)
+            y = CY + (dy / Math.hypot(dx, dy)) * (RR - 24)
+          }
           return { ...a, x, y }
         }),
       )
@@ -257,26 +262,52 @@ export function TowerGame() {
           <span className="ml-auto font-mono text-sm text-[var(--amber)]">{handled} {t.gameHandled}</span>
           <Button variant="ghost" onClick={reset}>{t.gameReset}</Button>
         </div>
-        <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full rounded-3xl border border-[var(--stroke)] bg-[#071018]">
-          {[80, 160, 240].map((r) => (
-            <circle key={r} cx={W / 2} cy={H / 2} r={r} fill="none" stroke="#1f6b4a" strokeWidth="1" opacity="0.5" />
-          ))}
-          <line x1={W / 2} y1="0" x2={W / 2} y2={H} stroke="#1f6b4a" strokeWidth="1" opacity="0.35" />
-          <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="#1f6b4a" strokeWidth="1" opacity="0.35" />
-          <g transform={`rotate(-20 ${W / 2} ${H / 2})`}>
-            <rect x={W / 2 - 8} y={H / 2 - 110} width="10" height="220" rx="2" fill="#c9d4c0" />
-            <rect x={W / 2 + 18} y={H / 2 - 110} width="10" height="220" rx="2" fill="#c9d4c0" />
-            <text x={W / 2 - 6} y={H / 2 - 118} fill="#9ad7b0" fontSize="10">16L</text>
-            <text x={W / 2 + 20} y={H / 2 - 118} fill="#9ad7b0" fontSize="10">16R</text>
-          </g>
-          <text x="16" y="22" fill="#9ad7b0" fontSize="12">LTFM IGA</text>
-          {fleet.map((a) => (
-            <g key={a.id} onClick={() => { setSel(a.id); setCmd(null) }} className="cursor-pointer">
-              <circle cx={a.x} cy={a.y} r={sel === a.id ? 9 : 6} fill={a.emerg === 'mayday' ? '#ff6b6b' : a.emerg === 'pan' ? '#f5c542' : a.emerg === 'tcas' ? '#7eb8f0' : '#4ade80'} />
-              <text x={a.x + 10} y={a.y - 6} fill="#e8f6ee" fontSize="11">{a.cs}</text>
-              <text x={a.x + 10} y={a.y + 8} fill="#8fb89a" fontSize="9">{a.alt || 'GND'} {a.hdg}°</text>
+        <svg viewBox={`0 0 ${W} ${W}`} className="radar-scope mt-3">
+          <defs>
+            <radialGradient id="crt" cx="50%" cy="50%">
+              <stop offset="0%" stopColor="#0a3d1c" />
+              <stop offset="70%" stopColor="#03160a" />
+              <stop offset="100%" stopColor="#010805" />
+            </radialGradient>
+            <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#39ff88" stopOpacity="0" />
+              <stop offset="85%" stopColor="#39ff88" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#b6ffd0" stopOpacity="0.85" />
+            </linearGradient>
+            <clipPath id="scope">
+              <circle cx={CX} cy={CY} r={RR} />
+            </clipPath>
+          </defs>
+          <circle cx={CX} cy={CY} r={RR + 6} fill="#04140a" stroke="#145c32" strokeWidth="6" />
+          <g clipPath="url(#scope)">
+            <circle cx={CX} cy={CY} r={RR} fill="url(#crt)" />
+            {[70, 140, 210, 280].map((r) => (
+              <circle key={r} cx={CX} cy={CY} r={r} fill="none" stroke="#1f8a4d" strokeWidth="1" opacity="0.45" />
+            ))}
+            <line x1={CX} y1={CY - RR} x2={CX} y2={CY + RR} stroke="#1f8a4d" strokeWidth="1" opacity="0.4" />
+            <line x1={CX - RR} y1={CY} x2={CX + RR} y2={CY} stroke="#1f8a4d" strokeWidth="1" opacity="0.4" />
+            <g transform={`rotate(-20 ${CX} ${CY})`}>
+              <rect x={CX - 5} y={CY - 88} width="4" height="176" fill="#3dff8a" opacity="0.7" />
+              <rect x={CX + 10} y={CY - 88} width="4" height="176" fill="#3dff8a" opacity="0.55" />
             </g>
-          ))}
+            <g className="radar-sweep">
+              <path d={`M ${CX} ${CY} L ${CX} ${CY - RR} A ${RR} ${RR} 0 0 1 ${CX + RR * 0.35} ${CY - RR * 0.94} Z`} fill="url(#beam)" />
+              <line x1={CX} y1={CY} x2={CX} y2={CY - RR} stroke="#d8ffe8" strokeWidth="2" />
+            </g>
+            {fleet.map((a) => {
+              const tone = a.emerg === 'mayday' ? '#ff5a5a' : a.emerg === 'pan' ? '#ffe566' : a.emerg === 'tcas' ? '#7ecbff' : '#5cff9a'
+              return (
+                <g key={a.id} onClick={() => { setSel(a.id); setCmd(null) }} className="cursor-pointer">
+                  <rect x={a.x - 4} y={a.y - 4} width="8" height="8" transform={`rotate(45 ${a.x} ${a.y})`} fill={tone} stroke={sel === a.id ? '#fff' : tone} strokeWidth={sel === a.id ? 2 : 0} />
+                  <line x1={a.x} y1={a.y} x2={a.x + Math.cos(((a.hdg - 90) * Math.PI) / 180) * 14} y2={a.y + Math.sin(((a.hdg - 90) * Math.PI) / 180) * 14} stroke={tone} strokeWidth="1.5" />
+                  <text x={a.x + 10} y={a.y - 8} fill="#b8ffd0" fontSize="11" fontFamily="IBM Plex Mono, monospace">{a.cs}</text>
+                  <text x={a.x + 10} y={a.y + 6} fill="#6fdd9a" fontSize="9" fontFamily="IBM Plex Mono, monospace">{a.alt || 'GND'} {a.hdg}°</text>
+                </g>
+              )
+            })}
+          </g>
+          <text x={CX} y="36" textAnchor="middle" fill="#7dffb0" fontSize="13" fontFamily="IBM Plex Mono, monospace">LTFM IGA</text>
+          <text x={CX} y="54" textAnchor="middle" fill="#3d9a62" fontSize="10" fontFamily="IBM Plex Mono, monospace">16L / 16R</text>
         </svg>
         <div className="mt-3 rounded-2xl border border-[var(--stroke)] bg-[var(--panel)] px-4 py-3">
           <p className="font-mono text-[11px] tracking-[0.2em] text-[var(--amber)]">{who || 'TWR'}</p>

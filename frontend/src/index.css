@@ -186,17 +186,23 @@ html.dark .track-page::after {
   position: relative;
   z-index: 1;
 }
-.track-tilt-a {
-  transform: rotate(-1.15deg);
+.radar-scope {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+  background: #020804;
+  border-radius: 50%;
+  box-shadow: inset 0 0 80px #003b18, 0 0 0 8px #0a1f12, 0 0 40px #0b3a1a;
 }
-.track-tilt-b {
-  transform: rotate(0.95deg);
+.radar-sweep {
+  transform-origin: 320px 320px;
+  animation: radar-spin 4s linear infinite;
 }
-.track-tilt-c {
-  transform: rotate(-0.6deg);
-}
-.track-tilt-d {
-  transform: rotate(1.2deg);
+@keyframes radar-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .word-page:empty::before {
