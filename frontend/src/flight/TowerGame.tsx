@@ -172,6 +172,7 @@ export function TowerGame() {
   const [zoom, setZoom] = useState(1)
   const [locStep, setLocStep] = useState(-1)
   const recRef = useRef<{ stop: () => void } | null>(null)
+  const listenRef = useRef<() => void>(() => undefined)
   const ac = fleet.find((a) => a.id === sel) || null
   const cmds = useMemo(() => CMDS.filter((c) => c.roles.includes(role)), [role])
   const shown = fleet.filter((a) => forRole(a, role) || a.id === '5247')
@@ -220,6 +221,7 @@ export function TowerGame() {
       setWho('5247')
       setStrip('İstanbul günaydın 5247 pist 06 establish')
       speakAtc('İstanbul günaydın 5247 pist 06 establish', 'tr-TR')
+      setFleet((prev) => prev.map((x) => (x.id === '5247' ? { ...x, last: 'called' } : x)))
     }, 5000)
     return () => window.clearTimeout(tmr)
   }, [role])
@@ -364,19 +366,36 @@ export function TowerGame() {
       .catch(() => setSent(t.catalogFail))
   }
 
-  const callPilot = (a: Ac) => {
-    silenceRadio()
-    let line = `${a.cs}, ${role === 'APP' ? 'Istanbul Approach' : role === 'TWR' ? 'Istanbul Tower' : 'Istanbul Ground'}`
-    if (a.id === '5247') line = 'İstanbul günaydın 5247 pist 06 establish'
-    else if (a.emerg === 'mayday') line = `MAYDAY MAYDAY MAYDAY, ${a.cs}`
-    else if (a.emerg === 'pan') line = `PAN PAN PAN, ${a.cs}, medical`
-    else if (a.phase === 'final') line = `${a.cs}, ILS 16 Left, established`
-    else if (a.phase === 'rw') line = `${a.cs}, ready for departure, runway 16 Left`
-    else if (a.phase === 'taxi') line = `${a.cs}, request taxi`
-    setWho(a.cs)
-    setStrip(line)
-    speakAtc(line, a.id === '5247' ? 'tr-TR' : 'en-US')
-  }
+  listenRef.current = listen
+  const busyRef = useRef(false)
+  busyRef.current = busy
+  const selRef = useRef(sel)
+  selRef.current = sel
+  const roleRef = useRef(role)
+  roleRef.current = role
+  const fleetRef = useRef(fleet)
+  fleetRef.current = fleet
+
+  useEffect(() => {
+    if (!sel || busy) return
+    const tmr = window.setTimeout(() => listenRef.current(), 1400)
+    return () => window.clearTimeout(tmr)
+  }, [sel, cmd, busy])
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (busyRef.current) return
+      const r = roleRef.current
+      const wait = fleetRef.current.filter((a) => forRole(a, r) && a.id !== selRef.current)
+      if (!wait.length) return
+      const a = wait[Math.floor(Math.random() * wait.length)]
+      silenceRadio()
+      setWho(a.cs)
+      setStrip(`${a.cs}`)
+      speakAtc(`Istanbul Tower, ${a.cs}`)
+    }, 18000)
+    return () => window.clearInterval(id)
+  }, [])
 
   return (
     <div className="radar-board rounded-3xl p-4 md:p-6">
@@ -404,7 +423,7 @@ export function TowerGame() {
         </div>
       ) : null}
       {wx.bad ? <p className="mb-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-sm">{wx.news}</p> : null}
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,1fr)]">
+      <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(380px,34%)]">
         <div>
           <svg viewBox={`0 0 ${W} ${W}`} className="radar-scope">
             <defs>
@@ -474,50 +493,56 @@ export function TowerGame() {
             </g>
             <text x={CX} y="26" textAnchor="middle" fill="#7dffb0" fontSize="13">LTFM IGA · {role}</text>
           </svg>
-          <p className="mt-2 font-mono text-[11px] text-[#7dffb0]">beyaz trafik · sarı kalkış · pembe EM · kırmızı PAN · ILS 16L</p>
-          <div className="mt-3 rounded-2xl border border-[#1f6b3a] px-4 py-3">
-            <p className="font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">{who || role}</p>
-            <p className="mt-1 text-sm leading-6">{strip}</p>
+          <div className="mt-2 flex h-10 items-center gap-3 rounded-xl border border-[#1f6b3a] px-3">
+            <span className={`h-2 w-2 rounded-full ${busy ? 'bg-rose-400' : 'bg-[#3dff8a]'}`} />
+            <span className="font-mono text-xs text-[#f5c542]">{who || role}</span>
+            <span className="truncate text-sm">{busy ? t.listening : strip}</span>
           </div>
         </div>
-        <aside className="space-y-3">
-          <div className="rounded-2xl border border-[#1f6b3a] p-4 text-sm leading-6">
-            <p className="font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">METAR LTFM</p>
-            <p className="mt-1 font-mono text-xs">{wx.metar}</p>
-            <Button variant="secondary" className="mt-2" onClick={() => speakAtc(wx.atis)}>METAR dinle</Button>
-            <p className="mt-3 font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">{t.gameFreq}</p>
-            <p className="mt-1 font-mono text-xs">APP 120.5 · TWR 118.8 · GND 121.8</p>
+        <aside className="min-h-[520px] space-y-3">
+          <div className="rounded-2xl border border-[#1f6b3a] p-3 text-xs">
+            <button type="button" className="font-mono text-[11px] text-[#f5c542]" onClick={() => speakAtc(wx.atis)}>METAR</button>
+            <p className="mt-1 font-mono leading-5">{wx.metar}</p>
+          </div>
+          <div className="rounded-2xl border border-[#1f6b3a] p-3">
+            <p className="font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">TRAFFIC</p>
+            <div className="mt-2 max-h-40 space-y-1 overflow-auto">
+              {shown.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => { setSel(a.id); setCmd(null) }}
+                  className={`flex w-full items-center justify-between rounded-lg px-2 py-1 text-left text-xs ${sel === a.id ? 'bg-emerald-500/20' : ''}`}
+                >
+                  <span style={{ color: blipColor(a) }}>{a.cs}</span>
+                  <span className="font-mono text-[#8fb89a]">{a.emerg === 'mayday' ? 'EM' : a.emerg === 'pan' ? 'PAN' : a.phase}</span>
+                </button>
+              ))}
+            </div>
           </div>
           {ac ? (
-            <div className="rounded-2xl border border-[#1f6b3a] p-4">
+            <div className="rounded-2xl border border-[#1f6b3a] p-3">
               <p className="font-extrabold">{ac.cs}</p>
-              <p className="mt-1 font-mono text-xs text-[#8fb89a]">SQ {ac.squawk} · {ac.phase} {ac.emerg ? `· ${ac.emerg}` : ''}</p>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs">
                 <Bar label={t.gameAlt} value={ac.alt} onMinus={() => bump('alt', -500)} onPlus={() => bump('alt', 500)} />
                 <Bar label={t.gameHdg} value={ac.hdg} onMinus={() => bump('hdg', -10)} onPlus={() => bump('hdg', 10)} />
                 <Bar label={t.gameSpd} value={ac.spd} onMinus={() => bump('spd', -10)} onPlus={() => bump('spd', 10)} />
               </div>
-              <Button variant="secondary" className="mt-3 w-full" onClick={() => callPilot(ac)}>{t.gameHear}</Button>
-              <p className="mt-3 font-mono text-[11px] tracking-[0.2em] text-[#f5c542]">{t.gameCmds}</p>
-              <div className="mt-2 grid max-h-52 grid-cols-2 gap-1 overflow-auto">
+              <div className="mt-2 grid grid-cols-2 gap-1">
                 {cmds.map((c) => (
                   <button
                     key={c.id}
                     type="button"
                     onClick={() => setCmd(c)}
-                    className={`rounded-xl border px-2 py-2 text-left text-xs ${cmd?.id === c.id ? 'border-emerald-400 bg-emerald-500/15' : 'border-[#1f6b3a]'}`}
+                    className={`rounded-lg border px-2 py-2 text-left text-xs ${cmd?.id === c.id ? 'border-emerald-400 bg-emerald-500/15' : 'border-[#1f6b3a]'}`}
                   >
                     {c.label}
                   </button>
                 ))}
               </div>
-              {cmd ? <p className="mt-3 rounded-xl bg-[#0c2416] px-3 py-2 text-sm">{cmd.line(ac.cs, ac)}</p> : <p className="mt-2 text-xs text-[#8fb89a]">Sadece uçak adı = go ahead</p>}
-              <Button className="mt-3 w-full" disabled={busy} onClick={listen}>
-                {busy ? t.listening : t.gameSay}
-              </Button>
             </div>
           ) : (
-            <p className="rounded-2xl border border-dashed border-[#1f6b3a] p-4 text-sm">{t.gamePick}</p>
+            <p className="rounded-2xl border border-dashed border-[#1f6b3a] p-3 text-sm">{t.gamePick}</p>
           )}
         </aside>
       </div>

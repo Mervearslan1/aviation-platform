@@ -171,7 +171,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const gameOn = Boolean(cfg.game === 'radar') || radarView
   return (
     <div className="track-page flex-1">
-      <div className={`mx-auto px-4 py-8 ${radarView ? 'max-w-7xl' : 'max-w-6xl'}`}>
+      <div className={`mx-auto px-4 py-8 ${radarView ? 'max-w-[1440px]' : 'max-w-6xl'}`}>
         <Link to="/" className="font-mono text-xs tracking-[0.2em] text-[var(--hud)]">← {t.back}</Link>
         <p className="mt-4 font-mono text-[11px] tracking-[0.35em] text-[var(--amber)]">
           {track === 'tower' ? 'TWR' : 'PIC'} · {levelLabel(t, path.difficulty)}
