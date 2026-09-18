@@ -7,6 +7,9 @@ import { Button } from '../../shared/Button'
 import { SpeakDrill } from '../SpeakDrill'
 import { TowerGame } from '../TowerGame'
 
+/** 0 = open for testing. Set to 85 before publish. */
+const RADAR_UNLOCK_POINTS = 0
+
 function stageOf(step: CatalogStep) {
   const cfg = (step.configuration || {}) as Record<string, unknown>
   const n = Number(cfg.stage)
@@ -91,7 +94,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
     const nxt = path.steps[i + 1]
     if (nxt) {
       const pts = path.steps.filter((s) => done.has(s.id) || s.progressStatus === 'COMPLETED').length
-      if (stageOf(nxt) === 5 && track === 'tower' && !(token() && pts >= 85)) {
+      if (stageOf(nxt) === 5 && track === 'tower' && RADAR_UNLOCK_POINTS > 0 && !(token() && pts >= RADAR_UNLOCK_POINTS)) {
         setLockMsg(t.stage5Locked)
         return
       }
@@ -138,11 +141,11 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const score = path.steps.filter((s) => done.has(s.id) || s.progressStatus === 'COMPLETED').length
   const total = path.steps.length
   const finishedTrack = loggedIn && total > 0 && score >= total
-  const radarOpen = track === 'tower' && loggedIn && score >= 85
+  const radarOpen = track === 'tower' && (RADAR_UNLOCK_POINTS === 0 || (loggedIn && score >= RADAR_UNLOCK_POINTS))
   const gameOn = Boolean(cfg.game === 'radar')
   const trackImg = track === 'tower' ? 'url("/atmosphere/tower.jpg")' : 'url("/atmosphere/pilot.jpg")'
   return (
-    <div className="track-page" style={{ ['--track-img' as string]: trackImg }}>
+    <div className="track-page flex-1" style={{ ['--track-img' as string]: trackImg }}>
       <div className="mx-auto max-w-6xl px-4 py-8">
         <Link to="/" className="font-mono text-xs tracking-[0.2em] text-[var(--hud)]">← {t.back}</Link>
         <p className="mt-4 font-mono text-[11px] tracking-[0.35em] text-[var(--amber)]">

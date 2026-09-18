@@ -153,32 +153,28 @@ html.dark .writer-scene::after {
 .track-page {
   position: relative;
   isolation: isolate;
+  min-height: 100%;
   background: var(--bg);
 }
 .track-page::before {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: min(280px, 38vh);
+  inset: 0;
   z-index: 0;
-  background-image: var(--track-img, var(--blog-bg));
+  background-image: var(--track-img, var(--hero-img));
   background-size: cover;
-  background-position: center 30%;
-  filter: blur(22px);
-  transform: scale(1.04);
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(28px);
+  transform: scale(1.06);
   pointer-events: none;
 }
 .track-page::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: min(280px, 38vh);
+  inset: 0;
   z-index: 0;
-  background: linear-gradient(to bottom, var(--blog-veil), var(--bg));
+  background: var(--blog-veil);
   pointer-events: none;
 }
 .track-page > * {
