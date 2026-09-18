@@ -119,13 +119,23 @@ function cabinBurst(ms: number) {
   src.stop(t1)
 }
 
+const TR_DIGIT: Record<string, string> = {
+  '0': 'sıfır', '1': 'bir', '2': 'iki', '3': 'üç', '4': 'dört',
+  '5': 'beş', '6': 'altı', '7': 'yedi', '8': 'sekiz', '9': 'dokuz',
+}
+
+function trSpeak(text: string) {
+  return text.replace(/\d/g, (d) => `${TR_DIGIT[d] || d} `)
+}
+
 /** Radio + light cabin. Stops everyone else first. */
 export function speakAtc(text: string, lang = 'en-US', volume = 1) {
   speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(atcSpoken(text))
-  u.lang = lang
-  u.rate = 1.04
-  u.pitch = 0.74
+  const spoken = lang.toLowerCase().startsWith('tr') ? trSpeak(text) : atcSpoken(text)
+  const u = new SpeechSynthesisUtterance(spoken)
+  u.lang = lang.startsWith('tr') ? 'tr-TR' : lang
+  u.rate = lang.startsWith('tr') ? 0.98 : 1.04
+  u.pitch = lang.startsWith('tr') ? 1 : 0.74
   u.volume = Math.max(0.2, Math.min(1, volume))
   const ms = Math.min(2200, 500 + text.length * 20)
   click()

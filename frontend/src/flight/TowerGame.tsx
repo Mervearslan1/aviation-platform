@@ -137,7 +137,20 @@ function foldTr(s: string) {
 
 function locHit(spoken: string, keys: string[]) {
   const n = foldTr(spoken)
-  return keys.some((k) => n.includes(foldTr(k)))
+  const uniq = [...new Set(keys.map(foldTr))]
+  const hit = uniq.filter((k) => n.includes(k)).length
+  return hit >= Math.max(1, Math.ceil(uniq.length * 0.4))
+}
+
+function isTurkishTalk(spoken: string) {
+  const n = foldTr(spoken)
+  if (/[ğüşıöç]/.test(spoken.toLowerCase())) return true
+  const keys = [
+    'gunaydin', 'efendim', 'anlasildi', 'anladim', 'inis', 'serbest', 'ruzgar', 'sakin',
+    'devam', 'haber', 'aliyor', 'inecek', 'localizer', 'lokal', 'gecmeyin', 'buyrun',
+    'inin', 'sagol', 'tamam', 'pist', 'kule', 'istanbul',
+  ]
+  return keys.filter((k) => n.includes(k)).length >= 1
 }
 
 const WX_GOOD = {
@@ -382,7 +395,7 @@ export function TowerGame() {
   const advanceLoc = (text: string) => {
     if (locStep < 0 || locStep >= LOC_STEPS.length) return false
     const step = LOC_STEPS[locStep]
-    if (!locHit(text, step.keys)) return false
+    if (!locHit(text, step.keys) && !isTurkishTalk(text)) return false
     const lines = step.say
     if (lines[0]) {
       setWho('5247')
@@ -423,6 +436,7 @@ export function TowerGame() {
     }
     const for5247 =
       sel === '5247' ||
+      locStep >= 0 && isTurkishTalk(text) ||
       locHit(text, ['5247', 'gunaydin', 'günaydın', 'localizer', 'lokali', 'lokalaizer'])
     if (for5247 && locStep >= 0 && locStep < LOC_STEPS.length) {
       if (advanceLoc(text)) return
@@ -508,7 +522,7 @@ export function TowerGame() {
     silenceRadio()
     setBusy(true)
     const rec = new Ctor()
-    rec.lang = locStep >= 0 || (ac && trVoice(ac)) ? 'tr-TR' : 'en-US'
+    rec.lang = locStep >= 0 || (ac && trVoice(ac)) || shown.some((a) => trVoice(a)) ? 'tr-TR' : 'en-US'
     rec.continuous = false
     rec.interimResults = false
     rec.onresult = (ev) => {
