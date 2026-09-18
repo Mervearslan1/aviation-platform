@@ -98,6 +98,15 @@ class PhraseMatcherTest {
     }
 
     @Test
+    void acceptsTripleSeven() {
+        assertThat(PhraseMatcher.matches(
+                "triple seven runway is yours",
+                "Turkish 777 runway 16 Left is yours",
+                List.of()
+        )).isTrue();
+    }
+
+    @Test
     void acceptsSunExpress() {
         assertThat(PhraseMatcher.matches(
                 "sun express 773 line up and wait",

@@ -58,6 +58,8 @@ function normalize(value: string) {
     .replaceAll('ü', 'u')
     .replace(/[^a-z0-9 ]/g, ' ')
     .replace(/\bsun express\b/g, 'sunexpress')
+    .replace(/\btriple seven\b/g, '777')
+    .replace(/\bfife\b/g, '5')
     .replace(/([a-z]+)(\d)/g, '$1 $2')
     .replace(/(\d)([a-z]+)/g, '$1 $2')
     .replace(/\s+/g, ' ')

@@ -129,6 +129,7 @@ public final class PhraseMatcher {
                 .replace('ü', 'u')
                 .replaceAll("[^a-z0-9 ]", " ")
                 .replaceAll("\\bsun express\\b", "sunexpress")
+                .replaceAll("\\btriple seven\\b", "777")
                 .replaceAll("([a-z]+)(\\d)", "$1 $2")
                 .replaceAll("(\\d)([a-z]+)", "$1 $2")
                 .replaceAll("\\s+", " ")

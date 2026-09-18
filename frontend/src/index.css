@@ -153,26 +153,37 @@ html.dark .writer-scene::after {
 .track-page {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
-  min-height: 100%;
+  background: var(--bg);
 }
 .track-page::before {
   content: "";
   position: absolute;
-  inset: -48px;
-  z-index: -2;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: min(280px, 38vh);
+  z-index: 0;
   background-image: var(--track-img, var(--blog-bg));
   background-size: cover;
-  background-position: center;
-  filter: blur(34px);
-  transform: scale(1.08);
+  background-position: center 30%;
+  filter: blur(22px);
+  transform: scale(1.04);
+  pointer-events: none;
 }
 .track-page::after {
   content: "";
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--blog-veil);
+  left: 0;
+  right: 0;
+  top: 0;
+  height: min(280px, 38vh);
+  z-index: 0;
+  background: linear-gradient(to bottom, var(--blog-veil), var(--bg));
+  pointer-events: none;
+}
+.track-page > * {
+  position: relative;
+  z-index: 1;
 }
 .track-tilt-a {
   transform: rotate(-1.15deg);

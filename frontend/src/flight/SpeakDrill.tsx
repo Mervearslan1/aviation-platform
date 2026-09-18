@@ -1,25 +1,25 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useI18n } from '../shared/i18n'
 import { phraseMatchesAny } from '../shared/phrase'
+import { speakAtc } from '../shared/atcSpeech'
 import { Button } from '../shared/Button'
 
-type RecCtor = new () => {
+type Rec = {
   lang: string
+  continuous: boolean
+  interimResults: boolean
   start: () => void
-  onresult: ((ev: { results: { 0: { 0: { transcript: string } } } }) => void) | null
+  stop: () => void
+  onresult: ((ev: { results: ArrayLike<{ 0: { transcript: string } }> }) => void) | null
   onerror: (() => void) | null
+  onend: (() => void) | null
 }
+
+type RecCtor = new () => Rec
 
 function recApi(): RecCtor | null {
   const w = window as unknown as { SpeechRecognition?: RecCtor; webkitSpeechRecognition?: RecCtor }
   return w.SpeechRecognition || w.webkitSpeechRecognition || null
-}
-
-function speak(text: string, lang = 'en-US') {
-  const u = new SpeechSynthesisUtterance(text)
-  u.lang = lang
-  speechSynthesis.cancel()
-  speechSynthesis.speak(u)
 }
 
 export function SpeakDrill({
@@ -39,32 +39,54 @@ export function SpeakDrill({
   const [heard, setHeard] = useState('')
   const [ok, setOk] = useState(false)
   const [busy, setBusy] = useState(false)
+  const recRef = useRef<Rec | null>(null)
+  const timerRef = useRef(0)
+  const stopRec = () => {
+    window.clearTimeout(timerRef.current)
+    try {
+      recRef.current?.stop()
+    } catch {
+      /* already ended */
+    }
+    recRef.current = null
+    setBusy(false)
+  }
   const listen = () => {
     const Ctor = recApi()
     if (!Ctor) {
       setHeard(t.noMic)
       return
     }
+    stopRec()
     setBusy(true)
     const rec = new Ctor()
     rec.lang = 'en-US'
+    rec.continuous = false
+    rec.interimResults = false
     rec.onresult = (ev) => {
-      const text = ev.results[0][0].transcript
+      const last = ev.results[ev.results.length - 1]
+      const text = last[0].transcript
       setHeard(text)
-      setBusy(false)
+      stopRec()
       if (phraseMatchesAny(text, line, accepted)) {
         setOk(true)
-        speak(reply || 'Roger.')
+        speakAtc(reply || 'Roger.')
         onPass(text)
       } else {
         setOk(false)
       }
     }
     rec.onerror = () => {
-      setBusy(false)
+      stopRec()
       setHeard(t.noMic)
     }
+    rec.onend = () => {
+      recRef.current = null
+      setBusy(false)
+    }
+    recRef.current = rec
     rec.start()
+    timerRef.current = window.setTimeout(stopRec, 8000)
   }
   return (
     <div className="mt-6 rounded-3xl border border-[var(--stroke)] bg-[var(--bg)] p-5">
@@ -72,7 +94,7 @@ export function SpeakDrill({
         <div className="mb-4">
           <p className="font-mono text-xs tracking-[0.2em] text-[var(--amber)]">{t.otherParty}</p>
           <p className="mt-2 text-lg">{prompt}</p>
-          <Button variant="secondary" className="mt-3" onClick={() => speak(prompt)}>
+          <Button variant="secondary" className="mt-3" onClick={() => speakAtc(prompt)}>
             {t.listenCall}
           </Button>
         </div>
@@ -81,8 +103,11 @@ export function SpeakDrill({
       <p className="mt-3 rounded-2xl bg-[var(--panel)] px-4 py-5 text-xl font-semibold leading-8">{line}</p>
       <div className="mt-4 flex flex-wrap gap-3">
         <Button onClick={listen} disabled={busy}>
-          {busy ? '…' : t.tapMic}
+          {busy ? t.listening : t.tapMic}
         </Button>
+        {busy ? (
+          <Button variant="ghost" onClick={stopRec}>{t.stopMic}</Button>
+        ) : null}
       </div>
       {heard || ok ? (
         <p

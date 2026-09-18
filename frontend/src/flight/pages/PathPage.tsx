@@ -1,30 +1,40 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, token, type CatalogPath, type CatalogStep } from '../../shared/api'
+import { speakAtc } from '../../shared/atcSpeech'
 import { levelLabel, useI18n } from '../../shared/i18n'
 import { Button } from '../../shared/Button'
 import { SpeakDrill } from '../SpeakDrill'
+import { TowerGame } from '../TowerGame'
 
 function stageOf(step: CatalogStep) {
   const cfg = (step.configuration || {}) as Record<string, unknown>
   const n = Number(cfg.stage)
-  return n >= 1 && n <= 4 ? n : 1
+  return n >= 1 && n <= 5 ? n : 1
+}
+
+function displayTitle(step: CatalogStep, locale: string) {
+  const en = (step.configuration || {}).titleEn
+  if (locale === 'en' && typeof en === 'string' && en.trim()) return en
+  return step.title
 }
 
 export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [path, setPath] = useState<CatalogPath | null>(null)
   const [current, setCurrent] = useState<CatalogStep | null>(null)
   const [stage, setStage] = useState(1)
   const [error, setError] = useState('')
   const [picked, setPicked] = useState<{ stepId: number; index: number } | null>(null)
   const [done, setDone] = useState<Set<number>>(new Set())
+  const [lockMsg, setLockMsg] = useState('')
   const loggedIn = Boolean(token())
   const stages = [
     { id: 1, title: t.stage1, hint: t.stage1Hint, tilt: 'track-tilt-a' },
     { id: 2, title: t.stage2, hint: t.stage2Hint, tilt: 'track-tilt-b' },
     { id: 3, title: t.stage3, hint: t.stage3Hint, tilt: 'track-tilt-c' },
     { id: 4, title: t.stage4, hint: t.stage4Hint, tilt: 'track-tilt-d' },
+    { id: 5, title: t.stage5, hint: t.stage5Hint, tilt: 'track-tilt-a' },
   ]
   const load = () => {
     setError('')
@@ -80,6 +90,11 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
     const i = path.steps.findIndex((s) => s.id === current.id)
     const nxt = path.steps[i + 1]
     if (nxt) {
+      const pts = path.steps.filter((s) => done.has(s.id) || s.progressStatus === 'COMPLETED').length
+      if (stageOf(nxt) === 5 && track === 'tower' && !(token() && pts >= 85)) {
+        setLockMsg(t.stage5Locked)
+        return
+      }
       setPicked(null)
       setCurrent(nxt)
       setStage(stageOf(nxt))
@@ -123,6 +138,8 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const score = path.steps.filter((s) => done.has(s.id) || s.progressStatus === 'COMPLETED').length
   const total = path.steps.length
   const finishedTrack = loggedIn && total > 0 && score >= total
+  const radarOpen = track === 'tower' && loggedIn && score >= 85
+  const gameOn = Boolean(cfg.game === 'radar')
   const trackImg = track === 'tower' ? 'url("/atmosphere/tower.jpg")' : 'url("/atmosphere/pilot.jpg")'
   return (
     <div className="track-page" style={{ ['--track-img' as string]: trackImg }}>
@@ -147,16 +164,23 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
             {t.ivaoReady}
           </p>
         ) : null}
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {stages.map((s) => {
+        {lockMsg ? <p className="mt-3 text-sm text-[var(--warn)]">{lockMsg}</p> : null}
+        <div className={`mt-8 grid gap-3 sm:grid-cols-2 ${track === 'tower' ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
+          {stages.filter((s) => track === 'tower' || s.id < 5).map((s) => {
             const n = path.steps.filter((st) => stageOf(st) === s.id).length
             const got = path.steps.filter((st) => stageOf(st) === s.id && (done.has(st.id) || st.progressStatus === 'COMPLETED')).length
             const on = stage === s.id
+            const locked = s.id === 5 && !radarOpen
             return (
               <button
                 key={s.id}
                 type="button"
                 onClick={() => {
+                  if (locked) {
+                    setLockMsg(t.stage5Locked)
+                    return
+                  }
+                  setLockMsg('')
                   setStage(s.id)
                   const first = path.steps.find((st) => stageOf(st) === s.id)
                   if (first) {
@@ -164,7 +188,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                     setCurrent(first)
                   }
                 }}
-                className={`glass ${s.tilt} rounded-3xl px-4 py-4 text-left transition ${on ? 'ring-2 ring-[var(--amber)]' : ''}`}
+                className={`glass ${s.tilt} rounded-3xl px-4 py-4 text-left transition ${on ? 'ring-2 ring-[var(--amber)]' : ''} ${locked ? 'opacity-60' : ''}`}
               >
                 <span className="block font-extrabold">{s.title}</span>
                 <span className="mt-1 block text-sm text-[var(--muted)]">{s.hint}</span>
@@ -197,7 +221,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                       {ok ? '✓' : i + 1}
                     </span>
                     <span>
-                      <span className="block text-sm font-medium">{step.title}</span>
+                      <span className="block text-sm font-medium">{displayTitle(step, locale)}</span>
                       <span className="font-mono text-[10px] text-[var(--amber)]">
                         {step.stepType === 'SPEAK' ? t.stepSpeak
                           : step.stepType === 'LISTEN' ? t.stepListen
@@ -214,19 +238,14 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
           <article className="glass min-h-[360px] rounded-3xl p-6">
             {current ? (
               <>
-                <h2 className="text-2xl font-extrabold">{current.title}</h2>
+                <h2 className="text-2xl font-extrabold">{displayTitle(current, locale)}</h2>
                 <p className="mt-2 text-[var(--muted)]">{current.description}</p>
                 <div
                   className="article-body mt-4 text-[15px] leading-7"
                   dangerouslySetInnerHTML={{ __html: current.contentHtml || '' }}
                 />
                 {current.stepType === 'LISTEN' && prompt ? (
-                  <Button variant="secondary" className="mt-4" onClick={() => {
-                    const u = new SpeechSynthesisUtterance(prompt)
-                    u.lang = 'en-US'
-                    speechSynthesis.cancel()
-                    speechSynthesis.speak(u)
-                  }}>{t.listenCall}</Button>
+                  <Button variant="secondary" className="mt-4" onClick={() => speakAtc(prompt)}>{t.listenCall}</Button>
                 ) : null}
                 {quizMode ? (
                   <div key={current.id} className="mt-4">
@@ -268,7 +287,8 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                     onPass={(spoken) => persist(undefined, spoken)}
                   />
                 ) : null}
-                {current.stepType === 'LIVE_PRACTICE' ? (
+                {gameOn ? <TowerGame /> : null}
+                {current.stepType === 'LIVE_PRACTICE' && !gameOn ? (
                   <p className="mt-6">
                     <a
                       href={String(cfg.url || 'https://www.ivao.aero')}
