@@ -132,7 +132,13 @@ function forRole(a: Ac, role: Role) {
 }
 
 function startFleet(role: Role) {
-  return POOL.filter((a) => forRole(a, role)).slice(0, 2)
+  return POOL.filter((a) => forRole(a, role)).slice(0, 1)
+}
+
+function emergCall(a: Ac) {
+  if (a.emerg === 'mayday') return `MAYDAY MAYDAY MAYDAY, ${a.cs}`
+  if (a.emerg === 'pan') return `PAN PAN PAN, ${a.cs}`
+  return `${a.cs}, Istanbul Tower`
 }
 
 function blipColor(a: Ac) {
@@ -191,7 +197,7 @@ export function TowerGame() {
         prev.map((a) => {
           if (a.phase === 'rw' || a.phase === 'taxi' || a.spd < 8) return a
           const rad = ((a.hdg - 90) * Math.PI) / 180
-          const step = a.spd / 180
+          const step = a.spd / 320
           let x = a.x + Math.cos(rad) * step
           let y = a.y + Math.sin(rad) * step
           const dx = x - CX
@@ -204,7 +210,7 @@ export function TowerGame() {
           return { ...a, x, y }
         }),
       )
-    }, 900)
+    }, 1400)
     return () => window.clearInterval(id)
   }, [])
 
@@ -213,10 +219,17 @@ export function TowerGame() {
       setFleet((prev) => {
         const have = new Set(prev.map((a) => a.id))
         const next = POOL.find((a) => forRole(a, role) && !have.has(a.id))
-        if (!next || prev.filter((a) => forRole(a, role)).length >= 5) return prev
-        return [...prev, { ...next }]
+        if (!next || prev.filter((a) => forRole(a, role)).length >= 3) return prev
+        if (next.emerg) {
+          window.setTimeout(() => {
+            setWho(next.cs)
+            setStrip(emergCall(next))
+            speakAtc(emergCall(next))
+          }, 800)
+        }
+        return [...prev, { ...next, last: next.emerg ? 'emerg' : '' }]
       })
-    }, 22000)
+    }, 48000)
     return () => window.clearInterval(id)
   }, [role])
 
@@ -303,8 +316,22 @@ export function TowerGame() {
     const pack = shown
     const named = findCs(text, pack) || ac
     if (!named) {
-      setStrip('Say again.')
-      speakAtc('Say again')
+      const hit = CMDS.filter((c) => c.roles.includes(role)).find((c) =>
+        has(text, [c.label, c.id === 'cont' ? 'continue' : '', c.id === 'aff' ? 'affirm' : '', c.id === 'unb' ? 'unable' : '', c.id === 'ahead' ? 'go ahead' : ''].filter(Boolean)),
+      )
+      const any = pack[0]
+      if (hit && any) {
+        const ans = replyFor(hit.id, any)
+        setWho(any.cs)
+        setStrip(ans)
+        speakAtc(ans)
+        setHandled((n) => n + 1)
+        return
+      }
+      const whoCs = any?.cs || 'Traffic'
+      setWho(whoCs)
+      setStrip(`${whoCs}, roger.`)
+      speakAtc(`${whoCs} roger`)
       return
     }
     setSel(named.id)
@@ -420,10 +447,11 @@ export function TowerGame() {
       if (!wait.length) return
       const a = wait[Math.floor(Math.random() * wait.length)]
       silenceRadio()
+      const line = emergCall(a)
       setWho(a.cs)
-      setStrip(`${a.cs}`)
-      speakAtc(`Istanbul Tower, ${a.cs}`)
-    }, 18000)
+      setStrip(line)
+      speakAtc(line)
+    }, 32000)
     return () => window.clearInterval(id)
   }, [])
 
