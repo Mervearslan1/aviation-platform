@@ -33,11 +33,11 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
   const [lockMsg, setLockMsg] = useState('')
   const loggedIn = Boolean(token())
   const stages = [
-    { id: 1, title: t.stage1, hint: t.stage1Hint, tilt: 'track-tilt-a' },
-    { id: 2, title: t.stage2, hint: t.stage2Hint, tilt: 'track-tilt-b' },
-    { id: 3, title: t.stage3, hint: t.stage3Hint, tilt: 'track-tilt-c' },
-    { id: 4, title: t.stage4, hint: t.stage4Hint, tilt: 'track-tilt-d' },
-    { id: 5, title: t.stage5, hint: t.stage5Hint, tilt: 'track-tilt-a' },
+    { id: 1, title: t.stage1, hint: t.stage1Hint },
+    { id: 2, title: t.stage2, hint: t.stage2Hint },
+    { id: 3, title: t.stage3, hint: t.stage3Hint },
+    { id: 4, title: t.stage4, hint: t.stage4Hint },
+    { id: 5, title: t.stage5, hint: t.stage5Hint },
   ]
   const load = () => {
     setError('')
@@ -190,7 +190,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                     setCurrent(first)
                   }
                 }}
-                className={`article-sheet ${s.tilt} rounded-3xl px-4 py-4 text-left transition ${on ? 'ring-2 ring-[var(--amber)]' : ''} ${locked ? 'opacity-60' : ''}`}
+                className={`article-sheet flex h-full flex-col rounded-3xl px-4 py-4 text-left transition ${on ? 'ring-2 ring-[var(--amber)]' : ''} ${locked ? 'opacity-60' : ''}`}
               >
                 <span className="block font-extrabold">{s.title}</span>
                 <span className="mt-1 block text-sm text-[var(--muted)]">{s.hint}</span>
@@ -204,8 +204,7 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
           })}
         </div>
         <div className="mt-8 grid gap-6 lg:grid-cols-[240px_1fr]">
-          <ol className="article-sheet relative overflow-hidden rounded-3xl p-3" aria-label={t.steps}>
-            <div className="absolute bottom-3 left-7 top-3 w-px bg-[var(--stroke)]" />
+          <ol className="article-sheet overflow-hidden rounded-3xl p-3" aria-label={t.steps}>
             {stageSteps.map((step, i) => {
               const on = current?.id === step.id
               const ok = done.has(step.id) || step.progressStatus === 'COMPLETED'
@@ -217,13 +216,13 @@ export function PathPage({ track }: { track: 'tower' | 'pilot' }) {
                       setPicked(null)
                       setCurrent(step)
                     }}
-                    className={`relative flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${on ? 'bg-[var(--bg-2)]' : ''}`}
+                    className={`grid min-h-11 w-full grid-cols-[1.75rem_minmax(0,1fr)] items-center gap-3 rounded-2xl px-3 py-2 text-left ${on ? 'bg-[var(--bg-2)]' : ''}`}
                   >
-                    <span className={`z-10 grid h-7 w-7 place-items-center rounded-full font-mono text-[11px] ${ok ? 'bg-emerald-500 text-white' : on ? 'bg-[var(--btn)] text-[var(--btn-ink)]' : 'border border-[var(--stroke)]'}`}>
+                    <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-[11px] ${ok ? 'bg-emerald-500 text-white' : on ? 'bg-[var(--btn)] text-[var(--btn-ink)]' : 'border border-[var(--stroke)]'}`}>
                       {ok ? '✓' : i + 1}
                     </span>
-                    <span>
-                      <span className="block text-sm font-medium">{displayTitle(step, locale)}</span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">{displayTitle(step, locale)}</span>
                       <span className="font-mono text-[10px] text-[var(--amber)]">
                         {step.stepType === 'SPEAK' ? t.stepSpeak
                           : step.stepType === 'LISTEN' ? t.stepListen
