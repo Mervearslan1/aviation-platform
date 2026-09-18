@@ -85,36 +85,60 @@ const AC5247: Ac = {
   id: '5247', cs: '5247', x: 300, y: 210, hdg: 60, spd: 140, alt: 1800, phase: 'final', squawk: '5247', lang: 'tr', last: '',
 }
 
-const LOC_STEPS: { expect: string[]; say: string[] }[] = [
+const LOC_STEPS: { keys: string[]; say: string[]; hint: string }[] = [
   {
-    expect: ['günaydın iniş serbest rüzgar sakin', 'gunaydin inis serbest ruzgar sakin', 'cleared to land wind calm'],
+    keys: ['gunaydin', 'günaydın', 'inis serbest', 'iniş serbest', 'ruzgar sakin', 'rüzgar sakin', 'serbest'],
     say: ['Serbest sakin.', 'Efendim sizin 06 nın localizerı yok.'],
+    hint: 'Günaydın, iniş serbest, rüzgar sakin',
   },
   {
-    expect: ['anlaşıldı yaklaşmaya devam', 'anlasildi yaklasmaya devam', 'ilgili yerlere haber', 'continue approach'],
+    keys: ['anlasildi', 'anlaşıldı', 'devam', 'haber'],
     say: [],
+    hint: 'Anlaşıldı, yaklaşıma devam edin, ilgili yerlere haber veriyoruz',
   },
   {
-    expect: ['5247 ILS alıyor musunuz', 'ils aliyor musunuz', 'are you receiving ILS'],
+    keys: ['ils', 'aliyor', 'alıyor'],
     say: ['Efendim sinyal devamlı var ama localizer şu anda gip gip geliyor.'],
+    hint: '5247 ILS alıyor musunuz?',
   },
   {
-    expect: ['inecek misiniz', 'inecek misiniz', 'will you land'],
+    keys: ['inecek', 'inecek misiniz'],
     say: ['İneceğiz tabi efendim ne olacak ki, gayet güzel iniyoruz.'],
+    hint: 'İnecek misiniz?',
   },
   {
-    expect: ['tamam iyi inişler rüzgar hala sakin', 'iyi inisler ruzgar sakin'],
+    keys: ['iyi inis', 'iyi iniş', 'sakin'],
     say: ['Anladım sağol.'],
+    hint: 'Tamam iyi inişler, rüzgar hala sakin',
   },
   {
-    expect: ['geçmeyin tabii efendim buyrun inin', 'gecmeyin buyrun inin', 'continue, cleared to land'],
+    keys: ['gecmeyin', 'geçmeyin', 'buyrun', 'inin'],
     say: ['Biz eskiden inerken hiç localizer yoktu ki.'],
+    hint: 'Geçmeyin tabii efendim, buyrun inin',
   },
   {
-    expect: ['anlaşıldı', 'anlasildi', 'roger'],
+    keys: ['anlasildi', 'anlaşıldı', 'anladim', 'anladım'],
     say: [],
+    hint: 'Anlaşıldı',
   },
 ]
+
+function foldTr(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/ı/g, 'i')
+    .replace(/İ/g, 'i')
+    .replace(/ş/g, 's')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+}
+
+function locHit(spoken: string, keys: string[]) {
+  const n = foldTr(spoken)
+  return keys.some((k) => n.includes(foldTr(k)))
+}
 
 const WX_GOOD = {
   metar: 'LTFM 171250Z 04008KT 9999 FEW030 18/11 Q1016 NOSIG',
@@ -279,7 +303,7 @@ export function TowerGame() {
   }, [role])
 
   useEffect(() => {
-    if (role !== 'TWR' || localStorage.getItem(LOC_KEY) === '1') return
+    if (role !== 'TWR') return
     const tmr = window.setTimeout(() => {
       setFleet((prev) => (prev.some((a) => a.id === '5247') ? prev : [...prev, AC5247]))
       setSel('5247')
@@ -287,6 +311,7 @@ export function TowerGame() {
       setWho('5247')
       setStrip('İstanbul günaydın 5247 pist 06 establish')
       speakAtc('İstanbul günaydın 5247 pist 06 establish', 'tr-TR')
+      window.setTimeout(() => setStrip(LOC_STEPS[0].hint), 3500)
       setFleet((prev) => prev.map((x) => (x.id === '5247' ? { ...x, last: 'called' } : x)))
     }, 5000)
     return () => window.clearTimeout(tmr)
@@ -357,16 +382,28 @@ export function TowerGame() {
   const advanceLoc = (text: string) => {
     if (locStep < 0 || locStep >= LOC_STEPS.length) return false
     const step = LOC_STEPS[locStep]
-    if (!phraseMatchesAny(text, step.expect[0], step.expect)) return false
+    if (!locHit(text, step.keys)) return false
     const lines = step.say
-    if (lines.length) {
+    if (lines[0]) {
       setWho('5247')
-      setStrip(lines.join(' '))
-      speakAtc(lines.join(' '), 'tr-TR')
+      setStrip(lines[0])
+      speakAtc(lines[0], 'tr-TR')
+    }
+    if (lines[1]) {
+      window.setTimeout(() => {
+        setWho('5247')
+        setStrip(lines[1])
+        speakAtc(lines[1], 'tr-TR')
+      }, 2200)
     }
     const nxt = locStep + 1
     setLocStep(nxt)
-    if (nxt >= LOC_STEPS.length) localStorage.setItem(LOC_KEY, '1')
+    if (nxt >= LOC_STEPS.length) {
+      localStorage.setItem(LOC_KEY, '1')
+      setStrip('Anlaşıldı.')
+    } else if (!lines.length) {
+      setStrip(LOC_STEPS[nxt].hint)
+    }
     return true
   }
 
@@ -384,10 +421,13 @@ export function TowerGame() {
       }, 6500)
       return
     }
-    if (sel === '5247' || locStep >= 0) {
+    const for5247 =
+      sel === '5247' ||
+      locHit(text, ['5247', 'gunaydin', 'günaydın', 'localizer', 'lokali', 'lokalaizer'])
+    if (for5247 && locStep >= 0 && locStep < LOC_STEPS.length) {
       if (advanceLoc(text)) return
-      if (locStep >= 0 && locStep < LOC_STEPS.length) {
-        setStrip('Tekrar eder misiniz.')
+      if (sel === '5247') {
+        setStrip(`Tekrar eder misiniz. (${LOC_STEPS[locStep].hint})`)
         speakAtc('Tekrar eder misiniz', 'tr-TR')
         return
       }
